@@ -2,6 +2,8 @@
 
 ## Unreleased - ReleaseDate
 
+## 0.5.0 - 2022-02-22
+
 * Extract `nwr` to a standalone repo.
   * `SQLite` can't be built statically under musl
 
