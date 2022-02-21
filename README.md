@@ -20,6 +20,31 @@ brew install nwr
 
 ## SYNOPSIS
 
+```text
+$ nwr help
+nwr 0.5.0
+wang-q <wang-q@outlook.com>
+`nwr` is a lightweight tool for newick and taxonomy
+
+USAGE:
+    nwr.exe [SUBCOMMAND]
+
+OPTIONS:
+    -h, --help       Print help information
+    -V, --version    Print version information
+
+SUBCOMMANDS:
+    append      Append fields of higher ranks to a TSV file
+    download    Download the latest release of `taxdmp`
+    help        Print this message or the help of the given subcommand(s)
+    info        Information of Taxonomy ID(s) or scientific name(s)
+    lineage     Output the lineage of the term
+    member      List members (of certain ranks) under ancestral term(s)
+    restrict    Restrict taxonomy terms to ancestral descendants
+    txdb        Init the taxonomy database
+
+```
+
 ## EXAMPLES
 
 ### `nwr`
