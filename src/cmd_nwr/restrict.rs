@@ -73,15 +73,15 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
     let nwrdir = if args.is_present("dir") {
         std::path::Path::new(args.value_of("dir").unwrap()).to_path_buf()
     } else {
-        intspan::nwr_path()
+        nwr::nwr_path()
     };
 
-    let conn = intspan::connect_txdb(&nwrdir).unwrap();
+    let conn = nwr::connect_txdb(&nwrdir).unwrap();
 
     let mut id_set = IntSpan::new();
     for term in args.values_of("terms").unwrap() {
-        let id = intspan::term_to_tax_id(&conn, term.to_string()).unwrap();
-        let descendents: Vec<i32> = intspan::get_all_descendent(&conn, id)
+        let id = nwr::term_to_tax_id(&conn, term.to_string()).unwrap();
+        let descendents: Vec<i32> = nwr::get_all_descendent(&conn, id)
             .unwrap()
             .iter()
             .map(|n| *n as i32)
@@ -101,7 +101,7 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
             // Check the given field
             let fields: Vec<&str> = line.split('\t').collect();
             let term = fields.get(column - 1).unwrap();
-            let id = intspan::term_to_tax_id(&conn, term.to_string()).unwrap();
+            let id = nwr::term_to_tax_id(&conn, term.to_string()).unwrap();
 
             if id_set.contains(id as i32) {
                 writer.write_fmt(format_args!("{}\n", line))?;

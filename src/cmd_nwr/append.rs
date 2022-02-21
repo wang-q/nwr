@@ -1,6 +1,6 @@
 use clap::*;
-use intspan::Node;
 use std::io::BufRead;
+use nwr::Node;
 
 // Create clap subcommand arguments
 pub fn make_subcommand<'a>() -> Command<'a> {
@@ -75,10 +75,10 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
     let nwrdir = if args.is_present("dir") {
         std::path::Path::new(args.value_of("dir").unwrap()).to_path_buf()
     } else {
-        intspan::nwr_path()
+        nwr::nwr_path()
     };
 
-    let conn = intspan::connect_txdb(&nwrdir).unwrap();
+    let conn = nwr::connect_txdb(&nwrdir).unwrap();
 
     let mut ranks = vec![];
     if args.is_present("rank") {
@@ -117,10 +117,10 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
             else {
                 // Check the given field
                 let term = fields.get(column - 1).unwrap();
-                let id = intspan::term_to_tax_id(&conn, term.to_string()).unwrap();
+                let id = nwr::term_to_tax_id(&conn, term.to_string()).unwrap();
 
                 if ranks.len() == 0 {
-                    let node = intspan::get_node(&conn, vec![id])
+                    let node = nwr::get_node(&conn, vec![id])
                         .unwrap()
                         .get(0)
                         .unwrap()
@@ -132,7 +132,7 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
                         fields.push(format!("{}", id));
                     }
                 } else {
-                    let lineage = intspan::get_lineage(&conn, id).unwrap();
+                    let lineage = nwr::get_lineage(&conn, id).unwrap();
                     for rank in ranks.iter() {
                         let (tax_id, sci_name) = find_rank(&lineage, rank.to_string());
                         fields.push(sci_name.to_string());

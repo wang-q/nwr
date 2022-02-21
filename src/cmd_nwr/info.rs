@@ -42,18 +42,18 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
     let nwrdir = if args.is_present("dir") {
         std::path::Path::new(args.value_of("dir").unwrap()).to_path_buf()
     } else {
-        intspan::nwr_path()
+        nwr::nwr_path()
     };
 
-    let conn = intspan::connect_txdb(&nwrdir).unwrap();
+    let conn = nwr::connect_txdb(&nwrdir).unwrap();
 
     let mut ids = vec![];
     for term in args.values_of("terms").unwrap() {
-        let id = intspan::term_to_tax_id(&conn, term.to_string()).unwrap();
+        let id = nwr::term_to_tax_id(&conn, term.to_string()).unwrap();
         ids.push(id);
     }
 
-    let nodes = intspan::get_node(&conn, ids).unwrap();
+    let nodes = nwr::get_node(&conn, ids).unwrap();
 
     if args.is_present("tsv") {
         let mut wtr = csv::WriterBuilder::new()

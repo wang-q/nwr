@@ -61,7 +61,7 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
     let nwrdir = if args.is_present("dir") {
         std::path::Path::new(args.value_of("dir").unwrap()).to_path_buf()
     } else {
-        intspan::nwr_path()
+        nwr::nwr_path()
     };
     let file = nwrdir.join("taxonomy.sqlite");
     if file.exists() {

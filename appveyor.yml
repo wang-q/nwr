@@ -7,14 +7,14 @@ init:
   - mkdir c:\rustup
   - SET PATH=c:\cargo\bin;%PATH%
 
-clone_folder: c:\projects\intspan
+clone_folder: c:\projects\nwr
 
 environment:
   CARGO_HOME: "c:\\cargo"
   RUSTUP_HOME: "c:\\rustup"
-  CARGO_TARGET_DIR: "c:\\projects\\intspan\\target"
+  CARGO_TARGET_DIR: "c:\\projects\\nwr\\target"
   global:
-    PROJECT_NAME: intspan
+    PROJECT_NAME: nwr
     RUST_BACKTRACE: full
   matrix:
     - TARGET: x86_64-pc-windows-gnu

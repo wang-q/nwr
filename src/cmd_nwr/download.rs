@@ -39,7 +39,7 @@ mv taxdump.* ~/.nwr/
 pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error::Error>> {
     let _ = SimpleLogger::init(LevelFilter::Info, Config::default());
 
-    let nwrdir = intspan::nwr_path();
+    let nwrdir = nwr::nwr_path();
     let tarball = nwrdir.join("taxdump.tar.gz");
 
     // download

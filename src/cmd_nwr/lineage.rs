@@ -41,15 +41,15 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
     let nwrdir = if args.is_present("dir") {
         std::path::Path::new(args.value_of("dir").unwrap()).to_path_buf()
     } else {
-        intspan::nwr_path()
+        nwr::nwr_path()
     };
 
-    let conn = intspan::connect_txdb(&nwrdir).unwrap();
+    let conn = nwr::connect_txdb(&nwrdir).unwrap();
 
     let term = args.value_of("term").unwrap().to_string();
-    let id = intspan::term_to_tax_id(&conn, term).unwrap();
+    let id = nwr::term_to_tax_id(&conn, term).unwrap();
 
-    let lineage = intspan::get_lineage(&conn, id).unwrap();
+    let lineage = nwr::get_lineage(&conn, id).unwrap();
 
     for node in lineage.iter() {
         writer.write_fmt(format_args!(

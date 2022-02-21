@@ -61,10 +61,10 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
     let nwrdir = if args.is_present("dir") {
         std::path::Path::new(args.value_of("dir").unwrap()).to_path_buf()
     } else {
-        intspan::nwr_path()
+        nwr::nwr_path()
     };
 
-    let conn = intspan::connect_txdb(&nwrdir).unwrap();
+    let conn = nwr::connect_txdb(&nwrdir).unwrap();
 
     let mut tsv_wtr = csv::WriterBuilder::new()
         .delimiter(b'\t')
@@ -80,10 +80,10 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
     let is_env = args.is_present("env");
 
     for term in args.values_of("terms").unwrap() {
-        let id = intspan::term_to_tax_id(&conn, term.to_string()).unwrap();
-        let descendents = intspan::get_all_descendent(&conn, id).unwrap();
+        let id = nwr::term_to_tax_id(&conn, term.to_string()).unwrap();
+        let descendents = nwr::get_all_descendent(&conn, id).unwrap();
 
-        let nodes = intspan::get_node(&conn, descendents)?;
+        let nodes = nwr::get_node(&conn, descendents)?;
 
         for node in nodes.iter() {
             if !rank_set.is_empty() && !rank_set.contains(&node.rank) {
