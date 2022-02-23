@@ -1,5 +1,6 @@
 use clap::*;
 use std::io::BufRead;
+use log::warn;
 use nwr::Node;
 
 // Create clap subcommand arguments
@@ -106,7 +107,7 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
                     for rank in ranks.iter() {
                         fields.push(rank.to_string());
                         if is_id {
-                            fields.push(format!("{} id", rank));
+                            fields.push(format!("{}_id", rank));
                         }
                     }
                 }
@@ -132,7 +133,14 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
                         fields.push(format!("{}", id));
                     }
                 } else {
-                    let lineage = nwr::get_lineage(&conn, id).unwrap();
+                    let lineage = match nwr::get_lineage(&conn, id) {
+                        Err(err) => {
+                            warn!("Errors on get_lineage(): {}", err);
+                            continue;
+                        },
+                        Ok(x) => x
+                    };
+
                     for rank in ranks.iter() {
                         let (tax_id, sci_name) = find_rank(&lineage, rank.to_string());
                         fields.push(sci_name.to_string());
