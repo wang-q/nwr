@@ -166,7 +166,7 @@ fn command_append_rank() -> Result<(), Box<dyn std::error::Error>> {
     assert_eq!(stdout.lines().count(), 2);
     assert_eq!(
         stdout.lines().next().unwrap(),
-        "#sci_name\ttax_id\tspecies\tspecies id\tfamily\tfamily id"
+        "#sci_name\ttax_id\tspecies\tspecies_id\tfamily\tfamily_id"
     );
     assert!(
         stdout.contains("\t12347\tActinophage JHJ-1\t12347"),

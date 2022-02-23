@@ -7,11 +7,12 @@ use std::io;
 // Create clap subcommand arguments
 pub fn make_subcommand<'a>() -> Command<'a> {
     Command::new("download")
-        .about("Download the latest release of `taxdmp`")
+        .about("Download the latest release of `taxdump`")
         .after_help(
             r###"
-You can download the tarball manually.
+You can download the files manually.
 
+# taxdump
 curl -LO https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
 curl -LO https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz.md5
 mv taxdump.* ~/.nwr/
