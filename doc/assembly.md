@@ -2,6 +2,14 @@
 
 Downloading date: 2022-2-24
 
+## `txdb`
+
+```shell
+nwr download
+nwr txdb
+
+```
+
 ## ASSEMBLY
 
 * Download
@@ -9,6 +17,7 @@ Downloading date: 2022-2-24
 ```shell
 wget -N -P ~/.nwr https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_refseq.txt
 wget -N -P ~/.nwr https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_genbank.txt
+
 ```
 
 * `assembly_summary_*.txt` files have 23 tab-delimited columns
@@ -104,18 +113,40 @@ asm_name
 ftp_path
 ```
 
+Sort and filter records
+
+* Sort by assembly_level and seq_rel_date
+* Remove incompetent strains
+* Transform to SQLite Date format
+
 ```shell
 for C in refseq genbank; do
     >&2 echo "==> ${C}"
-    cat ~/.nwr/assembly_summary_${C}.txt |
-        sed '1d' | #head -n 10 |
-        sed '1s/# //' |
-        tsv-select -H -f taxid,organism_name,bioproject,assembly_accession,wgs_master,refseq_category,assembly_level,genome_rep,seq_rel_date,asm_name,ftp_path |
-        sed '1s/^/#/' |
-        tsv-filter -H --invert --str-eq assembly_level:Scaffold --str-eq genome_rep:Partial |
-        tsv-filter -H --invert --str-eq assembly_level:Contig --str-eq genome_rep:Partial |
-        nwr append stdin -r species -r genus --id \
-        > ~/.nwr/ar_${C}.tsv
+    
+    for L in 'Complete Genome' 'Chromosome' 'Scaffold' 'Contig'; do
+        cat ~/.nwr/assembly_summary_${C}.txt |
+            sed '1d' | #head -n 50 |
+            sed '1s/# //' |
+            tsv-select -H -f taxid,organism_name,bioproject,assembly_accession,wgs_master,refseq_category,assembly_level,genome_rep,seq_rel_date,asm_name,ftp_path |
+            tsv-filter -H --str-eq assembly_level:"${L}" |
+            tsv-filter -H --not-iregex organism_name:"\bbacterium\b" |
+            tsv-filter -H --not-iregex organism_name:"\buncultured\b" |
+            tsv-filter -H --not-iregex organism_name:"\bCandidatus\b" |
+            tsv-filter -H --not-iregex organism_name:"\bunidentified\b" |
+            tsv-filter -H --not-iregex organism_name:"\bmetagenome\b" |
+            tsv-filter -H --not-iregex organism_name:"\barchaeon\b" |
+            tsv-filter -H --not-iregex organism_name:"virus\b" |
+            tsv-filter -H --not-iregex organism_name:"phage\b" |
+            keep-header -- tsv-sort -k9,9 |
+            perl -nla -F"\t" -e '$F[8] =~ s/\//-/g; print join qq{\t}, @F' | # Date
+            sed '1s/^/#/' |
+            tsv-filter -H --invert --str-eq assembly_level:Scaffold --str-eq genome_rep:Partial |
+            tsv-filter -H --invert --str-eq assembly_level:Contig --str-eq genome_rep:Partial |
+            nwr append stdin -r species -r genus --id;
+    done |
+    tsv-uniq \
+    > ~/.nwr/ar_${C}.tsv
+
 done
 
 cat ~/.nwr/ar_refseq.tsv |
@@ -128,7 +159,13 @@ cat ~/.nwr/ar_refseq.tsv |
 
 ```shell
 # DDL
-sqlite3 ~/.nwr/ar_refseq.sqlite <<EOF
+for C in refseq genbank; do
+    sqlite3 ~/.nwr/ar_${C}.sqlite <<EOF
+PRAGMA journal_mode = OFF;
+PRAGMA synchronous = 0;
+PRAGMA cache_size = 1000000;
+PRAGMA locking_mode = EXCLUSIVE;
+PRAGMA temp_store = MEMORY;
 DROP TABLE IF EXISTS ar;
 
 CREATE TABLE IF NOT EXISTS ar (
@@ -155,18 +192,25 @@ CREATE INDEX idx_ar_species_id ON ar(species_id);
 CREATE INDEX idx_ar_genus_id ON ar(genus_id);
 
 EOF
+done
 
 # import
-sqlite3 -tabs ~/.nwr/ar_refseq.sqlite <<EOF
-PRAGMA journal_mode = OFF;
-PRAGMA synchronous = 0;
-PRAGMA cache_size = 1000000;
-PRAGMA locking_mode = EXCLUSIVE;
-PRAGMA temp_store = MEMORY;
+# sqlite .import doesn't accept relative paths
+pushd ~/.nwr/
 
+sqlite3 -tabs ar_refseq.sqlite <<EOF
+PRAGMA journal_mode = OFF;
 .import --skip 1 ar_refseq.tsv ar
 
 EOF
+
+sqlite3 -tabs ~/.nwr/ar_genbank.sqlite <<EOF
+PRAGMA journal_mode = OFF;
+.import --skip 1 ar_genbank.tsv ar
+
+EOF
+
+popd
 
 ```
 
@@ -175,7 +219,7 @@ EOF
 Staphylococcus capitis - 29388 - 头状葡萄球菌
 
 ```shell
-sqlite3 -tabs ~/.nwr/ar_refseq.sqlite <<EOF
+echo '
 .headers ON
 
 SELECT
@@ -186,29 +230,26 @@ SELECT
     assembly_level
 FROM ar
 WHERE 1=1
-    AND tax_id != species_id               -- no strain ID
-    -- AND assembly_level IN ("Chromosome", "Complete Genome")
+    AND tax_id != species_id               -- with strain ID
     AND species_id IN (29388)
+' |
+    sqlite3 -tabs ~/.nwr/ar_refseq.sqlite \
+    > Scap.assembly.tsv
 
-EOF
-
-```
-
-```shell
-sqlite3 -tabs ~/.nwr/ar_refseq.sqlite <<EOF
-.headers ON
-
+echo '
 SELECT
-    REPLACE(assembly_accession, ".", "_") AS organism_name,
+    species || " " || REPLACE(assembly_accession, ".", "_") AS organism_name,
     species,
     genus,
     ftp_path,
     assembly_level
 FROM ar
 WHERE 1=1
-    AND assembly_level NOT IN ("Contig")
+    AND tax_id = species_id               -- no strain ID
+    AND assembly_level IN ("Chromosome", "Complete Genome")
     AND species_id IN (29388)
-
-EOF
+' |
+    sqlite3 -tabs ~/.nwr/ar_refseq.sqlite \
+    >> Scap.assembly.tsv
 
 ```
