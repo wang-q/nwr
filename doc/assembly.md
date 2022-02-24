@@ -13,6 +13,11 @@ Downloading date: 2022-2-24
 ## `txdb`
 
 ```shell
+brew install wang-q/tap/nwr
+brew install wang-q/tap/tsv-utils
+brew install sqlite
+brew install miller
+
 nwr download
 nwr txdb
 
