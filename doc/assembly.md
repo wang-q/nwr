@@ -1,5 +1,13 @@
 # NCBI Assembly Reports
 
+- [NCBI Assembly Reports](#ncbi-assembly-reports)
+    * [`txdb`](#txdb)
+    * [NCBI ASSEMBLY](#ncbi-assembly)
+    * [Create databases](#create-databases)
+    * [Example 1: count qualified assemblies of Eukaryote groups](#example-1-count-qualified-assemblies-of-eukaryote-groups)
+    * [Example 2: count qualified assemblies of Prokaryote groups](#example-2-count-qualified-assemblies-of-prokaryote-groups)
+    * [Example 3: find accessions of a species](#example-3-find-accessions-of-a-species)
+
 Downloading date: 2022-2-24
 
 ## `txdb`
@@ -10,7 +18,7 @@ nwr txdb
 
 ```
 
-## ASSEMBLY
+## NCBI ASSEMBLY
 
 * Download
 
