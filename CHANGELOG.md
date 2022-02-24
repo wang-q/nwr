@@ -2,8 +2,6 @@
 
 ## Unreleased - ReleaseDate
 
-## 0.5.2 - 2022-02-24
-
 ## 0.5.1 - 2022-02-24
 
 * Move old Perl codes here
