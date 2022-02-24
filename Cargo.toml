@@ -1,6 +1,6 @@
 [package]
 name = "nwr"
-version = "0.5.1"
+version = "0.5.2"
 authors = ["wang-q <wang-q@outlook.com>"]
 description = "`nwr` is a command line tool for newick and taxonomy"
 documentation = "https://github.com/wang-q/nwr"
@@ -12,7 +12,7 @@ license = "MIT"
 edition = "2018"
 
 [badges]
-travis-ci = { repository = "wang-q/nwr", branch="0.5.1" }
+travis-ci = { repository = "wang-q/nwr", branch="0.5.2" }
 appveyor = { repository = "wang-q/nwr" }
 
 [[bin]]
