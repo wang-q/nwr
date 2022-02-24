@@ -1,7 +1,7 @@
 # NCBI Assembly Reports
 
 - [NCBI Assembly Reports](#ncbi-assembly-reports)
-    * [`txdb`](#txdb)
+    * [Preparations](#preparations)
     * [NCBI ASSEMBLY](#ncbi-assembly)
     * [Create databases](#create-databases)
     * [Example 1: count qualified assemblies of Eukaryote groups](#example-1-count-qualified-assemblies-of-eukaryote-groups)
@@ -10,7 +10,7 @@
 
 Downloading date: 2022-2-24
 
-## `txdb`
+## Preparations
 
 ```shell
 brew install wang-q/tap/nwr
