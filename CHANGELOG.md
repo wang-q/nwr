@@ -2,6 +2,9 @@
 
 ## Unreleased - ReleaseDate
 
+* Move old Perl codes here
+* Add `doc/assembly.md`
+
 ## 0.5.0 - 2022-02-22
 
 * Extract `nwr` to a standalone repo.
