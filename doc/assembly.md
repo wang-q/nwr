@@ -130,7 +130,7 @@ Sort and filter records
 
 * Sort by assembly_level and seq_rel_date
 * Remove incompetent strains
-* Transform to SQLite Date format
+* Transform seq_rel_date to SQLite Date format
 
 ```shell
 for C in refseq genbank; do
@@ -217,7 +217,7 @@ PRAGMA journal_mode = OFF;
 
 EOF
 
-sqlite3 -tabs ~/.nwr/ar_genbank.sqlite <<EOF
+sqlite3 -tabs ar_genbank.sqlite <<EOF
 PRAGMA journal_mode = OFF;
 .import --skip 1 ar_genbank.tsv ar
 
@@ -256,7 +256,6 @@ ARRAY=(
     # Protists
     'Apicomplexans::Apicomplexa'
     'Kinetoplasts::Kinetoplastida'
-    
 )
 
 echo -e "GROUP_NAME\tSCI_NAME\tComplete Genome\tChromosome\tScaffold\tContig" \
