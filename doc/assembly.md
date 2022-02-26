@@ -8,7 +8,7 @@
     * [Example 2: count qualified assemblies of Prokaryote groups](#example-2-count-qualified-assemblies-of-prokaryote-groups)
     * [Example 3: find accessions of a species](#example-3-find-accessions-of-a-species)
 
-Downloading date: 2022-2-24
+Download date: 2022-2-24
 
 ## Preparations
 
@@ -23,6 +23,8 @@ nwr txdb
 
 ```
 
+Requires SQLite version 3.34 or above.
+
 ## NCBI ASSEMBLY
 
 * Download
@@ -33,7 +35,7 @@ wget -N -P ~/.nwr https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/assembly
 
 ```
 
-* `assembly_summary_*.txt` files have 23 tab-delimited columns
+* `assembly_summary_*.txt` have 23 tab-delimited columns
 
 ```text
 assembly_accession
