@@ -1,7 +1,7 @@
 use clap::*;
-use std::io::BufRead;
 use log::warn;
 use nwr::Node;
+use std::io::BufRead;
 
 // Create clap subcommand arguments
 pub fn make_subcommand<'a>() -> Command<'a> {
@@ -137,8 +137,8 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
                         Err(err) => {
                             warn!("Errors on get_lineage(): {}", err);
                             continue;
-                        },
-                        Ok(x) => x
+                        }
+                        Ok(x) => x,
                     };
 
                     for rank in ranks.iter() {
