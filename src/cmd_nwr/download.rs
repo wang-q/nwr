@@ -12,10 +12,16 @@ pub fn make_subcommand<'a>() -> Command<'a> {
             r###"
 You can download the files manually.
 
+mkdir -p ~/.nwr
+
 # taxdump
-curl -LO https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
-curl -LO https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz.md5
-mv taxdump.* ~/.nwr/
+wget -N -P ~/.nwr https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
+wget -N -P ~/.nwr https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz.md5
+
+# assembly reports
+wget -N -P ~/.nwr https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_refseq.txt
+wget -N -P ~/.nwr https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_genbank.txt
+
 "###,
         )
         .arg(
@@ -27,12 +33,20 @@ mv taxdump.* ~/.nwr/
                 .help("NCBI FTP Host:Port"),
         )
         .arg(
-            Arg::new("path")
-                .long("path")
+            Arg::new("tx")
+                .long("tx")
                 .takes_value(true)
                 .default_value("/pub/taxonomy")
                 .forbid_empty_values(true)
-                .help("NCBI FTP Path"),
+                .help("NCBI FTP Path of taxonomy"),
+        )
+        .arg(
+            Arg::new("ar")
+                .long("ar")
+                .takes_value(true)
+                .default_value("/genomes/ASSEMBLY_REPORTS")
+                .forbid_empty_values(true)
+                .help("NCBI FTP Path of assembly reports"),
         )
 }
 
@@ -42,20 +56,22 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
 
     let nwrdir = nwr::nwr_path();
     let tarball = nwrdir.join("taxdump.tar.gz");
+    let ar_refseq = nwrdir.join("assembly_summary_refseq.txt");
+    let ar_genbank = nwrdir.join("assembly_summary_genbank.txt");
 
-    // download
+    // download taxdump
     info!(
         "==> Downloading from {} ...",
         args.value_of("host").unwrap()
     );
     if std::path::Path::new(&tarball).exists() {
-        info!("Skipping, dump file exists");
+        info!("Skipping, {} exists", tarball.to_string_lossy());
     } else {
         info!("Connecting...");
         let mut conn = ftp::FtpStream::connect(args.value_of("host").unwrap())?;
         conn.login("ftp", "example@example.com")?;
         info!("Connected.");
-        conn.cwd(args.value_of("path").unwrap())?;
+        conn.cwd(args.value_of("tx").unwrap())?;
         info!("Remote directory: {}", conn.pwd().unwrap());
 
         info!("Retrieving MD5 file...");
@@ -63,7 +79,7 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
         let mut cursor = conn.simple_retr("taxdump.tar.gz.md5")?;
         io::copy(&mut cursor, &mut file)?;
 
-        info!("Retrieving dump file...");
+        info!("Retrieving {}...", "taxdump.tar.gz");
         conn.retr("taxdump.tar.gz", |stream| {
             let mut file = match File::create(&tarball) {
                 Err(e) => return Err(ftp::FtpError::ConnectionError(e)),
@@ -107,5 +123,68 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
         archive.unpack(nwrdir)?;
     }
 
+    // assembly reports
+    info!(
+        "==> Downloading from {} ...",
+        args.value_of("host").unwrap()
+    );
+    if std::path::Path::new(&ar_refseq).exists() && std::path::Path::new(&ar_genbank).exists() {
+        info!(
+            "Skipping, {} & {} exist",
+            ar_refseq.to_string_lossy(),
+            ar_genbank.to_string_lossy()
+        );
+    } else {
+        info!("Connecting...");
+        let mut conn = ftp::FtpStream::connect(args.value_of("host").unwrap())?;
+        conn.login("ftp", "example@example.com")?;
+        info!("Connected.");
+        conn.cwd(args.value_of("ar").unwrap())?;
+        info!("Remote directory: {}", conn.pwd().unwrap());
+
+        info!("Retrieving {}...", "assembly_summary_refseq.txt");
+        conn.retr("assembly_summary_refseq.txt", |stream| {
+            let mut file = match File::create(&ar_refseq) {
+                Err(e) => return Err(ftp::FtpError::ConnectionError(e)),
+                Ok(f) => f,
+            };
+            io::copy(stream, &mut file).map_err(ftp::FtpError::ConnectionError)
+        })?;
+
+        info!("Retrieving {}...", "assembly_summary_genbank.txt");
+        conn.retr("assembly_summary_genbank.txt", |stream| {
+            let mut file = match File::create(&ar_genbank) {
+                Err(e) => return Err(ftp::FtpError::ConnectionError(e)),
+                Ok(f) => f,
+            };
+            io::copy(stream, &mut file).map_err(ftp::FtpError::ConnectionError)
+        })?;
+
+        conn.quit()?;
+        info!("End connection.");
+    }
+
+    info!("File sizes:");
+    for f in &[tarball, ar_refseq, ar_genbank] {
+        info!(
+            "{}\t{}",
+            f.to_string_lossy(),
+            readable(f.metadata().unwrap().len().to_string())
+        );
+    }
+
     Ok(())
+}
+
+fn readable(n: String) -> String {
+    let mut c = String::new();
+
+    for (i, char) in n.chars().rev().enumerate() {
+        if i % 3 == 0 && i != 0 {
+            c.insert(0, ',');
+        }
+        c.insert(0, char);
+    }
+
+    return c;
 }

@@ -53,6 +53,9 @@ SUBCOMMANDS:
 # Concurrent tests may trigger sqlite locking
 cargo test -- --test-threads=1
 
+# debug mode has a slow connection
+cargo run --release --bin nwr download
+
 # tests/nwr/
 cargo run --bin nwr txdb -d tests/nwr/
 
