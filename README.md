@@ -22,12 +22,12 @@ brew install wang-q/tap/nwr
 
 ```text
 $ nwr help
-nwr 0.5.0
+nwr 0.5.4
 wang-q <wang-q@outlook.com>
 `nwr` is a lightweight tool for newick and taxonomy
 
 USAGE:
-    nwr.exe [SUBCOMMAND]
+    nwr [SUBCOMMAND]
 
 OPTIONS:
     -h, --help       Print help information
@@ -35,7 +35,8 @@ OPTIONS:
 
 SUBCOMMANDS:
     append      Append fields of higher ranks to a TSV file
-    download    Download the latest release of `taxdmp`
+    ardb        Init the assembly database
+    download    Download the latest release of `taxdump`
     help        Print this message or the help of the given subcommand(s)
     info        Information of Taxonomy ID(s) or scientific name(s)
     lineage     Output the lineage of the term
