@@ -81,6 +81,35 @@ pub fn make_subcommand<'a>() -> Command<'a> {
         " |
         sqlite3 -tabs ~/.nwr/ar_refseq.sqlite
 
+* The DDL
+
+    echo "
+        SELECT sql
+        FROM sqlite_master
+        WHERE type='table'
+        ORDER BY name;
+        " |
+        sqlite3 -tabs ~/.nwr/ar_refseq.sqlite
+
+    CREATE TABLE ar (
+        tax_id             INTEGER,
+        organism_name      VARCHAR (255),
+        bioproject         VARCHAR (50),
+        assembly_accession VARCHAR (50),
+        refseq_category    VARCHAR (50),
+        assembly_level     VARCHAR (50),
+        genome_rep         VARCHAR (50),
+        seq_rel_date       DATE,
+        asm_name           VARCHAR (255),
+        ftp_path           VARCHAR (255),
+        family             VARCHAR (50),
+        family_id          INTEGER,
+        genus              VARCHAR (50),
+        genus_id           INTEGER,
+        species            VARCHAR (50),
+        species_id         INTEGER
+    )
+
 * Requires SQLite version 3.34 or above.
 
 "###,
