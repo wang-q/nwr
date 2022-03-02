@@ -215,7 +215,7 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
 
         // fields
         let tax_id = fields.get(5).unwrap().parse::<i64>().unwrap();
-        let mut organism_name = fields.get(7).unwrap();
+        let organism_name = fields.get(7).unwrap();
         let bioproject = fields.get(1).unwrap();
         let assembly_accession = fields.get(0).unwrap();
         let refseq_category = fields.get(4).unwrap();
@@ -227,9 +227,10 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
 
         // Skip incompetent strains
         lazy_static! {
-            static ref RE: Regex = Regex::new(r"(?xi)\b(Candidatus|candidate|uncultured|unidentified|bacterium|archaeon|metagenome|virus|phage)\b").unwrap();
+            static ref RE1: Regex = Regex::new(r"(?xi)\b(Candidatus|candidate|uncultured|unidentified|bacterium|archaeon|metagenome)\b").unwrap();
+            static ref RE2: Regex = Regex::new(r"(?xi)(virus|phage)\b").unwrap();
         }
-        if RE.is_match(organism_name) {
+        if RE1.is_match(organism_name) || RE2.is_match(organism_name) {
             // debug!("Skip: {}", organism_name);
             continue;
         }
@@ -251,19 +252,22 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
         let (species_id, species) = nwr::find_rank(&lineage, "species".to_string());
 
         // Check organism_name with the one in txdb
-        let tmp;
+        // let tmp : String;
         if !species.eq("NA") && !organism_name.starts_with(&species) {
-            debug!("{} doesn't match species {}", organism_name, species);
-            let mut parts: Vec<&str> = organism_name.split_whitespace().collect();
-            if parts.len() < 2 {
-                continue;
-            } else {
-                parts.pop();
-                parts.pop();
-            }
+            // debug!("{} doesn't match species {}", organism_name, species);
+            continue;
 
-            tmp = format!("{} {}", species, parts.join(" "));
-            organism_name = &tmp;
+            // // Change names
+            // let mut parts: Vec<&str> = organism_name.split_whitespace().collect();
+            // if parts.len() < 2 {
+            //     continue;
+            // } else {
+            //     parts.pop();
+            //     parts.pop();
+            // }
+            //
+            // tmp = format!("{} {}", species, parts.join(" "));
+            // organism_name = &tmp;
         }
 
         // create stmt
