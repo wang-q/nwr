@@ -1,6 +1,6 @@
 use clap::*;
 use lazy_static::lazy_static;
-use log::{debug, info, warn};
+use log::{debug, info};
 use nwr::Node;
 use regex::Regex;
 use simplelog::*;
@@ -215,7 +215,7 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
 
         // fields
         let tax_id = fields.get(5).unwrap().parse::<i64>().unwrap();
-        let organism_name = fields.get(7).unwrap();
+        let mut organism_name = fields.get(7).unwrap();
         let bioproject = fields.get(1).unwrap();
         let assembly_accession = fields.get(0).unwrap();
         let refseq_category = fields.get(4).unwrap();
@@ -237,7 +237,7 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
         // lineage
         let lineage = match nwr::get_lineage(&tx_conn, tax_id) {
             Err(err) => {
-                warn!("Errors on get_lineage({}): {}", tax_id, err);
+                debug!("Errors on get_lineage({}): {}", tax_id, err);
                 let mut node: Node = Default::default();
                 node.tax_id = 0;
                 node.rank = "no rank".to_string();
@@ -249,6 +249,22 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
         let (family_id, family) = nwr::find_rank(&lineage, "family".to_string());
         let (genus_id, genus) = nwr::find_rank(&lineage, "genus".to_string());
         let (species_id, species) = nwr::find_rank(&lineage, "species".to_string());
+
+        // Check organism_name with the one in txdb
+        let tmp;
+        if !species.eq("NA") && !organism_name.starts_with(&species) {
+            debug!("{} doesn't match species {}", organism_name, species);
+            let mut parts: Vec<&str> = organism_name.split_whitespace().collect();
+            if parts.len() < 2 {
+                continue;
+            } else {
+                parts.pop();
+                parts.pop();
+            }
+
+            tmp = format!("{} {}", species, parts.join(" "));
+            organism_name = &tmp;
+        }
 
         // create stmt
         let stmt = format!(

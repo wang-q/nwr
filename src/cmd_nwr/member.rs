@@ -14,6 +14,7 @@ pub fn make_subcommand<'a>() -> Command<'a> {
   * Use other ranks, such as clade or no rank, at your own risk.
 
 * The output file is in the same TSV format as `nwr info --tsv`.
+
 "###,
         )
         .arg(
