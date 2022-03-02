@@ -119,7 +119,6 @@ taxid
 organism_name
 bioproject
 assembly_accession
-wgs_master
 refseq_category
 assembly_level
 genome_rep
@@ -142,7 +141,7 @@ for C in refseq genbank; do
         cat ~/.nwr/assembly_summary_${C}.txt |
             sed '1d' | #head -n 50 |
             sed '1s/# //' |
-            tsv-select -H -f taxid,organism_name,bioproject,assembly_accession,wgs_master,refseq_category,assembly_level,genome_rep,seq_rel_date,asm_name,ftp_path |
+            tsv-select -H -f taxid,organism_name,bioproject,assembly_accession,refseq_category,assembly_level,genome_rep,seq_rel_date,asm_name,ftp_path |
             tsv-filter -H --str-eq assembly_level:"${L}" |
             tsv-filter -H --not-iregex organism_name:"\bbacterium\b" |
             tsv-filter -H --not-iregex organism_name:"\buncultured\b" |
@@ -152,8 +151,8 @@ for C in refseq genbank; do
             tsv-filter -H --not-iregex organism_name:"\barchaeon\b" |
             tsv-filter -H --not-iregex organism_name:"virus\b" |
             tsv-filter -H --not-iregex organism_name:"phage\b" |
-            keep-header -- tsv-sort -k9,9 |
-            perl -nla -F"\t" -e '$F[8] =~ s/\//-/g; print join qq{\t}, @F' | # Date
+            keep-header -- tsv-sort -k8,8 |
+            perl -nla -F"\t" -e '$F[7] =~ s/\//-/g; print join qq{\t}, @F' | # Date
             sed '1s/^/#/' |
             tsv-filter -H --invert --str-eq assembly_level:Scaffold --str-eq genome_rep:Partial |
             tsv-filter -H --invert --str-eq assembly_level:Contig --str-eq genome_rep:Partial |
@@ -188,7 +187,6 @@ CREATE TABLE IF NOT EXISTS ar (
     organism_name      VARCHAR (50),
     bioproject         VARCHAR (50),
     assembly_accession VARCHAR (50),
-    wgs_master         VARCHAR (50),
     refseq_category    VARCHAR (50),
     assembly_level     VARCHAR (50),
     genome_rep         VARCHAR (50),

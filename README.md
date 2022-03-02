@@ -14,7 +14,7 @@ Current release: 0.5.3
 cargo install nwr
 
 # or
-brew install nwr
+brew install wang-q/tap/nwr
 
 ```
 
@@ -74,6 +74,8 @@ echo -e '#tax_id\n12347' |
     cargo run --bin nwr append -d tests/nwr/ stdin -r species -r family --id
 cargo run --bin nwr append -d tests/nwr/ tests/nwr/taxon-valid.tsv -c 2 -r species -r family --id
 
+cargo run --bin nwr ardb -d tests/nwr/
+
 # The real one
 nwr download
 
@@ -92,5 +94,7 @@ nwr member "Homo"
 
 nwr append tests/nwr/taxon.tsv -c 2 -r species -r family --id
 
+nwr ardb
+nwr ardb --genbank
 
 ```

@@ -2,6 +2,8 @@
 
 ## Unreleased - ReleaseDate
 
+* Add `nwr ardb`
+
 ## 0.5.3 - 2022-02-24
 
 * Move old Perl codes here
