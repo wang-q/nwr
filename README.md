@@ -8,7 +8,7 @@
 
 ## Install
 
-Current release: 0.5.3
+Current release: 0.5.4
 
 ```bash
 cargo install nwr
