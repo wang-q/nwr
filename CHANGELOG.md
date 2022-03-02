@@ -2,6 +2,8 @@
 
 ## Unreleased - ReleaseDate
 
+* Check organism_name with the one in txdb
+
 ## 0.5.4 - 2022-03-02
 
 * Add `nwr ardb`
