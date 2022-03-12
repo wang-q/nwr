@@ -20,38 +20,38 @@ pub fn make_subcommand<'a>() -> Command<'a> {
 * `assembly_summary_*.txt` have 23 tab-delimited columns.
 * Fields with numbers are used in the database.
 
-    0   assembly_accession  4
+    0   assembly_accession  5
     1   bioproject  3
-    2   biosample
+    2   biosample   4
     3   wgs_master
-    4   refseq_category
+    4   refseq_category 6
     5   taxid AS tax_id 1
     6   species_taxid
     7   organism_name   2
     8   infraspecific_name
     9   isolate
     10  version_status
-    11  assembly_level  6
+    11  assembly_level  7
     12  release_type
-    13  genome_rep      7
-    14  seq_rel_date    8
-    15  asm_name        9
+    13  genome_rep      8
+    14  seq_rel_date    9
+    15  asm_name        10
     16  submitter
     17  gbrs_paired_asm
     18  paired_asm_comp
-    19  ftp_path        10
+    19  ftp_path        11
     20  excluded_from_refseq
     21  relation_to_type_material
     22  asm_not_live_date
 
 * 6 columns appended
 
-    11  family
-    12  family_id
-    13  genus
-    14  genus_id
-    15  species
-    16  species_id
+    12  family
+    13  family_id
+    14  genus
+    15  genus_id
+    16  species
+    17  species_id
 
 * Incompetent strains matching the following regexes in their `organism_name` were removed.
 
@@ -95,6 +95,7 @@ pub fn make_subcommand<'a>() -> Command<'a> {
         tax_id             INTEGER,
         organism_name      VARCHAR (255),
         bioproject         VARCHAR (50),
+        biosample          VARCHAR (50),
         assembly_accession VARCHAR (50),
         refseq_category    VARCHAR (50),
         assembly_level     VARCHAR (50),
@@ -135,6 +136,7 @@ CREATE TABLE IF NOT EXISTS ar (
     tax_id             INTEGER,
     organism_name      VARCHAR (255),
     bioproject         VARCHAR (50),
+    biosample          VARCHAR (50),
     assembly_accession VARCHAR (50),
     refseq_category    VARCHAR (50),
     assembly_level     VARCHAR (50),
@@ -217,6 +219,7 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
         let tax_id = fields.get(5).unwrap().parse::<i64>().unwrap();
         let organism_name = fields.get(7).unwrap();
         let bioproject = fields.get(1).unwrap();
+        let biosample = fields.get(2).unwrap();
         let assembly_accession = fields.get(0).unwrap();
         let refseq_category = fields.get(4).unwrap();
         let assembly_level = fields.get(11).unwrap();
@@ -273,18 +276,19 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
         // create stmt
         let stmt = format!(
             "INSERT INTO ar(
-                tax_id, organism_name, bioproject, assembly_accession, refseq_category,
+                tax_id, organism_name, bioproject, biosample, assembly_accession, refseq_category,
                 assembly_level, genome_rep, seq_rel_date, asm_name, ftp_path,
                 family, family_id, genus, genus_id, species, species_id
             )
             VALUES (
-                    {},  '{}', '{}', '{}', '{}',
+                    {},  '{}', '{}', '{}', '{}', '{}',
                     '{}', '{}', '{}', '{}', '{}',
                     '{}', {}, '{}', {}, '{}', {}
             );",
             tax_id.to_string(),
             organism_name.replace("'", "''"),
             bioproject,
+            biosample,
             assembly_accession,
             refseq_category, // 5
             assembly_level,

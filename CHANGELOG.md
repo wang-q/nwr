@@ -5,6 +5,7 @@
 ## 0.5.5 - 2022-03-04
 
 * Check organism_name with the one in txdb
+* Add column biosample to ardb
 
 ## 0.5.4 - 2022-03-02
 
