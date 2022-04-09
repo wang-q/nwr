@@ -29,7 +29,7 @@ nwr ardb --genbank
 
 ```
 
-Requires SQLite version 3.34 or above.
+Requires SQLite version 3.34 or above. `sqlite` that comes with mac does not work.
 
 ## NCBI ASSEMBLY
 
