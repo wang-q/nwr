@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - '*'
+    paths:
+        - '.github/workflows/publish.yml'
 
 jobs:
   linux-gnu:
@@ -13,10 +15,17 @@ jobs:
     steps:
       - name: Show GLIBC
         run: ldd --version
-      - uses: hecrj/setup-rust-action@v1
+
+      - name: Checkout sources
+        uses: actions/checkout@v2
+
+      - name: Install stable toolchain
+        uses: actions-rs/toolchain@v1
         with:
-          rust-version: stable
-      - uses: actions/checkout@v1
+          profile: minimal
+          toolchain: stable
+          override: true
+
       - name: Build
         run: cargo build --verbose --release
       - name: Create tarball
