@@ -5,11 +5,13 @@
 [![Crates.io](https://img.shields.io/crates/v/nwr.svg)](https://crates.io/crates/nwr)
 [![Lines of code](https://tokei.rs/b1/github/wang-q/nwr?category=code)](https://github.com//wang-q/nwr)
 
+`nwr` is a command line tool for NCBI taxonomy and newick files.
+
 ## Install
 
 Current release: 0.5.7
 
-```bash
+```shell
 cargo install nwr
 
 # or
@@ -20,13 +22,12 @@ brew install wang-q/tap/nwr
 ## SYNOPSIS
 
 ```text
-$ nwr help
-nwr 0.5.4
+$ nwr 0.5.7
 wang-q <wang-q@outlook.com>
-`nwr` is a lightweight tool for newick and taxonomy
+`nwr` is a command line tool for NCBI taxonomy and newick files
 
 USAGE:
-    nwr [SUBCOMMAND]
+    nwr.exe [SUBCOMMAND]
 
 OPTIONS:
     -h, --help       Print help information
@@ -47,9 +48,36 @@ SUBCOMMANDS:
 
 ## EXAMPLES
 
-### `nwr`
+### Usage of each command
 
-```bash
+For a realworld usage of `nwr` and other awesome campanions, follow this [page](doc/assembly.md).
+
+```shell
+nwr download
+
+nwr txdb
+
+nwr info "Homo sapiens" 4932
+
+nwr lineage "Homo sapiens"
+nwr lineage 4932
+
+nwr restrict "Vertebrata" -c 2 -f tests/nwr/taxon.tsv
+##sci_name       tax_id
+#Human   9606
+
+nwr member "Homo"
+
+nwr append tests/nwr/taxon.tsv -c 2 -r species -r family --id
+
+nwr ardb
+nwr ardb --genbank
+
+```
+
+### Development
+
+```shell
 # Concurrent tests may trigger sqlite locking
 cargo test -- --test-threads=1
 
@@ -75,26 +103,5 @@ echo -e '#tax_id\n12347' |
 cargo run --bin nwr append -d tests/nwr/ tests/nwr/taxon-valid.tsv -c 2 -r species -r family --id
 
 cargo run --bin nwr ardb -d tests/nwr/
-
-# The real one
-nwr download
-
-nwr txdb
-
-nwr info "Homo sapiens" 4932
-
-nwr lineage "Homo sapiens"
-nwr lineage 4932
-
-nwr restrict "Vertebrata" -c 2 -f tests/nwr/taxon.tsv
-##sci_name       tax_id
-#Human   9606
-
-nwr member "Homo"
-
-nwr append tests/nwr/taxon.tsv -c 2 -r species -r family --id
-
-nwr ardb
-nwr ardb --genbank
 
 ```

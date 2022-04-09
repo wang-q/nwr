@@ -7,7 +7,7 @@ fn main() -> std::io::Result<()> {
     let app = Command::new("nwr")
         .version(crate_version!())
         .author(crate_authors!())
-        .about("`nwr` is a lightweight tool for newick and taxonomy")
+        .about("`nwr` is a command line tool for NCBI taxonomy and newick files")
         .propagate_version(true)
         .subcommand(cmd_nwr::append::make_subcommand())
         .subcommand(cmd_nwr::ardb::make_subcommand())
