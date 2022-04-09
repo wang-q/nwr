@@ -2,6 +2,8 @@
 
 ## Unreleased - ReleaseDate
 
+## 0.5.7 - 2022-04-10
+
 ## 0.5.6 - 2022-04-09
 
 * Update the CI workflows
