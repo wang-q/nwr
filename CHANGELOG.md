@@ -2,6 +2,8 @@
 
 ## Unreleased - ReleaseDate
 
+## 0.5.6 - 2022-04-09
+
 * Update the CI workflows
     * Remove travis and appveyor
     * Use a container with GLIBC 2.17 according to
