@@ -7,7 +7,7 @@ documentation = "https://github.com/wang-q/nwr"
 homepage = "https://github.com/wang-q/nwr"
 repository = "https://github.com/wang-q/nwr"
 readme = "README.md"
-categories = ["command-line-utilities", "text-processing", "bioinformatics"]
+categories = ["command-line-utilities", "science"]
 license = "MIT"
 edition = "2018"
 
