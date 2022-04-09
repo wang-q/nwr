@@ -1,5 +1,7 @@
 name: Publish
 
+# https://kobzol.github.io/rust/ci/2021/05/07/building-rust-binaries-in-ci-that-work-with-older-glibc.html
+
 on:
   push:
     tags:
@@ -8,7 +10,11 @@ on:
 jobs:
   linux-gnu:
     runs-on: ubuntu-latest
+    # Use a container with GLIBC 2.17
+    container: quay.io/pypa/manylinux2014_x86_64
     steps:
+      - name: Show GLIBC
+        run: ldd --version
       - uses: hecrj/setup-rust-action@v1
         with:
           rust-version: stable
