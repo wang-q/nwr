@@ -2,6 +2,13 @@
 
 ## Unreleased - ReleaseDate
 
+* Update the CI workflows
+    * Remove travis and appveyor
+    * Use a container with GLIBC 2.17 according to
+      this [blog](https://kobzol.github.io/rust/ci/2021/05/07/building-rust-binaries-in-ci-that-work-with-older-glibc.html)
+      post
+* Remove old scripts
+
 ## 0.5.5 - 2022-03-04
 
 * Check organism_name with the one in txdb
@@ -19,7 +26,7 @@
 ## 0.5.0 - 2022-02-22
 
 * Extract `nwr` to a standalone repo.
-  * `SQLite` can't be built statically under musl
+    * `SQLite` can't be built statically under musl
 
 ## 0.4.17 - 2022-02-21
 
