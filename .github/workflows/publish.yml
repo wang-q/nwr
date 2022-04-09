@@ -5,7 +5,7 @@ on:
     tags:
       - '*'
     paths:
-        - '.github/workflows/publish.yml'
+      - '.github/workflows/publish.yml'
 
 jobs:
   linux-gnu:
