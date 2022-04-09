@@ -1,9 +1,10 @@
-name: Code coverage with grcov
+name: Code Coverage
 
-on: [push, pull_request]
+on: [push]
 
 jobs:
-  grcov:
+  check:
+    name: codecov nwr
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -15,28 +16,14 @@ jobs:
         with:
           toolchain: nightly
           override: true
-          profile: minimal
 
       - uses: Swatinem/rust-cache@v1
 
-      - name: Execute tests
-        uses: actions-rs/cargo@v1
+      - name: Run cargo-tarpaulin
+        uses: actions-rs/tarpaulin@v0.1
         with:
-          command: test
+          version: '0.15.0'
           args: '-- --test-threads 1'
-        env:
-          CARGO_INCREMENTAL: 0
-          RUSTFLAGS: "-Zprofile -Ccodegen-units=1 -Cinline-threshold=0 -Clink-dead-code -Coverflow-checks=off -Cpanic=abort -Zpanic_abort_tests"
-
-      - name: Pre-installing grcov
-        uses: actions-rs/install@v0.1
-        with:
-          crate: grcov
-          use-tool-cache: true
-
-      - name: Gather coverage data
-        id: coverage
-        uses: actions-rs/grcov@v0.1
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v2
