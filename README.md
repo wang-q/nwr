@@ -1,7 +1,6 @@
 # nwr
 
-[![Linux build status](https://app.travis-ci.com/wang-q/nwr.svg)](https://app.travis-ci.com/wang-q/nwr)
-[![Windows build status](https://ci.appveyor.com/api/projects/status/github/wang-q/nwr?svg=true)](https://ci.appveyor.com/project/wang-q/nwr)
+[![Actions Status](https://github.com/wang-q/nwr/actions/workflows/build.yml/badge.svg)](https://github.com/wang-q/nwr/actions)
 [![Codecov branch](https://img.shields.io/codecov/c/github/wang-q/nwr/master.svg)](https://codecov.io/github/wang-q/nwr?branch=master)
 [![Crates.io](https://img.shields.io/crates/v/nwr.svg)](https://crates.io/crates/nwr)
 [![Lines of code](https://tokei.rs/b1/github/wang-q/nwr?category=code)](https://github.com//wang-q/nwr)
