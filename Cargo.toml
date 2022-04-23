@@ -11,10 +11,6 @@ categories = ["command-line-utilities", "science"]
 license = "MIT"
 edition = "2018"
 
-[badges]
-travis-ci = { repository = "wang-q/nwr", branch="0.5.7" }
-appveyor = { repository = "wang-q/nwr" }
-
 [[bin]]
 name = "nwr"
 path = "src/nwr.rs"
