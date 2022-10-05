@@ -3,7 +3,7 @@ use log::warn;
 use std::io::BufRead;
 
 // Create clap subcommand arguments
-pub fn make_subcommand<'a>() -> Command<'a> {
+pub fn make_subcommand() -> Command {
     Command::new("append")
         .about("Append fields of higher ranks to a TSV file")
         .after_help(
@@ -23,7 +23,7 @@ pub fn make_subcommand<'a>() -> Command<'a> {
         .arg(
             Arg::new("infiles")
                 .required(true)
-                .min_values(1)
+                .num_args(1..)
                 .index(1)
                 .help("Input filename. [stdin] for standard input"),
         )
@@ -31,49 +31,51 @@ pub fn make_subcommand<'a>() -> Command<'a> {
             Arg::new("dir")
                 .long("dir")
                 .short('d')
-                .takes_value(true)
-                .help("Change the database directory"),
+                .num_args(1)
+                .value_name("DIR")
+                .help("Change working directory"),
         )
         .arg(
             Arg::new("rank")
                 .long("rank")
                 .short('r')
-                .takes_value(true)
-                .multiple_occurrences(true)
-                .help("To append which rank(s)"),
+                .num_args(1..)
+                .action(ArgAction::Append)
+                .help("To list which rank(s)"),
         )
         .arg(
             Arg::new("column")
                 .long("column")
                 .short('c')
-                .takes_value(true)
+                .num_args(1)
                 .default_value("1")
-                .forbid_empty_values(true)
+                .value_parser(value_parser!(usize))
                 .help("The column where the IDs are located, starting from 1"),
         )
-        .arg(Arg::new("id").long("id").help("Also append rank id"))
+        .arg(
+            Arg::new("id")
+                .long("id")
+                .action(ArgAction::SetTrue)
+                .help("Also append rank id"),
+        )
         .arg(
             Arg::new("outfile")
                 .short('o')
                 .long("outfile")
-                .takes_value(true)
+                .num_args(1)
                 .default_value("stdout")
-                .forbid_empty_values(true)
                 .help("Output filename. [stdout] for screen"),
         )
 }
 
 // command implementation
 pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error::Error>> {
-    let mut writer = intspan::writer(args.value_of("outfile").unwrap());
+    let mut writer = intspan::writer(args.get_one::<String>("outfile").unwrap());
 
-    let column: usize = args.value_of_t("column").unwrap_or_else(|e| {
-        eprintln!("Need a integer for --column\n{}", e);
-        std::process::exit(1)
-    });
+    let column: usize = *args.get_one("column").unwrap();
 
-    let nwrdir = if args.is_present("dir") {
-        std::path::Path::new(args.value_of("dir").unwrap()).to_path_buf()
+    let nwrdir = if args.contains_id("dir") {
+        std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf()
     } else {
         nwr::nwr_path()
     };
@@ -81,14 +83,14 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
     let conn = nwr::connect_txdb(&nwrdir).unwrap();
 
     let mut ranks = vec![];
-    if args.is_present("rank") {
-        for rank in args.values_of("rank").unwrap() {
+    if args.contains_id("rank") {
+        for rank in args.get_many::<String>("rank").unwrap() {
             ranks.push(rank.to_string());
         }
     }
-    let is_id = args.is_present("id");
+    let is_id = args.get_flag("id");
 
-    for infile in args.values_of("infiles").unwrap() {
+    for infile in args.get_many::<String>("infiles").unwrap() {
         let reader = intspan::reader(infile);
 
         for line in reader.lines().filter_map(|r| r.ok()) {

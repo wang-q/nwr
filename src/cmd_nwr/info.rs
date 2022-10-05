@@ -1,46 +1,46 @@
 use clap::*;
 
 // Create clap subcommand arguments
-pub fn make_subcommand<'a>() -> Command<'a> {
+pub fn make_subcommand() -> Command {
     Command::new("info")
         .about("Information of Taxonomy ID(s) or scientific name(s)")
         .arg(
             Arg::new("terms")
-                .help("The NCBI Taxonomy ID(s) or scientific name(s)")
+                .help("The ancestor(s)")
                 .required(true)
-                .min_values(1)
+                .num_args(1..)
                 .index(1),
         )
         .arg(
             Arg::new("dir")
                 .long("dir")
                 .short('d')
-                .takes_value(true)
+                .num_args(1)
+                .value_name("DIR")
                 .help("Change working directory"),
         )
         .arg(
             Arg::new("tsv")
                 .long("tsv")
-                .takes_value(false)
+                .action(ArgAction::SetTrue)
                 .help("Output the results as TSV"),
         )
         .arg(
             Arg::new("outfile")
                 .short('o')
                 .long("outfile")
-                .takes_value(true)
+                .num_args(1)
                 .default_value("stdout")
-                .forbid_empty_values(true)
                 .help("Output filename. [stdout] for screen"),
         )
 }
 
 // command implementation
 pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error::Error>> {
-    let mut writer = intspan::writer(args.value_of("outfile").unwrap());
+    let mut writer = intspan::writer(args.get_one::<String>("outfile").unwrap());
 
-    let nwrdir = if args.is_present("dir") {
-        std::path::Path::new(args.value_of("dir").unwrap()).to_path_buf()
+    let nwrdir = if args.contains_id("dir") {
+        std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf()
     } else {
         nwr::nwr_path()
     };
@@ -48,14 +48,14 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
     let conn = nwr::connect_txdb(&nwrdir).unwrap();
 
     let mut ids = vec![];
-    for term in args.values_of("terms").unwrap() {
+    for term in args.get_many::<String>("terms").unwrap() {
         let id = nwr::term_to_tax_id(&conn, term.to_string()).unwrap();
         ids.push(id);
     }
 
     let nodes = nwr::get_node(&conn, ids).unwrap();
 
-    if args.is_present("tsv") {
+    if args.contains_id("tsv") {
         let mut wtr = csv::WriterBuilder::new()
             .delimiter(b'\t')
             .from_writer(writer);

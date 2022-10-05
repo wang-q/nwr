@@ -4,19 +4,20 @@ use simplelog::*;
 use std::fs::File;
 
 // Create clap subcommand arguments
-pub fn make_subcommand<'a>() -> Command<'a> {
+pub fn make_subcommand() -> Command {
     Command::new("txdb")
         .about("Init the taxonomy database")
         .after_help(
-            "\
-             ~/.nwr/taxonomy.sqlite\n\
-             ",
+            r###"
+~/.nwr/taxonomy.sqlite
+"###,
         )
         .arg(
             Arg::new("dir")
                 .long("dir")
                 .short('d')
-                .takes_value(true)
+                .num_args(1)
+                .value_name("DIR")
                 .help("Change working directory"),
         )
 }
@@ -58,8 +59,8 @@ CREATE TABLE IF NOT EXISTS name (
 pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error::Error>> {
     let _ = SimpleLogger::init(LevelFilter::Debug, Config::default());
 
-    let nwrdir = if args.is_present("dir") {
-        std::path::Path::new(args.value_of("dir").unwrap()).to_path_buf()
+    let nwrdir = if args.contains_id("dir") {
+        std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf()
     } else {
         nwr::nwr_path()
     };

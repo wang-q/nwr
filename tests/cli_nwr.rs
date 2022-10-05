@@ -7,7 +7,7 @@ fn command_invalid() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin("nwr")?;
     cmd.arg("foobar");
     cmd.assert().failure().stderr(predicate::str::contains(
-        "which wasn't expected, or isn't valid in this context",
+        "wasn't recognized",
     ));
 
     Ok(())

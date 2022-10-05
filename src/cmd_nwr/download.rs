@@ -5,7 +5,7 @@ use std::fs::File;
 use std::io;
 
 // Create clap subcommand arguments
-pub fn make_subcommand<'a>() -> Command<'a> {
+pub fn make_subcommand() -> Command {
     Command::new("download")
         .about("Download the latest releases of `taxdump` and assembly reports")
         .after_help(
@@ -38,25 +38,22 @@ aria2c -x 4 -s 2 -c -d ~/.nwr -i download.txt
         .arg(
             Arg::new("host")
                 .long("host")
-                .takes_value(true)
+                .num_args(1)
                 .default_value("ftp.ncbi.nih.gov:21")
-                .forbid_empty_values(true)
                 .help("NCBI FTP Host:Port"),
         )
         .arg(
             Arg::new("tx")
                 .long("tx")
-                .takes_value(true)
+                .num_args(1)
                 .default_value("/pub/taxonomy")
-                .forbid_empty_values(true)
                 .help("NCBI FTP Path of taxonomy"),
         )
         .arg(
             Arg::new("ar")
                 .long("ar")
-                .takes_value(true)
+                .num_args(1)
                 .default_value("/genomes/ASSEMBLY_REPORTS")
-                .forbid_empty_values(true)
                 .help("NCBI FTP Path of assembly reports"),
         )
 }
@@ -73,16 +70,16 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
     // download taxdump
     info!(
         "==> Downloading from {} ...",
-        args.value_of("host").unwrap()
+        args.get_one::<String>("host").unwrap()
     );
     if std::path::Path::new(&tarball).exists() {
         info!("Skipping, {} exists", tarball.to_string_lossy());
     } else {
         info!("Connecting...");
-        let mut conn = ftp::FtpStream::connect(args.value_of("host").unwrap())?;
+        let mut conn = ftp::FtpStream::connect(args.get_one::<String>("host").unwrap())?;
         conn.login("ftp", "example@example.com")?;
         info!("Connected.");
-        conn.cwd(args.value_of("tx").unwrap())?;
+        conn.cwd(args.get_one::<String>("tx").unwrap())?;
         info!("Remote directory: {}", conn.pwd().unwrap());
 
         info!("Retrieving MD5 file...");
@@ -137,7 +134,7 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
     // assembly reports
     info!(
         "==> Downloading from {} ...",
-        args.value_of("host").unwrap()
+        args.get_one::<String>("host").unwrap()
     );
     if std::path::Path::new(&ar_refseq).exists() && std::path::Path::new(&ar_genbank).exists() {
         info!(
@@ -147,10 +144,10 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
         );
     } else {
         info!("Connecting...");
-        let mut conn = ftp::FtpStream::connect(args.value_of("host").unwrap())?;
+        let mut conn = ftp::FtpStream::connect(args.get_one::<String>("host").unwrap())?;
         conn.login("ftp", "example@example.com")?;
         info!("Connected.");
-        conn.cwd(args.value_of("ar").unwrap())?;
+        conn.cwd(args.get_one::<String>("ar").unwrap())?;
         info!("Remote directory: {}", conn.pwd().unwrap());
 
         info!("Retrieving {}...", "assembly_summary_refseq.txt");

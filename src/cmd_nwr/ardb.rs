@@ -9,7 +9,7 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 
 // Create clap subcommand arguments
-pub fn make_subcommand<'a>() -> Command<'a> {
+pub fn make_subcommand() -> Command {
     Command::new("ardb")
         .about("Init the assembly database")
         .after_help(
@@ -119,12 +119,14 @@ pub fn make_subcommand<'a>() -> Command<'a> {
             Arg::new("dir")
                 .long("dir")
                 .short('d')
-                .takes_value(true)
+                .num_args(1)
+                .value_name("DIR")
                 .help("Change working directory"),
         )
         .arg(
             Arg::new("genbank")
                 .long("genbank")
+                .action(ArgAction::SetTrue)
                 .help("Create the genbank ardb"),
         )
 }
@@ -158,12 +160,12 @@ CREATE TABLE IF NOT EXISTS ar (
 pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error::Error>> {
     let _ = SimpleLogger::init(LevelFilter::Debug, Config::default());
 
-    let nwrdir = if args.is_present("dir") {
-        std::path::Path::new(args.value_of("dir").unwrap()).to_path_buf()
+    let nwrdir = if args.contains_id("dir") {
+        std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf()
     } else {
         nwr::nwr_path()
     };
-    let file = if args.is_present("genbank") {
+    let file = if args.get_flag("genbank") {
         nwrdir.join("ar_genbank.sqlite")
     } else {
         nwrdir.join("ar_refseq.sqlite")
@@ -189,7 +191,7 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
     conn.execute_batch(DDL_AR)?;
 
     info!("==> Loading...");
-    let file = if args.is_present("genbank") {
+    let file = if args.get_flag("genbank") {
         File::open(nwrdir.join("assembly_summary_genbank.txt"))?
     } else {
         File::open(nwrdir.join("assembly_summary_refseq.txt"))?

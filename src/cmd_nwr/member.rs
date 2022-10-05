@@ -2,7 +2,7 @@ use clap::*;
 use std::collections::HashSet;
 
 // Create clap subcommand arguments
-pub fn make_subcommand<'a>() -> Command<'a> {
+pub fn make_subcommand() -> Command {
     Command::new("member")
         .about("List members (of certain ranks) under ancestral term(s)")
         .after_help(
@@ -21,46 +21,47 @@ pub fn make_subcommand<'a>() -> Command<'a> {
             Arg::new("terms")
                 .help("The ancestor(s)")
                 .required(true)
-                .min_values(1)
+                .num_args(1..)
                 .index(1),
         )
         .arg(
             Arg::new("dir")
                 .long("dir")
                 .short('d')
-                .takes_value(true)
+                .num_args(1)
+                .value_name("DIR")
                 .help("Change working directory"),
         )
         .arg(
             Arg::new("rank")
                 .long("rank")
                 .short('r')
-                .takes_value(true)
-                .multiple_occurrences(true)
+                .num_args(1..)
+                .action(ArgAction::Append)
                 .help("To list which rank(s)"),
         )
         .arg(
             Arg::new("env")
                 .long("env")
+                .action(ArgAction::SetTrue)
                 .help("Include division `Environmental samples`"),
         )
         .arg(
             Arg::new("outfile")
                 .short('o')
                 .long("outfile")
-                .takes_value(true)
+                .num_args(1)
                 .default_value("stdout")
-                .forbid_empty_values(true)
                 .help("Output filename. [stdout] for screen"),
         )
 }
 
 // command implementation
 pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error::Error>> {
-    let writer = intspan::writer(args.value_of("outfile").unwrap());
+    let writer = intspan::writer(args.get_one::<String>("outfile").unwrap());
 
-    let nwrdir = if args.is_present("dir") {
-        std::path::Path::new(args.value_of("dir").unwrap()).to_path_buf()
+    let nwrdir = if args.contains_id("dir") {
+        std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf()
     } else {
         nwr::nwr_path()
     };
@@ -73,14 +74,14 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
     tsv_wtr.write_record(&["#tax_id", "sci_name", "rank", "division"])?;
 
     let mut rank_set: HashSet<String> = HashSet::new();
-    if args.is_present("rank") {
-        for rank in args.values_of("rank").unwrap() {
+    if args.contains_id("rank") {
+        for rank in args.get_many::<String>("rank").unwrap() {
             rank_set.insert(rank.to_string());
         }
     }
-    let is_env = args.is_present("env");
+    let is_env = args.get_flag("env");
 
-    for term in args.values_of("terms").unwrap() {
+    for term in args.get_many::<String>("terms").unwrap() {
         let id = nwr::term_to_tax_id(&conn, term.to_string()).unwrap();
         let descendents = nwr::get_all_descendent(&conn, id).unwrap();
 
