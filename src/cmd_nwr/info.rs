@@ -55,7 +55,7 @@ pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error:
 
     let nodes = nwr::get_node(&conn, ids).unwrap();
 
-    if args.contains_id("tsv") {
+    if args.get_flag("tsv") {
         let mut wtr = csv::WriterBuilder::new()
             .delimiter(b'\t')
             .from_writer(writer);
