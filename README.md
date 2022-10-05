@@ -23,27 +23,25 @@ brew install wang-q/tap/nwr
 ## SYNOPSIS
 
 ```text
-$ nwr 0.5.7
-wang-q <wang-q@outlook.com>
+$ nwr help
 `nwr` is a command line tool for NCBI taxonomy and newick files
 
-USAGE:
-    nwr.exe [SUBCOMMAND]
+Usage: nwr.exe [COMMAND]
 
-OPTIONS:
-    -h, --help       Print help information
-    -V, --version    Print version information
+Commands:
+  append    Append fields of higher ranks to a TSV file
+  ardb      Init the assembly database
+  download  Download the latest releases of `taxdump` and assembly reports
+  info      Information of Taxonomy ID(s) or scientific name(s)
+  lineage   Output the lineage of the term
+  member    List members (of certain ranks) under ancestral term(s)
+  restrict  Restrict taxonomy terms to ancestral descendants
+  txdb      Init the taxonomy database
+  help      Print this message or the help of the given subcommand(s)
 
-SUBCOMMANDS:
-    append      Append fields of higher ranks to a TSV file
-    ardb        Init the assembly database
-    download    Download the latest release of `taxdump`
-    help        Print this message or the help of the given subcommand(s)
-    info        Information of Taxonomy ID(s) or scientific name(s)
-    lineage     Output the lineage of the term
-    member      List members (of certain ranks) under ancestral term(s)
-    restrict    Restrict taxonomy terms to ancestral descendants
-    txdb        Init the taxonomy database
+Options:
+  -h, --help     Print help information
+  -V, --version  Print version information
 
 ```
 
