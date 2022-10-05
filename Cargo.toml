@@ -17,29 +17,29 @@ path = "src/nwr.rs"
 
 [dependencies]
 clap = { version = "3.1.1", features = ["derive", "cargo"] }
-regex = "1"
-lazy_static = "1.3.0"
-flate2 = "1.0"
-itertools = "0.10.3"
-bio = "0.30.0"
+regex = "1.6.0"
+lazy_static = "1.4.0"
+flate2 = "1.0.24"
+itertools = "0.10.5"
+bio = "0.41.0"
 
-intspan = "^0.6.1"
+intspan = "^0.7.1"
 
-ftp = "3"
-tar = "0.4"
+ftp = "3.0.1"
+tar = "0.4.38"
 dirs = "4.0.0"
-log = "0.4"
-simplelog = "^0.10.0"
-md5 = "^0.7.0"
-rusqlite = { version = "0.26.3", features = ["bundled"] }
-csv = "1.1"
+log = "0.4.17"
+simplelog = "0.12.0"
+md5 = "0.7.0"
+rusqlite = { version = "0.28.0", features = ["bundled"] }
+csv = "1.1.6"
 
 [build-dependencies]
 
 [dev-dependencies]
-tempfile = "3.1.0"
-assert_cmd = "0.11"
-predicates = "1"
+tempfile = "3.3.0"
+assert_cmd = "2.0.4"
+predicates = "2.1.1"
 
 [profile.release]
 lto = true
