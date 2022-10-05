@@ -128,3 +128,7 @@ Cargo.lock
 **/*.rs.bk
 
 *.tmp
+
+*.sqlite
+*.dmp
+*.tsv
