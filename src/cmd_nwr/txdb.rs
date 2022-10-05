@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS name (
 "###;
 
 // command implementation
-pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error::Error>> {
+pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let _ = SimpleLogger::init(LevelFilter::Debug, Config::default());
 
     let nwrdir = if args.contains_id("dir") {

@@ -59,7 +59,7 @@ aria2c -x 4 -s 2 -c -d ~/.nwr -i download.txt
 }
 
 // command implementation
-pub fn execute(args: &ArgMatches) -> std::result::Result<(), Box<dyn std::error::Error>> {
+pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let _ = SimpleLogger::init(LevelFilter::Info, Config::default());
 
     let nwrdir = nwr::nwr_path();

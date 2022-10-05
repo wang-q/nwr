@@ -26,7 +26,7 @@ pub fn nwr_path() -> std::path::PathBuf {
 ///
 /// assert_eq!(conn.path().unwrap().to_str().unwrap(), "tests/nwr/taxonomy.sqlite");
 /// ```
-pub fn connect_txdb(dir: &PathBuf) -> Result<rusqlite::Connection, Box<dyn std::error::Error>> {
+pub fn connect_txdb(dir: &PathBuf) -> anyhow::Result<rusqlite::Connection> {
     let dbfile = dir.join("taxonomy.sqlite");
     let conn = rusqlite::Connection::open(dbfile)?;
 
@@ -47,10 +47,7 @@ pub fn connect_txdb(dir: &PathBuf) -> Result<rusqlite::Connection, Box<dyn std::
 ///
 /// assert_eq!(tax_ids, vec![12340, 12347]);
 /// ```
-pub fn get_tax_id(
-    conn: &rusqlite::Connection,
-    names: Vec<String>,
-) -> Result<Vec<i64>, Box<dyn std::error::Error>> {
+pub fn get_tax_id(conn: &rusqlite::Connection, names: Vec<String>) -> anyhow::Result<Vec<i64>> {
     let mut tax_ids = vec![];
 
     let mut stmt = conn.prepare(
@@ -68,7 +65,7 @@ pub fn get_tax_id(
         if let Some(row) = rows.next().unwrap() {
             tax_ids.push(row.get(0)?);
         } else {
-            return Err(From::from(format!("No such name: {}", name)));
+            return Err(anyhow::anyhow!("No such name: {}", name));
         }
     }
 
@@ -90,10 +87,7 @@ pub fn get_tax_id(
 /// assert_eq!(nodes.get(0).unwrap().division, "Phages");
 /// assert_eq!(nodes.get(1).unwrap().tax_id, 12347);
 /// ```
-pub fn get_node(
-    conn: &rusqlite::Connection,
-    ids: Vec<i64>,
-) -> Result<Vec<Node>, Box<dyn std::error::Error>> {
+pub fn get_node(conn: &rusqlite::Connection, ids: Vec<i64>) -> anyhow::Result<Vec<Node>> {
     let mut nodes = vec![];
 
     let mut stmt = conn.prepare(
@@ -134,7 +128,7 @@ pub fn get_node(
                 .entry(row.get(4)?)
                 .or_insert_with(|| vec![row.get(5).unwrap()]);
         } else {
-            return Err(From::from(format!("No such ID: {}", id)));
+            return Err(anyhow::anyhow!("No such ID: {}", id));
         }
 
         while let Some(row) = rows.next().unwrap() {
@@ -160,10 +154,7 @@ pub fn get_node(
 ///
 /// assert_eq!(ancestor.tax_id, 12333);
 /// ```
-pub fn get_ancestor(
-    conn: &rusqlite::Connection,
-    id: i64,
-) -> Result<Node, Box<dyn std::error::Error>> {
+pub fn get_ancestor(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Node> {
     let mut stmt = conn.prepare(
         "
         SELECT parent_tax_id
@@ -190,10 +181,7 @@ pub fn get_ancestor(
 /// assert_eq!(lineage.last().unwrap().tax_id, 12340);
 /// assert_eq!(lineage.len(), 4);
 /// ```
-pub fn get_lineage(
-    conn: &rusqlite::Connection,
-    id: i64,
-) -> Result<Vec<Node>, Box<dyn std::error::Error>> {
+pub fn get_lineage(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<Node>> {
     let mut id = id;
     let mut ids = vec![id];
 
@@ -237,10 +225,7 @@ pub fn get_lineage(
 /// assert_eq!(descendents.get(0).unwrap().rank, "no rank");
 /// assert_eq!(descendents.len(), 34);
 /// ```
-pub fn get_descendent(
-    conn: &rusqlite::Connection,
-    id: i64,
-) -> Result<Vec<Node>, Box<dyn std::error::Error>> {
+pub fn get_descendent(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<Node>> {
     let mut ids: Vec<i64> = vec![];
 
     let mut stmt = conn.prepare(
@@ -273,10 +258,7 @@ pub fn get_descendent(
 /// assert_eq!(*descendents.get(0).unwrap(), 375032);
 /// assert_eq!(descendents.len(), 35);
 /// ```
-pub fn get_all_descendent(
-    conn: &rusqlite::Connection,
-    id: i64,
-) -> Result<Vec<i64>, Box<dyn std::error::Error>> {
+pub fn get_all_descendent(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<i64>> {
     let mut ids: Vec<i64> = vec![];
     let mut temp_ids = vec![id];
 
@@ -321,10 +303,7 @@ pub fn get_all_descendent(
 /// assert_eq!(id, 12392);
 ///
 /// ```
-pub fn term_to_tax_id(
-    conn: &rusqlite::Connection,
-    term: String,
-) -> Result<i64, Box<dyn std::error::Error>> {
+pub fn term_to_tax_id(conn: &rusqlite::Connection, term: String) -> anyhow::Result<i64> {
     let term = term.trim().replace("_", " ");
 
     let id: i64 = match term.parse::<i64>() {

@@ -3,18 +3,18 @@ use predicates::prelude::*; // Used for writing assertions
 use std::process::Command; // Run programs
 
 #[test]
-fn command_invalid() -> Result<(), Box<dyn std::error::Error>> {
+fn command_invalid() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     cmd.arg("foobar");
-    cmd.assert().failure().stderr(predicate::str::contains(
-        "wasn't recognized",
-    ));
+    cmd.assert()
+        .failure()
+        .stderr(predicate::str::contains("wasn't recognized"));
 
     Ok(())
 }
 
 #[test]
-fn command_txdb() -> Result<(), Box<dyn std::error::Error>> {
+fn command_txdb() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("txdb")
@@ -31,7 +31,7 @@ fn command_txdb() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn command_ardb() -> Result<(), Box<dyn std::error::Error>> {
+fn command_ardb() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("ardb")
@@ -48,7 +48,7 @@ fn command_ardb() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn command_info() -> Result<(), Box<dyn std::error::Error>> {
+fn command_info() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("info")
@@ -68,7 +68,7 @@ fn command_info() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn command_lineage() -> Result<(), Box<dyn std::error::Error>> {
+fn command_lineage() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("lineage")
@@ -86,7 +86,7 @@ fn command_lineage() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn command_restrict() -> Result<(), Box<dyn std::error::Error>> {
+fn command_restrict() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("restrict")
@@ -108,7 +108,7 @@ fn command_restrict() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn command_member() -> Result<(), Box<dyn std::error::Error>> {
+fn command_member() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("member")
@@ -130,7 +130,7 @@ fn command_member() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn command_append() -> Result<(), Box<dyn std::error::Error>> {
+fn command_append() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("append")
@@ -162,7 +162,7 @@ fn command_append() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[test]
-fn command_append_rank() -> Result<(), Box<dyn std::error::Error>> {
+fn command_append_rank() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("append")

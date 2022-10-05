@@ -3,7 +3,7 @@ use clap::*;
 
 mod cmd_nwr;
 
-fn main() -> std::io::Result<()> {
+fn main() -> anyhow::Result<()> {
     let app = Command::new("nwr")
         .version(crate_version!())
         .author(crate_authors!())
