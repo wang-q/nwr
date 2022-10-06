@@ -6,7 +6,7 @@
 [![Crates.io](https://img.shields.io/crates/v/nwr.svg)](https://crates.io/crates/nwr)
 [![Lines of code](https://tokei.rs/b1/github/wang-q/nwr?category=code)](https://github.com//wang-q/nwr)
 
-`nwr` is a command line tool for NCBI taxonomy and newick files.
+`nwr` is a command line tool for NCBI taxonomy, NCBI assembly reports and Newick files, written in Rust.
 
 ## Install
 
@@ -49,7 +49,7 @@ Options:
 
 ### Usage of each command
 
-For a realworld usage of `nwr` and other awesome campanions, follow this [page](doc/assembly.md).
+For practical uses of `nwr` and other awesome companions, follow this [page](doc/assembly.md).
 
 ```shell
 nwr download
