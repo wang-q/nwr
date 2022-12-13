@@ -9,6 +9,7 @@ fn main() -> anyhow::Result<()> {
         .author(crate_authors!())
         .about("`nwr` is a command line tool for NCBI taxonomy and newick files")
         .propagate_version(true)
+        .arg_required_else_help(true)
         .subcommand(cmd_nwr::append::make_subcommand())
         .subcommand(cmd_nwr::ardb::make_subcommand())
         .subcommand(cmd_nwr::download::make_subcommand())

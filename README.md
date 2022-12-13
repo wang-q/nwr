@@ -49,7 +49,7 @@ Options:
 
 ### Usage of each command
 
-For practical uses of `nwr` and other awesome companions, follow this [page](doc/assembly.md).
+For practical uses of `nwr` and other awesome companions, follow this [page](doc/ncbi_ar.md).
 
 ```shell
 nwr download
