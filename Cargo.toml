@@ -16,7 +16,7 @@ name = "nwr"
 path = "src/nwr.rs"
 
 [dependencies]
-clap = { version = "4.0.29", features = ["derive", "cargo"] }
+clap = { version = "4.0.29", features = ["cargo"] }
 anyhow = "1.0.66"
 regex = "1.7.0"
 lazy_static = "1.4.0"
