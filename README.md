@@ -10,7 +10,7 @@
 
 ## Install
 
-Current release: 0.5.7
+Current release: 0.5.9
 
 ```shell
 cargo install nwr

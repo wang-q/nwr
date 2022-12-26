@@ -2,9 +2,13 @@
 
 ## Unreleased - ReleaseDate
 
-## 0.5.7 - 2022-04-10
+## 0.5.9 - 2022-12-13
 
-## 0.5.6 - 2022-04-09
+* Dump versions of deps
+    * clap v4
+    * Use anyhow
+
+## 0.5.7 - 2022-04-10
 
 * Update the CI workflows
     * Remove travis and appveyor
