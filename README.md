@@ -115,3 +115,7 @@ tbls doc sqlite://./tests/nwr/taxonomy.sqlite doc/txdb
 tbls doc sqlite://./tests/nwr/ar_refseq.sqlite doc/ardb
 
 ```
+
+[txdb](./doc/txdb/README.md)
+
+[ardb](./doc/ardb/README.md)
