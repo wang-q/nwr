@@ -104,3 +104,14 @@ cargo run --bin nwr append -d tests/nwr/ tests/nwr/taxon-valid.tsv -c 2 -r speci
 cargo run --bin nwr ardb -d tests/nwr/
 
 ```
+
+## Database schema
+
+```shell
+brew install k1LoW/tap/tbls
+
+tbls doc sqlite://./tests/nwr/taxonomy.sqlite doc/txdb
+
+tbls doc sqlite://./tests/nwr/ar_refseq.sqlite doc/ardb
+
+```
