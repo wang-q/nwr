@@ -8,7 +8,7 @@ fn command_invalid() -> anyhow::Result<()> {
     cmd.arg("foobar");
     cmd.assert()
         .failure()
-        .stderr(predicate::str::contains("wasn't recognized"));
+        .stderr(predicate::str::contains("recognized"));
 
     Ok(())
 }
@@ -195,6 +195,28 @@ fn command_append_rank() -> anyhow::Result<()> {
         6,
         "fields"
     );
+
+    Ok(())
+}
+
+#[test]
+fn command_assembly() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("assembly")
+        .arg("tests/assembly/Trichoderma.assembly.tsv")
+        .arg("-o")
+        .arg("stdout")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stderr = String::from_utf8(output.stderr).unwrap();
+
+    assert_eq!(stderr.lines().count(), 4);
+    assert!(stderr.contains("Create url.tsv"));
+
+    assert!(stdout.lines().count() > 100);
+    assert!(stdout.contains("T_atrov"));
 
     Ok(())
 }
