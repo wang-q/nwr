@@ -2,6 +2,9 @@
 
 ## Unreleased - ReleaseDate
 
+* Add `nwr assembly`
+* Add database schema
+
 ## 0.5.9 - 2022-12-13
 
 * Dump versions of deps

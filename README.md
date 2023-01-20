@@ -18,6 +18,9 @@ cargo install nwr
 # or
 brew install wang-q/tap/nwr
 
+# local repo
+cargo install --path . --force --offline
+
 ```
 
 ## SYNOPSIS
@@ -26,11 +29,12 @@ brew install wang-q/tap/nwr
 $ nwr help
 `nwr` is a command line tool for NCBI taxonomy and newick files
 
-Usage: nwr.exe [COMMAND]
+Usage: nwr [COMMAND]
 
 Commands:
   append    Append fields of higher ranks to a TSV file
   ardb      Init the assembly database
+  assembly  Prepare ASSEMBLY materials
   download  Download the latest releases of `taxdump` and assembly reports
   info      Information of Taxonomy ID(s) or scientific name(s)
   lineage   Output the lineage of the term
@@ -40,8 +44,8 @@ Commands:
   help      Print this message or the help of the given subcommand(s)
 
 Options:
-  -h, --help     Print help information
-  -V, --version  Print version information
+  -h, --help     Print help
+  -V, --version  Print version
 
 ```
 
@@ -102,6 +106,8 @@ echo -e '#tax_id\n12347' |
 cargo run --bin nwr append -d tests/nwr/ tests/nwr/taxon-valid.tsv -c 2 -r species -r family --id
 
 cargo run --bin nwr ardb -d tests/nwr/
+
+cargo run --bin nwr assembly tests/assembly/Trichoderma.assembly.tsv
 
 ```
 

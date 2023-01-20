@@ -20,9 +20,11 @@ clap = { version = "4.0.29", features = ["cargo"] }
 anyhow = "1.0.66"
 regex = "1.7.0"
 lazy_static = "1.4.0"
+tera = "1.17.1"
+
 flate2 = "1.0.25"
 itertools = "0.10.5"
-bio = "1.0.0"
+#bio = "1.1.0"
 
 intspan = "^0.7.1"
 
