@@ -1,0 +1,78 @@
+#name	ftp_path	organism	assembly_level
+C_pro_GCA_004303015_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/004/303/015/GCA_004303015.1_ASM430301v1	Cladobotryum protrusum	Contig
+E_web_GCA_001278495_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/001/278/495/GCA_001278495.1_ASM127849v1	Escovopsis weberi	Scaffold
+E_web_GCA_003055145_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/003/055/145/GCA_003055145.1_ASM305514v1	Escovopsis weberi	Scaffold
+H_per_GCA_008477525_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/008/477/525/GCA_008477525.1_ASM847752v1	Hypomyces perniciosus	Contig
+H_ros_GCA_011799845_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/011/799/845/GCA_011799845.1_ASM1179984v1	Hypomyces rosellus	Contig
+T_afr_GCA_016490745_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/016/490/745/GCA_016490745.1_ASM1649074v1	Trichoderma afroharzianum	Contig
+T_afr_GCA_020736905_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/020/736/905/GCA_020736905.1_ASM2073690v1	Trichoderma afroharzianum	Scaffold
+T_aru_GCA_003012105_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/003/012/105/GCA_003012105.1_Trichoderma_arundinaceum_IBT40837_contigs	Trichoderma arundinaceum	Scaffold
+T_asperello_GCA_021066465_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/021/066/465/GCA_021066465.1_ASM2106646v1	Trichoderma asperelloides	Scaffold
+T_asperellum_CBS_433_97_GCA_003025105_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/003/025/105/GCA_003025105.1_Trias_v._1.0	Trichoderma asperellum	Scaffold
+T_asperellum_GCA_000733085_2	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/733/085/GCA_000733085.2_ThB05-1.0	Trichoderma asperellum	Contig
+T_asperellum_GCA_004154885_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/004/154/885/GCA_004154885.1_ASM415488v1	Trichoderma asperellum	Scaffold
+T_asperellum_GCA_013423425_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/013/423/425/GCA_013423425.1_Tasp_IC-1_01	Trichoderma asperellum	Scaffold
+T_asperellum_GCA_014839745_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/014/839/745/GCA_014839745.1_ASM1483974v1	Trichoderma asperellum	Scaffold
+T_asperellum_GCA_017945965_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/017/945/965/GCA_017945965.1_ASM1794596v1	Trichoderma asperellum	Complete Genome
+T_asperellum_GCA_019481625_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/019/481/625/GCA_019481625.1_NGS_P6624_DRR-RMS-81_Assembly	Trichoderma asperellum	Scaffold
+T_asperellum_GCA_019594925_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/019/594/925/GCA_019594925.1_ASM1959492v1	Trichoderma asperellum	Scaffold
+T_asperellum_GCA_019594945_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/019/594/945/GCA_019594945.1_ASM1959494v1	Trichoderma asperellum	Scaffold
+T_asperellum_GCA_020647865_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/020/647/865/GCA_020647865.1_ASM2064786v1	Trichoderma asperellum	Complete Genome
+T_asperellum_GCA_020736895_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/020/736/895/GCA_020736895.1_ASM2073689v1	Trichoderma asperellum	Scaffold
+T_atrob_GCA_003439915_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/003/439/915/GCA_003439915.1_ASM343991v1	Trichoderma atrobrunneum	Contig
+T_atrov_GCA_000963795_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/963/795/GCA_000963795.1_ASM96379v1	Trichoderma atroviride	Scaffold
+T_atrov_GCA_001599035_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/001/599/035/GCA_001599035.1_JCM_9410_assembly_v001	Trichoderma atroviride	Scaffold
+T_atrov_GCA_002916895_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/002/916/895/GCA_002916895.1_ASM291689v1	Trichoderma atroviride	Contig
+T_atrov_GCA_019297715_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/019/297/715/GCA_019297715.1_ASM1929771v1	Trichoderma atroviride	Contig
+T_atrov_GCA_020466355_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/020/466/355/GCA_020466355.1_ASM2046635v1	Trichoderma atroviride	Contig
+T_atrov_GCA_020647795_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/020/647/795/GCA_020647795.1_ASM2064779v1	Trichoderma atroviride	Complete Genome
+T_atrov_IMI_206040_GCA_000171015_2	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/171/015/GCA_000171015.2_TRIAT_v2.0	Trichoderma atroviride	Contig
+T_brevico_GCA_003012085_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/003/012/085/GCA_003012085.1_Trichoderma_brevicompactum_IBT40841_contigs	Trichoderma brevicompactum	Scaffold
+T_brevicr_GCA_017311225_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/017/311/225/GCA_017311225.1_ASM1731122v1	Trichoderma brevicrassum	Scaffold
+T_cit_GCA_003025115_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/003/025/115/GCA_003025115.1_Trici_v4.0	Trichoderma citrinoviride	Scaffold
+T_cor_GCA_020631695_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/020/631/695/GCA_020631695.1_ASM2063169v1	Trichoderma cornu-damae	Chromosome
+T_eri_GCA_013365115_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/013/365/115/GCA_013365115.1_ASM1336511v1	Trichoderma erinaceum	Scaffold
+T_gam_GCA_001481775_2	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/001/481/775/GCA_001481775.2_TGAM01v2	Trichoderma gamsii	Scaffold
+T_gam_GCA_002894205_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/002/894/205/GCA_002894205.1_A5MHv2.1	Trichoderma gamsii	Scaffold
+T_gra_GCA_020002365_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/020/002/365/GCA_020002365.1_ASM2000236v1	Trichoderma gracile	Contig
+T_gui_GCA_002022785_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/002/022/785/GCA_002022785.1_ASM202278v1	Trichoderma guizhouense	Scaffold
+T_ham_GCA_018804165_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/018/804/165/GCA_018804165.1_ASM1880416v1	Trichoderma hamatum	Scaffold
+T_ham_GD12_GCA_000331835_2	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/331/835/GCA_000331835.2_GD12v2	Trichoderma hamatum	Scaffold
+T_har_CBS_226_95_GCA_003025095_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/003/025/095/GCA_003025095.1_Triha_v1.0	Trichoderma harzianum	Scaffold
+T_har_GCA_000988865_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/988/865/GCA_000988865.1_ASM98886v1	Trichoderma harzianum	Scaffold
+T_har_GCA_001990665_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/001/990/665/GCA_001990665.1_ASM199066v1	Trichoderma harzianum	Scaffold
+T_har_GCA_002838845_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/002/838/845/GCA_002838845.1_ASM283884v1	Trichoderma harzianum	Contig
+T_har_GCA_002894145_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/002/894/145/GCA_002894145.1_Tr1	Trichoderma harzianum	Scaffold
+T_har_GCA_010015525_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/010/015/525/GCA_010015525.1_ASM1001552v1	Trichoderma harzianum	Scaffold
+T_har_GCA_019097725_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/019/097/725/GCA_019097725.1_SYAU_Tha_1.0	Trichoderma harzianum	Chromosome
+T_har_GCA_019393575_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/019/393/575/GCA_019393575.1_T_har_P49P11.v1	Trichoderma harzianum	Scaffold
+T_har_GCA_021186515_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/021/186/515/GCA_021186515.1_ASM2118651v1	Trichoderma harzianum	Contig
+T_koningii_GCA_001950475_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/001/950/475/GCA_001950475.1_JCM_1883_assembly_v001	Trichoderma koningii	Scaffold
+T_koningio_GCA_002246955_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/002/246/955/GCA_002246955.1_ASM224695v1	Trichoderma koningiopsis	Scaffold
+T_len_GCA_011066345_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/011/066/345/GCA_011066345.1_CFAM422_1.0	Trichoderma lentiforme	Scaffold
+T_lix_GCA_014468695_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/014/468/695/GCA_014468695.1_ASM1446869v1	Trichoderma lixii	Scaffold
+T_lon_ATCC_18648_GCA_003025155_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/003/025/155/GCA_003025155.1_Trilo3	Trichoderma longibrachiatum	Scaffold
+T_lon_SMF2_GCA_000332775_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/332/775/GCA_000332775.1_smf2.v1.0	Trichoderma longibrachiatum	Scaffold
+T_oli_GCA_015266385_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/015/266/385/GCA_015266385.1_ASM1526638v1	Trichoderma oligosporum	Contig
+T_par_GCA_001050175_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/001/050/175/GCA_001050175.1_Tpara_v1.0	Trichoderma parareesei	Scaffold
+T_ple_GCA_001721665_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/001/721/665/GCA_001721665.1_ASM172166v1	Trichoderma pleuroti	Contig
+T_ree_GCA_001999515_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/001/999/515/GCA_001999515.1_T_reesei_CBS_999_97_v1	Trichoderma reesei	Scaffold
+T_ree_GCA_004762065_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/004/762/065/GCA_004762065.1_ASM476206v1	Trichoderma reesei	Contig
+T_ree_GCA_009835125_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/009/835/125/GCA_009835125.1_ASM983512v1	Trichoderma reesei	Complete Genome
+T_ree_GCA_016806755_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/016/806/755/GCA_016806755.1_ASM1680675v1	Trichoderma reesei	Complete Genome
+T_ree_GCA_016806775_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/016/806/775/GCA_016806775.1_ASM1680677v1	Trichoderma reesei	Complete Genome
+T_ree_GCA_016806795_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/016/806/795/GCA_016806795.1_ASM1680679v1	Trichoderma reesei	Complete Genome
+T_ree_GCA_016806815_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/016/806/815/GCA_016806815.1_ASM1680681v1	Trichoderma reesei	Complete Genome
+T_ree_GCA_016806875_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/016/806/875/GCA_016806875.1_ASM1680687v1	Trichoderma reesei	Complete Genome
+T_ree_QM6a_GCA_000167675_2	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/167/675/GCA_000167675.2_v2.0	Trichoderma reesei	Scaffold
+T_ree_QM6a_GCA_002006585_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/002/006/585/GCA_002006585.1_ASM200658v1	Trichoderma reesei	Complete Genome
+T_ree_RUT_C_30_GCA_000513815_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/513/815/GCA_000513815.1_TrireRUTC30_1	Trichoderma reesei	Scaffold
+T_sem_GCA_020045945_2	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/020/045/945/GCA_020045945.2_ASM2004594v2	Trichoderma semiorbis	Chromosome
+T_sim_GCA_019565615_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/019/565/615/GCA_019565615.1_ASM1956561v1	Trichoderma simmonsii	Complete Genome
+T_vire_FT_333_GCA_000800515_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/800/515/GCA_000800515.1_ASM80051v1	Trichoderma virens	Contig
+T_vire_FT_333_GCA_020647705_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/020/647/705/GCA_020647705.1_ASM2064770v1	Trichoderma virens	Complete Genome
+T_vire_GCA_001835465_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/001/835/465/GCA_001835465.1_T_virens_PBJelly_1.0	Trichoderma virens	Scaffold
+T_vire_GCA_013009365_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/013/009/365/GCA_013009365.1_ASM1300936v1	Trichoderma virens	Scaffold
+T_vire_GCA_020647635_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/020/647/635/GCA_020647635.1_ASM2064763v1	Trichoderma virens	Complete Genome
+T_vire_Gv29_8_GCA_000170995_2	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/170/995/GCA_000170995.2_TRIVI_v2.0	Trichoderma virens	Scaffold
+T_viri_GCA_007896495_1	https://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/007/896/495/GCA_007896495.1_ASM789649v1	Trichoderma viride	Contig
