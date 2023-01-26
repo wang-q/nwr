@@ -52,6 +52,13 @@ pub fn make_subcommand() -> Command {
                 .help("The column where the IDs are located, starting from 1"),
         )
         .arg(
+            Arg::new("exclude")
+                .long("exclude")
+                .short('e')
+                .action(ArgAction::SetTrue)
+                .help("exclude lines matching terms"),
+        )
+        .arg(
             Arg::new("outfile")
                 .short('o')
                 .long("outfile")
@@ -66,6 +73,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut writer = intspan::writer(args.get_one::<String>("outfile").unwrap());
 
     let column: usize = *args.get_one("column").unwrap();
+    let is_exclude = args.get_flag("exclude");
 
     let nwrdir = if args.contains_id("dir") {
         std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf()
@@ -100,7 +108,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             let term = fields.get(column - 1).unwrap();
             let id = nwr::term_to_tax_id(&conn, term.to_string()).unwrap();
 
-            if id_set.contains(id as i32) {
+            if is_exclude ^ id_set.contains(id as i32) {
                 writer.write_fmt(format_args!("{}\n", line))?;
             }
         }

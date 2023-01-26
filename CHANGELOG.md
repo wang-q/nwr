@@ -3,6 +3,7 @@
 ## Unreleased - ReleaseDate
 
 * Add `nwr assembly`
+* Add `-e` to `nwr restrict`
 * Add database schema
 
 ## 0.5.9 - 2022-12-13

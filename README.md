@@ -97,6 +97,7 @@ cargo run --bin nwr lineage -d tests/nwr/ --tsv "Actinophage JHJ-1"
 echo -e '#ID\n9606\n12347' |
     cargo run --bin nwr restrict -d tests/nwr/ "Viruses"
 cargo run --bin nwr restrict -d tests/nwr/ "Viruses" -c 2 -f tests/nwr/taxon.tsv -f tests/nwr/taxon.tsv
+cargo run --bin nwr restrict -d tests/nwr/ "Viruses" -c 2 -f tests/nwr/taxon.tsv -e
 
 cargo run --bin nwr member -d tests/nwr/ "Synechococcus phage S" -r "no rank" -r species
 cargo run --bin nwr member -d tests/nwr/ "Synechococcus phage S"

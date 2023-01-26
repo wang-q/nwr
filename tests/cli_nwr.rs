@@ -108,6 +108,29 @@ fn command_restrict() -> anyhow::Result<()> {
 }
 
 #[test]
+fn command_restrict_e() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("restrict")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("Viruses")
+        .arg("-c")
+        .arg("2")
+        .arg("-f")
+        .arg("tests/nwr/taxon.tsv")
+        .arg("-e")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert_eq!(stdout.lines().count(), 3);
+    assert!(!stdout.contains("Actinophage JHJ-1\t12347"), "virus");
+
+    Ok(())
+}
+
+#[test]
 fn command_member() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
