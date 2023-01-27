@@ -248,7 +248,7 @@ cat check.list |
     > tmp.list
 mv tmp.list check.list
 
-cat rsync.tsv |
+cat url.tsv |
     tsv-join -f check.list -k 1 -e |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
         if [[ ! -e {1} ]]; then
@@ -310,7 +310,7 @@ touch check.list
 echo "name,{{ columns | join(sep=",") }}" \
     > collect.csv
 
-cat rsync.tsv |
+cat url.tsv |
     tsv-join -f check.list -k 1 |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
         echo >&2
