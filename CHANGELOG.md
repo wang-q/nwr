@@ -10,7 +10,7 @@
 
 ## 0.5.9 - 2022-12-13
 
-* Dump versions of deps
+* Bump versions of deps
     * clap v4
     * Use anyhow
 
