@@ -331,15 +331,15 @@ cat url.tsv |
 
                 END {
                     my @c;
-                    for my $key ( qw{ {{ columns | join(sep=" ") }} } ) {
+                    for my $key ( qw( {{ columns | join(sep=" ") }} ) ) {
                         if (exists $stat{$key}) {
                             push @c, $stat{$key};
                         }
                         else {
-                            push @c, q{};
+                            push @c, q();
                         }
                     }
-                    print join(q{,}, q{[% n %]}, @c);
+                    print join(q(,), q({1}), @c);
                 }
             '\'' \
             >> collect.csv
