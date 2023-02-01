@@ -27,7 +27,7 @@ cargo install --path . --force --offline
 
 ```text
 $ nwr help
-`nwr` is a command line tool for NCBI taxonomy and newick files
+`nwr` is a command line tool for NCBI taxonomy, assembly reports and Newick files
 
 Usage: nwr [COMMAND]
 
