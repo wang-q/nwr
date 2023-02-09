@@ -256,24 +256,25 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         let (genus_id, genus) = nwr::find_rank(&lineage, "genus".to_string());
         let (species_id, species) = nwr::find_rank(&lineage, "species".to_string());
 
-        // Check organism_name with the one in txdb
-        // let tmp : String;
-        if !species.eq("NA") && !organism_name.starts_with(&species) {
-            // debug!("{} doesn't match species {}", organism_name, species);
-            continue;
-
-            // // Change names
-            // let mut parts: Vec<&str> = organism_name.split_whitespace().collect();
-            // if parts.len() < 2 {
-            //     continue;
-            // } else {
-            //     parts.pop();
-            //     parts.pop();
-            // }
-            //
-            // tmp = format!("{} {}", species, parts.join(" "));
-            // organism_name = &tmp;
-        }
+        // Pseudomonas syringae pv. tomato doesn't match species Pseudomonas syringae group genomosp. 3
+        // // Check organism_name with the one in txdb
+        // // let tmp : String;
+        // if !species.eq("NA") && !organism_name.starts_with(&species) {
+        //     debug!("    {} doesn't match species {}", organism_name, species);
+        //     continue;
+        //
+        //     // // Change names
+        //     // let mut parts: Vec<&str> = organism_name.split_whitespace().collect();
+        //     // if parts.len() < 2 {
+        //     //     continue;
+        //     // } else {
+        //     //     parts.pop();
+        //     //     parts.pop();
+        //     // }
+        //     //
+        //     // tmp = format!("{} {}", species, parts.join(" "));
+        //     // organism_name = &tmp;
+        // }
 
         // create stmt
         let stmt = format!(
