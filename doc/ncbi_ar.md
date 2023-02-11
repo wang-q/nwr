@@ -1,11 +1,15 @@
 # NCBI Assembly Reports
 
-- [NCBI Assembly Reports](#ncbi-assembly-reports)
-    * [Preparations](#preparations)
-    * [NCBI ASSEMBLY](#ncbi-assembly)
-    * [Example 1: count qualified assemblies of Eukaryote groups](#example-1-count-qualified-assemblies-of-eukaryote-groups)
-    * [Example 2: count qualified assemblies of Prokaryote groups](#example-2-count-qualified-assemblies-of-prokaryote-groups)
-    * [Example 3: find accessions of a species](#example-3-find-accessions-of-a-species)
+<!-- toc -->
+
+- [Preparations](#preparations)
+- [NCBI ASSEMBLY](#ncbi-assembly)
+- [Example 1: count qualified assemblies of Eukaryote groups](#example-1-count-qualified-assemblies-of-eukaryote-groups)
+- [Example 2: count qualified assemblies of Prokaryote groups](#example-2-count-qualified-assemblies-of-prokaryote-groups)
+- [Example 3: find accessions of a species](#example-3-find-accessions-of-a-species)
+- [Example 4: find model organisms in a family](#example-4-find-model-organisms-in-a-family)
+
+<!-- tocstop -->
 
 Download date: 2022-6-3
 
@@ -362,3 +366,31 @@ WHERE 1=1
     >> Scap.assembly.tsv
 
 ```
+
+## Example 4: find model organisms in a family
+
+```shell
+echo "
+.headers ON
+
+    SELECT
+        tax_id,
+        organism_name
+    FROM ar
+    WHERE 1=1
+        AND family IN ('Enterobacteriaceae')
+        AND refseq_category IN ('reference genome')
+    " |
+    sqlite3 -tabs ~/.nwr/ar_refseq.sqlite |
+    sed '1s/^/#/' |
+    mlr --itsv --omd cat
+
+```
+
+| #tax_id | organism_name                                                    |
+|---------|------------------------------------------------------------------|
+| 511145  | Escherichia coli str. K-12 substr. MG1655                        |
+| 198214  | Shigella flexneri 2a str. 301                                    |
+| 99287   | Salmonella enterica subsp. enterica serovar Typhimurium str. LT2 |
+| 386585  | Escherichia coli O157:H7 str. Sakai                              |
+| 1125630 | Klebsiella pneumoniae subsp. pneumoniae HS11286                  |
