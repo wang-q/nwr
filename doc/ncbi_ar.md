@@ -275,48 +275,48 @@ cat groups.tsv |
 |-----------------------|-----------------|------------|----------|--------|
 | Bacteria              |                 |            |          |        |
 | Abditibacteriota      | 0               | 0          | 0        | 1      |
-| Acidobacteria         | 21              | 1          | 27       | 24     |
-| Actinobacteria        | 2646            | 527        | 9429     | 10486  |
-| Aquificae             | 14              | 2          | 8        | 9      |
-| Armatimonadetes       | 1               | 1          | 4        | 1      |
+| Acidobacteria         | 30              | 1          | 30       | 37     |
+| Actinomycetota        | 2954            | 558        | 10289    | 11789  |
+| Aquificae             | 14              | 2          | 9        | 9      |
+| Armatimonadetes       | 1               | 1          | 4        | 0      |
 | Atribacterota         | 1               | 0          | 0        | 0      |
-| Bacteroidetes         | 968             | 177        | 2743     | 3587   |
-| Balneolaeota          | 0               | 0          | 4        | 16     |
+| Bacillota             | 6872            | 975        | 29778    | 39188  |
+| Bacteroidota          | 1156            | 198        | 3351     | 4339   |
+| Balneolota            | 1               | 0          | 6        | 17     |
 | Caldiserica           | 1               | 0          | 0        | 0      |
 | Calditrichaeota       | 1               | 1          | 0        | 0      |
-| Chlamydiae            | 189             | 83         | 52       | 105    |
-| Chlorobi              | 13              | 0          | 6        | 11     |
+| Chlamydiae            | 192             | 82         | 51       | 115    |
+| Chlorobi              | 16              | 1          | 6        | 11     |
 | Chloroflexi           | 4               | 0          | 4        | 4      |
 | Chrysiogenetes        | 2               | 0          | 2        | 0      |
 | Coprothermobacterota  | 1               | 0          | 1        | 2      |
-| Cyanobacteria         | 192             | 46         | 256      | 431    |
-| Deferribacteres       | 5               | 0          | 3        | 7      |
-| Deinococcus-Thermus   | 73              | 3          | 58       | 134    |
+| Cyanobacteria         | 226             | 50         | 276      | 594    |
+| Deferribacteres       | 6               | 0          | 2        | 8      |
+| Deinococcus-Thermus   | 77              | 3          | 58       | 137    |
 | Dictyoglomi           | 2               | 0          | 0        | 1      |
 | Elusimicrobia         | 2               | 0          | 0        | 1      |
 | Fibrobacteres         | 2               | 0          | 11       | 28     |
-| Firmicutes            | 6051            | 911        | 27854    | 35584  |
-| Fusobacteria          | 78              | 5          | 102      | 140    |
+| Fusobacteria          | 81              | 5          | 108      | 144    |
 | Gemmatimonadetes      | 4               | 0          | 2        | 1      |
 | Ignavibacteriae       | 2               | 0          | 0        | 0      |
 | Kiritimatiellaeota    | 2               | 0          | 0        | 2      |
 | Lentisphaerae         | 0               | 0          | 2        | 4      |
 | Nitrospinae           | 0               | 0          | 1        | 2      |
-| Nitrospirae           | 9               | 0          | 3        | 10     |
-| Planctomycetes        | 54              | 26         | 37       | 49     |
-| Proteobacteria        | 15603           | 2202       | 41561    | 81195  |
+| Nitrospirae           | 9               | 0          | 4        | 10     |
+| Planctomycetota       | 54              | 27         | 40       | 64     |
+| Pseudomonadota        | 18160           | 2467       | 44996    | 90796  |
 | Rhodothermaeota       | 0               | 0          | 3        | 3      |
-| Spirochaetes          | 202             | 139        | 267      | 834    |
-| Synergistetes         | 6               | 4          | 10       | 20     |
-| Tenericutes           | 426             | 18         | 161      | 418    |
+| Spirochaetes          | 352             | 149        | 275      | 936    |
+| Synergistetes         | 6               | 4          | 12       | 22     |
+| Tenericutes           | 485             | 28         | 168      | 458    |
 | Thermodesulfobacteria | 7               | 0          | 4        | 5      |
-| Thermotogae           | 41              | 1          | 32       | 38     |
-| Verrucomicrobia       | 112             | 7          | 158      | 96     |
+| Thermotogae           | 42              | 1          | 33       | 38     |
+| Verrucomicrobia       | 113             | 9          | 167      | 106    |
 | Archaea               |                 |            |          |        |
-| Crenarchaeota         | 93              | 9          | 10       | 77     |
-| Euryarchaeota         | 292             | 9          | 248      | 413    |
-| Nanoarchaeota         | 0               | 0          | 0        | 0      |
-| Thaumarchaeota        | 10              | 0          | 4        | 4      |
+| Crenarchaeota         | 98              | 9          | 11       | 79     |
+| Euryarchaeota         | 349             | 11         | 280      | 470    |
+| Nanoarchaeota         | 1               | 0          | 0        | 0      |
+| Thaumarchaeota        | 13              | 0          | 4        | 9      |
 
 Table: refseq - Prokaryotes
 
