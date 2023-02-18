@@ -11,7 +11,7 @@
 
 <!-- tocstop -->
 
-Download date: 2022-6-3
+Download date: Thu Feb 9 05:00:03 CST 2023
 
 ## Preparations
 
@@ -27,7 +27,7 @@ nwr download
 # Init the taxonomy database
 nwr txdb
 
-# Init the assembly database
+# Init the assembly databases
 nwr ardb
 nwr ardb --genbank
 
@@ -45,7 +45,8 @@ for C in refseq genbank; do
         sed '1d' |
         tsv-summarize -H -g assembly_level,genome_rep --count |
         keep-header -- sort |
-        mlr --itsv --omd cat
+        mlr --itsv --omd cat |
+        sed 's/-\s*|$/-:|/'
 
     echo -e "\nTable: ${C}\n\n"
 done
@@ -60,27 +61,26 @@ done
 
 | assembly_level  | genome_rep |  count |
 |-----------------|------------|-------:|
-| Chromosome      | Full       |   4848 |
-| Chromosome      | Partial    |    433 |
-| Complete Genome | Full       |  38966 |
-| Complete Genome | Partial    |      2 |
-| Contig          | Full       | 134380 |
+| Chromosome      | Full       |   5352 |
+| Chromosome      | Partial    |    455 |
+| Complete Genome | Full       |  43405 |
+| Complete Genome | Partial    |     22 |
+| Contig          | Full       | 149956 |
 | Contig          | Partial    |      1 |
-| Scaffold        | Full       |  84102 |
-| Scaffold        | Partial    |     28 |
+| Scaffold        | Full       |  90946 |
 
 Table: refseq
 
 | assembly_level  | genome_rep |   count |
 |-----------------|------------|--------:|
-| Chromosome      | Full       |    9338 |
-| Chromosome      | Partial    |    2051 |
-| Complete Genome | Full       |   79310 |
-| Complete Genome | Partial    |     151 |
-| Contig          | Full       | 1020094 |
-| Contig          | Partial    |     849 |
-| Scaffold        | Full       |  178781 |
-| Scaffold        | Partial    |     366 |
+| Chromosome      | Full       |   12079 |
+| Chromosome      | Partial    |    2266 |
+| Complete Genome | Full       |   90827 |
+| Complete Genome | Partial    |     893 |
+| Contig          | Full       | 1276924 |
+| Contig          | Partial    |     851 |
+| Scaffold        | Full       |  206002 |
+| Scaffold        | Partial    |     324 |
 
 Table: genbank
 
@@ -160,53 +160,53 @@ cat groups.tsv |
 
 | GROUP_NAME     | SCI_NAME          | Complete Genome | Chromosome | Scaffold | Contig |
 |----------------|-------------------|-----------------|------------|----------|--------|
-| Flatworms      | Platyhelminthes   | 0               | 1          | 3        | 0      |
+| Flatworms      | Platyhelminthes   | 0               | 2          | 2        | 0      |
 | Roundworms     | Nematoda          | 1               | 2          | 5        | 0      |
-| Insects        | Hexapoda          | 0               | 82         | 101      | 24     |
-| Reptiles       | Testudines        | 0               | 6          | 2        | 0      |
-| Reptiles       | Lepidosauria      | 0               | 6          | 9        | 1      |
-| Reptiles       | Crocodylia        | 0               | 0          | 3        | 0      |
-| Fishes         | Chondrichthyes    | 0               | 4          | 2        | 0      |
+| Insects        | Hexapoda          | 0               | 112        | 96       | 22     |
+| Reptiles       | Testudines        | 0               | 9          | 3        | 0      |
+| Reptiles       | Lepidosauria      | 0               | 9          | 9        | 1      |
+| Reptiles       | Crocodylia        | 0               | 0          | 4        | 0      |
+| Fishes         | Chondrichthyes    | 0               | 7          | 1        | 0      |
 | Fishes         | Dipnoi            | 0               | 1          | 0        | 0      |
-| Fishes         | Actinopterygii    | 0               | 99         | 33       | 1      |
+| Fishes         | Actinopterygii    | 0               | 114        | 33       | 1      |
 | Fishes         | Hyperotreti       | 0               | 0          | 0        | 0      |
 | Fishes         | Hyperoartia       | 0               | 1          | 0        | 0      |
 | Fishes         | Coelacanthimorpha | 0               | 0          | 1        | 0      |
-| Mammals        | Mammalia          | 1               | 82         | 100      | 5      |
-| Birds          | Aves              | 0               | 28         | 63       | 2      |
+| Mammals        | Mammalia          | 1               | 92         | 101      | 6      |
+| Birds          | Aves              | 0               | 35         | 64       | 2      |
 | Amphibians     | Amphibia          | 0               | 8          | 1        | 0      |
-| Ascomycetes    | Ascomycota        | 20              | 44         | 199      | 72     |
-| Basidiomycetes | Basidiomycota     | 2               | 8          | 47       | 23     |
-| Green Plants   | Viridiplantae     | 1               | 96         | 44       | 3      |
-| Land Plants    | Embryophyta       | 0               | 93         | 39       | 2      |
-| Apicomplexans  | Apicomplexa       | 3               | 21         | 14       | 2      |
+| Ascomycetes    | Ascomycota        | 22              | 47         | 228      | 80     |
+| Basidiomycetes | Basidiomycota     | 3               | 9          | 48       | 25     |
+| Green Plants   | Viridiplantae     | 2               | 107        | 42       | 5      |
+| Land Plants    | Embryophyta       | 0               | 104        | 37       | 4      |
+| Apicomplexans  | Apicomplexa       | 4               | 21         | 14       | 2      |
 | Kinetoplasts   | Kinetoplastida    | 1               | 7          | 6        | 0      |
 
 Table: refseq - Eukaryotes
 
 | GROUP_NAME     | SCI_NAME          | Complete Genome | Chromosome | Scaffold | Contig |
 |----------------|-------------------|-----------------|------------|----------|--------|
-| Flatworms      | Platyhelminthes   | 0               | 8          | 56       | 9      |
-| Roundworms     | Nematoda          | 1               | 31         | 200      | 60     |
-| Insects        | Hexapoda          | 0               | 557        | 1106     | 1284   |
-| Reptiles       | Testudines        | 0               | 8          | 24       | 2      |
-| Reptiles       | Lepidosauria      | 0               | 16         | 55       | 3      |
+| Flatworms      | Platyhelminthes   | 0               | 13         | 75       | 10     |
+| Roundworms     | Nematoda          | 2               | 38         | 211      | 75     |
+| Insects        | Hexapoda          | 0               | 829        | 1272     | 1468   |
+| Reptiles       | Testudines        | 0               | 14         | 28       | 3      |
+| Reptiles       | Lepidosauria      | 0               | 21         | 76       | 8      |
 | Reptiles       | Crocodylia        | 0               | 0          | 8        | 0      |
-| Fishes         | Chondrichthyes    | 0               | 8          | 12       | 2      |
+| Fishes         | Chondrichthyes    | 0               | 8          | 17       | 2      |
 | Fishes         | Dipnoi            | 0               | 2          | 0        | 0      |
-| Fishes         | Actinopterygii    | 0               | 276        | 1091     | 74     |
-| Fishes         | Hyperotreti       | 0               | 0          | 1        | 0      |
+| Fishes         | Actinopterygii    | 0               | 353        | 1307     | 102    |
+| Fishes         | Hyperotreti       | 0               | 0          | 2        | 0      |
 | Fishes         | Hyperoartia       | 0               | 3          | 6        | 0      |
 | Fishes         | Coelacanthimorpha | 0               | 0          | 2        | 0      |
-| Mammals        | Mammalia          | 1               | 266        | 1586     | 537    |
-| Birds          | Aves              | 0               | 98         | 618      | 41     |
-| Amphibians     | Amphibia          | 0               | 17         | 20       | 3      |
-| Ascomycetes    | Ascomycota        | 129             | 887        | 5387     | 2381   |
-| Basidiomycetes | Basidiomycota     | 24              | 59         | 966      | 573    |
-| Green Plants   | Viridiplantae     | 6               | 789        | 874      | 488    |
-| Land Plants    | Embryophyta       | 3               | 777        | 779      | 430    |
-| Apicomplexans  | Apicomplexa       | 11              | 89         | 169      | 68     |
-| Kinetoplasts   | Kinetoplastida    | 10              | 41         | 65       | 50     |
+| Mammals        | Mammalia          | 1               | 333        | 1630     | 570    |
+| Birds          | Aves              | 0               | 135        | 918      | 54     |
+| Amphibians     | Amphibia          | 0               | 26         | 25       | 6      |
+| Ascomycetes    | Ascomycota        | 222             | 933        | 6713     | 3020   |
+| Basidiomycetes | Basidiomycota     | 33              | 75         | 1087     | 657    |
+| Green Plants   | Viridiplantae     | 9               | 1076       | 1088     | 589    |
+| Land Plants    | Embryophyta       | 3               | 1062       | 985      | 515    |
+| Apicomplexans  | Apicomplexa       | 11              | 96         | 174      | 74     |
+| Kinetoplasts   | Kinetoplastida    | 11              | 43         | 66       | 50     |
 
 Table: genbank - Eukaryotes
 
