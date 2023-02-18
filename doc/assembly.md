@@ -6,22 +6,24 @@
 cat ~/.nwr/assembly_summary_refseq.txt |
     sed '1d' |
     tsv-summarize -H --missing-count infraspecific_name --not-missing-count infraspecific_name |
-    mlr --itsv --omd cat
+    mlr --itsv --omd cat |
+    sed 's/-\s*|/-:|/g'
 
 cat ~/.nwr/assembly_summary_refseq.txt |
     sed '1d' |
     tsv-summarize -H --missing-count isolate --not-missing-count isolate |
-    mlr --itsv --omd cat
+    mlr --itsv --omd cat |
+    sed 's/-\s*|/-:|/g'
 
 ```
 
 | infraspecific_name_missing_count | infraspecific_name_not_missing_count |
-|----------------------------------|--------------------------------------|
-| 19179                            | 253662                               |
+|---------------------------------:|-------------------------------------:|
+|                            20303 |                               269834 |
 
 | isolate_missing_count | isolate_not_missing_count |
-|-----------------------|---------------------------|
-| 254850                | 17991                     |
+|----------------------:|--------------------------:|
+|                270978 |                     19159 |
 
 ## Reference genomes
 
@@ -38,7 +40,7 @@ nwr member Bacteria Archaea -r family |
     > family.list.tsv
 
 wc -l family.list.tsv
-#697 family.list.tsv
+#707 family.list.tsv
 
 FAMILY=$(
     cat family.list.tsv |
