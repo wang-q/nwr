@@ -14,6 +14,8 @@ pub fn make_subcommand() -> Command {
         .about("Init the assembly database")
         .after_help(
             r###"
+This command init the assembly database, which includes metadata for assemblies on the NCBI genomes FTP site.
+
 ~/.nwr/ar_refseq.sqlite
 ~/.nwr/ar_genbank.sqlite
 
@@ -21,37 +23,37 @@ pub fn make_subcommand() -> Command {
 * Fields with numbers are used in the database.
 
     0   assembly_accession  5
-    1   bioproject  3
-    2   biosample   4
+    1   bioproject          3
+    2   biosample           4
     3   wgs_master
-    4   refseq_category 6
-    5   taxid AS tax_id 1
+    4   refseq_category     6
+    5   taxid AS tax_id     1
     6   species_taxid
-    7   organism_name   2
+    7   organism_name       2
     8   infraspecific_name
     9   isolate
     10  version_status
-    11  assembly_level  7
+    11  assembly_level      7
     12  release_type
-    13  genome_rep      8
-    14  seq_rel_date    9
-    15  asm_name        10
+    13  genome_rep          8
+    14  seq_rel_date        9
+    15  asm_name            10
     16  submitter
-    17  gbrs_paired_asm
+    17  gbrs_paired_asm     11
     18  paired_asm_comp
-    19  ftp_path        11
+    19  ftp_path            12
     20  excluded_from_refseq
     21  relation_to_type_material
     22  asm_not_live_date
 
 * 6 columns appended
 
-    12  family
-    13  family_id
-    14  genus
-    15  genus_id
-    16  species
-    17  species_id
+    13  family
+    14  family_id
+    15  genus
+    16  genus_id
+    17  species
+    18  species_id
 
 * Incompetent strains matching the following regexes in their `organism_name` were removed.
 
@@ -102,6 +104,7 @@ pub fn make_subcommand() -> Command {
         genome_rep         VARCHAR (50),
         seq_rel_date       DATE,
         asm_name           VARCHAR (255),
+        gbrs_paired_asm    VARCHAR (255),
         ftp_path           VARCHAR (255),
         family             VARCHAR (50),
         family_id          INTEGER,
@@ -145,6 +148,7 @@ CREATE TABLE IF NOT EXISTS ar (
     genome_rep         VARCHAR (50),
     seq_rel_date       DATE,
     asm_name           VARCHAR (255),
+    gbrs_paired_asm    VARCHAR (255),
     ftp_path           VARCHAR (255),
     family             VARCHAR (50),
     family_id          INTEGER,
@@ -228,6 +232,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         let genome_rep = fields.get(13).unwrap();
         let seq_rel_date = fields.get(14).unwrap();
         let asm_name = fields.get(15).unwrap();
+        let gbrs_paired_asm = fields.get(17).unwrap();
         let ftp_path = fields.get(19).unwrap();
 
         // Skip incompetent strains
@@ -280,25 +285,29 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         let stmt = format!(
             "INSERT INTO ar(
                 tax_id, organism_name, bioproject, biosample, assembly_accession, refseq_category,
-                assembly_level, genome_rep, seq_rel_date, asm_name, ftp_path,
+                assembly_level, genome_rep, seq_rel_date, asm_name, gbrs_paired_asm, ftp_path,
                 family, family_id, genus, genus_id, species, species_id
             )
             VALUES (
                     {},  '{}', '{}', '{}', '{}', '{}',
-                    '{}', '{}', '{}', '{}', '{}',
+                    '{}', '{}', '{}', '{}', '{}', '{}',
                     '{}', {}, '{}', {}, '{}', {}
             );",
+            // 1-6
             tax_id.to_string(),
             organism_name.replace("'", "''"),
             bioproject,
             biosample,
             assembly_accession,
-            refseq_category, // 5
+            refseq_category,
+            // 7-12
             assembly_level,
             genome_rep,
             seq_rel_date.replace("/", "-"), // Transform seq_rel_date to SQLite Date format
             asm_name,
-            ftp_path, // 10
+            gbrs_paired_asm,
+            ftp_path,
+            // 13-18
             family.replace("'", "''"),
             family_id.to_string(),
             genus.replace("'", "''"),

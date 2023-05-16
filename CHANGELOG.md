@@ -2,6 +2,8 @@
 
 ## Unreleased - ReleaseDate
 
+* Add a column `gbrs_paired_asm` to ardb
+
 ## 0.5.10 - 2023-01-28
 
 * Add `nwr assembly`
