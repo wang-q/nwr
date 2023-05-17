@@ -68,7 +68,7 @@ impl std::fmt::Display for Node {
             lines.push_str(&format!("\nComments: {}", comments));
         }
 
-        write!(f, "{}", lines)
+        write!(f, "{}\n", lines)
     }
 }
 
