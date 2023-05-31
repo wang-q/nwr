@@ -15,6 +15,48 @@ cat ~/.nwr/assembly_summary_refseq.txt |
     mlr --itsv --omd cat |
     sed 's/-\s*|/-:|/g'
 
+cat ~/.nwr/assembly_summary_refseq.txt |
+    sed '1d' |
+    tsv-summarize -H --missing-count biosample --not-missing-count biosample |
+    mlr --itsv --omd cat |
+    sed 's/-\s*|/-:|/g'
+
+# infraspecific_name
+cat ~/.nwr/assembly_summary_refseq.txt |
+    sed '1d' |
+    tsv-select -H -f infraspecific_name |
+    perl -nla -F"=" -e 'print $F[0]' |
+    keep-header -- sort |
+    uniq -c
+#      1 infraspecific_name
+#  25671
+#     42 breed
+#     87 cultivar
+#     58 ecotype
+# 279694 strain
+
+cat ~/.nwr/assembly_summary_genbank.txt |
+    sed '1d' |
+    tsv-select -H -f infraspecific_name |
+    perl -nla -F"=" -e 'print $F[0]' |
+    keep-header -- sort |
+    uniq -c
+#      1 infraspecific_name
+# 466618
+#    305 breed
+#   1024 cultivar
+#    469 ecotype
+#1209065 strain
+
+# String length
+cat ~/.nwr/assembly_summary_refseq.txt |
+    sed '1d' |
+    tsv-select -H -f organism_name,infraspecific_name,asm_name,ftp_path |
+    sed '1d' |
+    perl -nla -F"\t" -e 'print join qq(\t), map {length} @F ;' |
+    tsv-summarize --exclude-missing --max 1,2,3,4
+#91      88      92      165
+
 ```
 
 | infraspecific_name_missing_count | infraspecific_name_not_missing_count |
@@ -24,6 +66,10 @@ cat ~/.nwr/assembly_summary_refseq.txt |
 | isolate_missing_count | isolate_not_missing_count |
 |----------------------:|--------------------------:|
 |                270978 |                     19159 |
+
+| biosample_missing_count | biosample_not_missing_count |
+|------------------------:|----------------------------:|
+|                   11905 |                      278232 |
 
 ## Reference genomes
 
@@ -90,10 +136,10 @@ cat raw.tsv |
 
 A TAB-delimited file for downloading assembly files.
 
-| Col |  Type  | Description    |
-|----:|:------:|:---------------|
-|   1 | string | #name          |
-|   2 | string | ftp_path       |
-|   3 | string | organism       |
-|   4 | string | assembly_level |
-
+| Col |  Type  | Description                                              |
+|----:|:------:|:---------------------------------------------------------|
+|   1 | string | #name: species + infraspecific_name + assembly_accession |
+|   2 | string | ftp_path                                                 |
+|   3 | string | biosample                                                |
+|   4 | string | species                                                  |
+|   5 | string | assembly_level                                           |
