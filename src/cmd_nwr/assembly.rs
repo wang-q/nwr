@@ -247,8 +247,10 @@ cd ${BASE_DIR}
 #----------------------------#
 touch check.list
 
+# Keep only the results in the list
 cat check.list |
-    tsv-uniq \
+    tsv-uniq |
+    tsv-join -f url.tsv -k 1 \
     > tmp.list
 mv tmp.list check.list
 
@@ -515,10 +517,10 @@ cd ${BASE_DIR}
 #----------------------------#
 echo >&2 "Strains without protein annotations"
 for STRAIN in $(cat url.tsv | cut -f 1); do
-    if ! compgen -G "ASSEMBLY/${STRAIN}/*_protein.faa.gz" > /dev/null; then
+    if ! compgen -G "${STRAIN}/*_protein.faa.gz" > /dev/null; then
         echo ${STRAIN}
     fi
-    if ! compgen -G "ASSEMBLY/${STRAIN}/*_cds_from_genomic.fna.gz" > /dev/null; then
+    if ! compgen -G "${STRAIN}/*_cds_from_genomic.fna.gz" > /dev/null; then
         echo ${STRAIN}
     fi
 done |
