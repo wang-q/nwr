@@ -107,12 +107,12 @@ This command init the assembly database, which includes metadata for assemblies 
         asm_name           VARCHAR (200),
         gbrs_paired_asm    VARCHAR (200),
         ftp_path           VARCHAR (200),
-        family             VARCHAR (50),
-        family_id          INTEGER,
+        species            VARCHAR (50),
+        species_id         INTEGER,
         genus              VARCHAR (50),
         genus_id           INTEGER,
-        species            VARCHAR (50),
-        species_id         INTEGER
+        family             VARCHAR (50),
+        family_id          INTEGER
     )
 
 * Requires SQLite version 3.34 or above.
@@ -152,12 +152,12 @@ CREATE TABLE IF NOT EXISTS ar (
     asm_name           VARCHAR (200),
     gbrs_paired_asm    VARCHAR (200),
     ftp_path           VARCHAR (200),
-    family             VARCHAR (50),
-    family_id          INTEGER,
+    species            VARCHAR (50),
+    species_id         INTEGER,
     genus              VARCHAR (50),
     genus_id           INTEGER,
-    species            VARCHAR (50),
-    species_id         INTEGER
+    family             VARCHAR (50),
+    family_id          INTEGER
 );
 
 "###;
@@ -269,7 +269,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             "INSERT INTO ar(
                 tax_id, organism_name, infraspecific_name, bioproject, biosample, assembly_accession, refseq_category,
                 assembly_level, genome_rep, seq_rel_date, asm_name, gbrs_paired_asm, ftp_path,
-                family, family_id, genus, genus_id, species, species_id
+                species, species_id, genus, genus_id, family, family_id
             )
             VALUES (
                     {},  '{}', '{}', '{}', '{}', '{}', '{}',
