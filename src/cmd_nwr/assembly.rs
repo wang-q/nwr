@@ -319,7 +319,6 @@ echo "name,{{ columns | join(sep=",") }}" \
 cat url.tsv |
     tsv-join -f check.lst -k 1 |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
-        echo >&2
         echo >&2 "==> {1}"
         find {1} -type f -name "*_assembly_report.txt" |
             xargs cat |
