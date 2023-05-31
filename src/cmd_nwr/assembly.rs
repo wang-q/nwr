@@ -191,10 +191,10 @@ cd ${BASE_DIR}
 #----------------------------#
 # Run
 #----------------------------#
-touch check.list
+touch check.lst
 
 cat url.tsv |
-    tsv-join -f check.list -k 1 -e |
+    tsv-join -f check.lst -k 1 -e |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
         echo >&2
         echo >&2 "==> {1}"
@@ -245,17 +245,17 @@ cd ${BASE_DIR}
 #----------------------------#
 # Run
 #----------------------------#
-touch check.list
+touch check.lst
 
 # Keep only the results in the list
-cat check.list |
+cat check.lst |
     tsv-uniq |
     tsv-join -f url.tsv -k 1 \
     > tmp.list
-mv tmp.list check.list
+mv tmp.list check.lst
 
 cat url.tsv |
-    tsv-join -f check.list -k 1 -e |
+    tsv-join -f check.lst -k 1 -e |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
         if [[ ! -e {1} ]]; then
             exit
@@ -264,7 +264,7 @@ cat url.tsv |
         cd {1}
         md5sum --check md5checksums.txt --quiet
         if [ "$?" -eq "0" ]; then
-            echo "{1}" >> ../check.list
+            echo "{1}" >> ../check.lst
         fi
     '
 
@@ -311,13 +311,13 @@ cd ${BASE_DIR}
 #----------------------------#
 # Run
 #----------------------------#
-touch check.list
+touch check.lst
 
 echo "name,{{ columns | join(sep=",") }}" \
     > collect.csv
 
 cat url.tsv |
-    tsv-join -f check.list -k 1 |
+    tsv-join -f check.lst -k 1 |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
         echo >&2
         echo >&2 "==> {1}"
@@ -538,7 +538,7 @@ echo >&2 "Counts of lines"
 printf "#item\tcount\n" \
     > counts.tsv
 
-for FILE in url.tsv check.list collect.csv n50.tsv n50.pass.csv omit.lst collect.pass.csv; do
+for FILE in url.tsv check.lst collect.csv n50.tsv n50.pass.csv omit.lst collect.pass.csv; do
     cat ${FILE} |
         wc -l |
         FILE=${FILE} perl -nl -MNumber::Format -e '
