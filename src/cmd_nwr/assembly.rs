@@ -432,6 +432,7 @@ touch n50.tsv
 # Keep only the results in the list
 cat n50.tsv |
     tsv-uniq |
+    tsv-filter -H --gt 2:0 | # unfinished downloads
     tsv-join -f url.tsv -k 1 \
     > tmp.tsv
 mv tmp.tsv n50.tsv
