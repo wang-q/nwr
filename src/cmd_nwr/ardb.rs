@@ -22,38 +22,38 @@ This command init the assembly database, which includes metadata for assemblies 
 * `assembly_summary_*.txt` have 23 tab-delimited columns.
 * Fields with numbers are used in the database.
 
-    0   assembly_accession  5
-    1   bioproject          3
-    2   biosample           4
+    0   assembly_accession  6
+    1   bioproject          4
+    2   biosample           5
     3   wgs_master
-    4   refseq_category     6
+    4   refseq_category     7
     5   taxid AS tax_id     1
     6   species_taxid
     7   organism_name       2
-    8   infraspecific_name
+    8   infraspecific_name  3
     9   isolate
     10  version_status
-    11  assembly_level      7
+    11  assembly_level      8
     12  release_type
-    13  genome_rep          8
-    14  seq_rel_date        9
-    15  asm_name            10
+    13  genome_rep          9
+    14  seq_rel_date        10
+    15  asm_name            11
     16  submitter
-    17  gbrs_paired_asm     11
+    17  gbrs_paired_asm     12
     18  paired_asm_comp
-    19  ftp_path            12
+    19  ftp_path            13
     20  excluded_from_refseq
     21  relation_to_type_material
     22  asm_not_live_date
 
 * 6 columns appended
 
-    13  family
-    14  family_id
-    15  genus
-    16  genus_id
-    17  species
-    18  species_id
+    14  species
+    15  species_id
+    16  genus
+    17  genus_id
+    18  family
+    19  family_id
 
 * Incompetent strains matching the following regexes in their `organism_name` were removed.
 
@@ -95,7 +95,8 @@ This command init the assembly database, which includes metadata for assemblies 
 
     CREATE TABLE ar (
         tax_id             INTEGER,
-        organism_name      VARCHAR (255),
+        organism_name      VARCHAR (200),
+        infraspecific_name VARCHAR (200),
         bioproject         VARCHAR (50),
         biosample          VARCHAR (50),
         assembly_accession VARCHAR (50),
@@ -103,9 +104,9 @@ This command init the assembly database, which includes metadata for assemblies 
         assembly_level     VARCHAR (50),
         genome_rep         VARCHAR (50),
         seq_rel_date       DATE,
-        asm_name           VARCHAR (255),
-        gbrs_paired_asm    VARCHAR (255),
-        ftp_path           VARCHAR (255),
+        asm_name           VARCHAR (200),
+        gbrs_paired_asm    VARCHAR (200),
+        ftp_path           VARCHAR (200),
         family             VARCHAR (50),
         family_id          INTEGER,
         genus              VARCHAR (50),
@@ -139,7 +140,8 @@ DROP TABLE IF EXISTS ar;
 
 CREATE TABLE IF NOT EXISTS ar (
     tax_id             INTEGER,
-    organism_name      VARCHAR (255),
+    organism_name      VARCHAR (200),
+    infraspecific_name VARCHAR (200),
     bioproject         VARCHAR (50),
     biosample          VARCHAR (50),
     assembly_accession VARCHAR (50),
@@ -147,9 +149,9 @@ CREATE TABLE IF NOT EXISTS ar (
     assembly_level     VARCHAR (50),
     genome_rep         VARCHAR (50),
     seq_rel_date       DATE,
-    asm_name           VARCHAR (255),
-    gbrs_paired_asm    VARCHAR (255),
-    ftp_path           VARCHAR (255),
+    asm_name           VARCHAR (200),
+    gbrs_paired_asm    VARCHAR (200),
+    ftp_path           VARCHAR (200),
     family             VARCHAR (50),
     family_id          INTEGER,
     genus              VARCHAR (50),
@@ -224,6 +226,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         // fields
         let tax_id = fields.get(5).unwrap().parse::<i64>().unwrap();
         let organism_name = fields.get(7).unwrap();
+        let infraspecific_name = fields.get(8).unwrap();
         let bioproject = fields.get(1).unwrap();
         let biosample = fields.get(2).unwrap();
         let assembly_accession = fields.get(0).unwrap();
@@ -257,50 +260,31 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             }
             Ok(x) => x,
         };
-        let (family_id, family) = nwr::find_rank(&lineage, "family".to_string());
-        let (genus_id, genus) = nwr::find_rank(&lineage, "genus".to_string());
         let (species_id, species) = nwr::find_rank(&lineage, "species".to_string());
-
-        // Pseudomonas syringae pv. tomato doesn't match species Pseudomonas syringae group genomosp. 3
-        // // Check organism_name with the one in txdb
-        // // let tmp : String;
-        // if !species.eq("NA") && !organism_name.starts_with(&species) {
-        //     debug!("    {} doesn't match species {}", organism_name, species);
-        //     continue;
-        //
-        //     // // Change names
-        //     // let mut parts: Vec<&str> = organism_name.split_whitespace().collect();
-        //     // if parts.len() < 2 {
-        //     //     continue;
-        //     // } else {
-        //     //     parts.pop();
-        //     //     parts.pop();
-        //     // }
-        //     //
-        //     // tmp = format!("{} {}", species, parts.join(" "));
-        //     // organism_name = &tmp;
-        // }
+        let (genus_id, genus) = nwr::find_rank(&lineage, "genus".to_string());
+        let (family_id, family) = nwr::find_rank(&lineage, "family".to_string());
 
         // create stmt
         let stmt = format!(
             "INSERT INTO ar(
-                tax_id, organism_name, bioproject, biosample, assembly_accession, refseq_category,
+                tax_id, organism_name, infraspecific_name, bioproject, biosample, assembly_accession, refseq_category,
                 assembly_level, genome_rep, seq_rel_date, asm_name, gbrs_paired_asm, ftp_path,
                 family, family_id, genus, genus_id, species, species_id
             )
             VALUES (
-                    {},  '{}', '{}', '{}', '{}', '{}',
+                    {},  '{}', '{}', '{}', '{}', '{}', '{}',
                     '{}', '{}', '{}', '{}', '{}', '{}',
                     '{}', {}, '{}', {}, '{}', {}
             );",
-            // 1-6
+            // 1-7
             tax_id.to_string(),
             organism_name.replace("'", "''"),
+            infraspecific_name.replace("'", "''"),
             bioproject,
             biosample,
             assembly_accession,
             refseq_category,
-            // 7-12
+            // 8-13
             assembly_level,
             genome_rep,
             seq_rel_date.replace("/", "-"), // Transform seq_rel_date to SQLite Date format
@@ -308,12 +292,12 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             gbrs_paired_asm,
             ftp_path,
             // 13-18
-            family.replace("'", "''"),
-            family_id.to_string(),
-            genus.replace("'", "''"),
-            genus_id.to_string(),
             species.replace("'", "''"),
             species_id.to_string(),
+            genus.replace("'", "''"),
+            genus_id.to_string(),
+            family.replace("'", "''"),
+            family_id.to_string(),
         );
         stmts.push(stmt);
     }
@@ -325,12 +309,12 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     debug!("Creating indexes for ar");
     conn.execute("CREATE INDEX idx_ar_tax_id ON ar(tax_id);", [])?;
-    conn.execute("CREATE INDEX idx_ar_family ON ar(family);", [])?;
-    conn.execute("CREATE INDEX idx_ar_family_id ON ar(family_id);", [])?;
-    conn.execute("CREATE INDEX idx_ar_genus ON ar(genus);", [])?;
-    conn.execute("CREATE INDEX idx_ar_genus_id ON ar(genus_id);", [])?;
     conn.execute("CREATE INDEX idx_ar_species ON ar(species);", [])?;
     conn.execute("CREATE INDEX idx_ar_species_id ON ar(species_id);", [])?;
+    conn.execute("CREATE INDEX idx_ar_genus ON ar(genus);", [])?;
+    conn.execute("CREATE INDEX idx_ar_genus_id ON ar(genus_id);", [])?;
+    conn.execute("CREATE INDEX idx_ar_family ON ar(family);", [])?;
+    conn.execute("CREATE INDEX idx_ar_family_id ON ar(family_id);", [])?;
 
     Ok(())
 }

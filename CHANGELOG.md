@@ -2,7 +2,7 @@
 
 ## Unreleased - ReleaseDate
 
-* Add a column `gbrs_paired_asm` to ardb
+* Add columns `infraspecific_name` and `gbrs_paired_asm` to ardb
 * Add `n50.sh` and `finish.sh` to `nwr assembly`
 
 ## 0.5.10 - 2023-01-28
