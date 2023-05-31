@@ -403,7 +403,7 @@ $ bash n50.sh 100000 100
 "
 
 if ! [ -z "$1" ]; then
-    if ! [[ $1 =~ '^[0-9]+$' ]]; then
+    if ! [[ $1 =~ ^[0-9]+$ ]]; then
         echo >&2 "$USAGE"
         exit 1
     fi
@@ -445,7 +445,7 @@ cat url.tsv |
             grep -v "_from_" | # exclude CDS and rna
             xargs cat |
             faops n50 -C -S stdin |
-            (echo -e "name\t{}" && cat) |
+            (echo -e "name\t{1}" && cat) |
             datamash transpose
     ' \
     > tmp.tsv
