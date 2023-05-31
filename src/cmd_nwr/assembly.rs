@@ -21,6 +21,7 @@ And three bash scripts:
     * check.sh
     * collect.sh
     * n50.sh
+    * finish.sh
 
 will be generated.
 
@@ -114,6 +115,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     gen_check(&context)?;
     gen_collect(&context)?;
     gen_n50(&context)?;
+    gen_finish(&context)?;
 
     Ok(())
 }
@@ -467,6 +469,81 @@ cat n50.tsv |
     tsv-filter -H --ge 3:1000000 |
     tr "\t" "," \
     > n50.pass.csv
+
+"###;
+
+    let rendered = Tera::one_off(template, context, false).unwrap();
+    writer.write_all(rendered.as_ref())?;
+
+    Ok(())
+}
+
+//----------------------------
+// finish.sh
+//----------------------------
+fn gen_finish(context: &Context) -> anyhow::Result<()> {
+    let outname = "finish.sh";
+    eprintln!("Create {}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/{}", outdir, outname).as_ref())
+    };
+
+    // template
+    let template = r###"#!/usr/bin/env bash
+
+#----------------------------#
+# Helper functions
+#----------------------------#
+set +e
+
+signaled () {
+    echo >&2 Interrupted
+    exit 1
+}
+trap signaled TERM QUIT INT
+
+BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+cd ${BASE_DIR}
+
+#----------------------------#
+# Run
+#----------------------------#
+# Strains without protein annotations
+for STRAIN in $(cat url.tsv | cut -f 1); do
+    if ! compgen -G "ASSEMBLY/${STRAIN}/*_protein.faa.gz" > /dev/null; then
+        echo ${STRAIN}
+    fi
+    if ! compgen -G "ASSEMBLY/${STRAIN}/*_cds_from_genomic.fna.gz" > /dev/null; then
+        echo ${STRAIN}
+    fi
+done |
+    tsv-uniq \
+    > omit.lst
+
+# ASM passed the N50 check
+tsv-join \
+    collect.csv \
+    --delimiter "," -H --key-fields 1 \
+    --filter-file n50.pass.csv \
+    > collect.pass.csv
+
+# counts of lines
+printf "#item\tcount\n" \
+    > counts.tsv
+
+for FILE in url.tsv check.list collect.csv n50.tsv n50.pass.csv omit.lst collect.pass.csv; do
+    cat ${FILE} |
+        wc -l |
+        perl -nl -MNumber::Format -e '
+            printf qq(${FILE}\t%s\n), Number::Format::format_number($_, 0,);
+            ' \
+        >> counts.tsv
+done
 
 "###;
 

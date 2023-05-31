@@ -235,7 +235,7 @@ fn command_assembly() -> anyhow::Result<()> {
     let stdout = String::from_utf8(output.stdout).unwrap();
     let stderr = String::from_utf8(output.stderr).unwrap();
 
-    assert_eq!(stderr.lines().count(), 5);
+    assert_eq!(stderr.lines().count(), 6);
     assert!(stderr.contains("Create url.tsv"));
 
     assert!(stdout.lines().count() > 100);
