@@ -20,6 +20,7 @@ And three bash scripts:
     * rsync.sh
     * check.sh
     * collect.sh
+    * n50.sh
 
 will be generated.
 
@@ -112,6 +113,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     gen_rsync(&context)?;
     gen_check(&context)?;
     gen_collect(&context)?;
+    gen_n50(&context)?;
 
     Ok(())
 }
@@ -171,7 +173,7 @@ fn gen_rsync(context: &Context) -> anyhow::Result<()> {
     let template = r###"#!/usr/bin/env bash
 
 #----------------------------#
-# helper functions
+# Helper functions
 #----------------------------#
 set +e
 
@@ -185,7 +187,7 @@ BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd ${BASE_DIR}
 
 #----------------------------#
-# run
+# Run
 #----------------------------#
 touch check.list
 
@@ -225,7 +227,7 @@ fn gen_check(context: &Context) -> anyhow::Result<()> {
     let template = r###"#!/usr/bin/env bash
 
 #----------------------------#
-# helper functions
+# Helper functions
 #----------------------------#
 set +e
 
@@ -239,7 +241,7 @@ BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd ${BASE_DIR}
 
 #----------------------------#
-# run
+# Run
 #----------------------------#
 touch check.list
 
@@ -289,7 +291,7 @@ fn gen_collect(context: &Context) -> anyhow::Result<()> {
     let template = r###"#!/usr/bin/env bash
 
 #----------------------------#
-# helper functions
+# Helper functions
 #----------------------------#
 set +e
 
@@ -303,7 +305,7 @@ BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd ${BASE_DIR}
 
 #----------------------------#
-# run
+# Run
 #----------------------------#
 touch check.list
 
@@ -344,6 +346,127 @@ cat url.tsv |
             '\'' \
             >> collect.csv
     '
+
+"###;
+
+    let rendered = Tera::one_off(template, context, false).unwrap();
+    writer.write_all(rendered.as_ref())?;
+
+    Ok(())
+}
+
+//----------------------------
+// n50.sh
+//----------------------------
+fn gen_n50(context: &Context) -> anyhow::Result<()> {
+    let outname = "n50.sh";
+    eprintln!("Create {}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/{}", outdir, outname).as_ref())
+    };
+
+    // template
+    let template = r###"#!/usr/bin/env bash
+
+#----------------------------#
+# Helper functions
+#----------------------------#
+set +e
+
+signaled () {
+    echo >&2 Interrupted
+    exit 1
+}
+trap signaled TERM QUIT INT
+
+BASE_DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
+cd ${BASE_DIR}
+
+#----------------------------#
+# Usage
+#----------------------------#
+USAGE="
+Usage: $0 LEN_N50 COUNT_CONTIG LEN_SUM
+
+Default values:
+    LEN_N50         100000
+    COUNT_CONTIG    1000
+    LEN_SUM         1000000
+
+$ bash n50.sh 100000 100
+
+"
+
+if ! [ -z "$1" ]; then
+    if ! [[ $1 =~ '^[0-9]+$' ]]; then
+        echo >&2 "$USAGE"
+        exit 1
+    fi
+fi
+
+# Check whether faops is installed
+hash faops 2>/dev/null || {
+    echo >&2 "faops is required but it's not installed.";
+    echo >&2 "Install with homebrew: brew install wang-q/tap/faops";
+    exit 1;
+}
+
+LEN_N50=${1:-100000}
+COUNT_CONTIG=${2:-1000}
+LEN_SUM=${3:-1000000}
+
+#----------------------------#
+# Run
+#----------------------------#
+touch n50.tsv
+
+# Keep only the results in the list
+cat n50.tsv |
+    tsv-uniq |
+    tsv-join -f url.tsv -k 1 \
+    > tmp.tsv
+mv tmp.tsv n50.tsv
+
+# Calculate N50 not in the list
+cat url.tsv |
+    tsv-join -f n50.tsv -k 1 -e |
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
+        if [[ ! -e {1} ]]; then
+            exit
+        fi
+        echo >&2 "==> {1}"
+
+        find {1} -type f -name "*_genomic.fna.gz" |
+            grep -v "_from_" | # exclude CDS and rna
+            xargs cat |
+            faops n50 -C -S stdin |
+            (echo -e "name\t{}" && cat) |
+            datamash transpose
+    ' \
+    > tmp.tsv
+
+# Combine new results with the old ones
+cat tmp.tsv n50.tsv |
+    tsv-uniq | # keep the first header
+    keep-header -- sort \
+    > tmp2.tsv
+mv tmp2.tsv n50.tsv
+rm tmp*.tsv
+
+# Filter results with custom criteria
+cat n50.tsv |
+    tsv-filter \
+        -H --or \
+        --le 4:1000 \
+        --ge 2:100000 |
+    tsv-filter -H --ge 3:1000000 |
+    tr "\t" "," \
+    > n50.pass.csv
 
 "###;
 
