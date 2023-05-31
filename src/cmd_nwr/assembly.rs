@@ -513,7 +513,7 @@ cd ${BASE_DIR}
 #----------------------------#
 # Run
 #----------------------------#
-# Strains without protein annotations
+echo >&2 "Strains without protein annotations"
 for STRAIN in $(cat url.tsv | cut -f 1); do
     if ! compgen -G "ASSEMBLY/${STRAIN}/*_protein.faa.gz" > /dev/null; then
         echo ${STRAIN}
@@ -525,22 +525,22 @@ done |
     tsv-uniq \
     > omit.lst
 
-# ASM passed the N50 check
+echo >&2 "ASMs passed the N50 check"
 tsv-join \
     collect.csv \
     --delimiter "," -H --key-fields 1 \
     --filter-file n50.pass.csv \
     > collect.pass.csv
 
-# counts of lines
+echo >&2 "Counts of lines"
 printf "#item\tcount\n" \
     > counts.tsv
 
 for FILE in url.tsv check.list collect.csv n50.tsv n50.pass.csv omit.lst collect.pass.csv; do
     cat ${FILE} |
         wc -l |
-        perl -nl -MNumber::Format -e '
-            printf qq(${FILE}\t%s\n), Number::Format::format_number($_, 0,);
+        FILE=${FILE} perl -nl -MNumber::Format -e '
+            printf qq($ENV{FILE}\t%s\n), Number::Format::format_number($_, 0,);
             ' \
         >> counts.tsv
 done
