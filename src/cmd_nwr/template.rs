@@ -78,6 +78,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     // Loading
     //----------------------------
     let mut ass_url_of = BTreeMap::new();
+    let mut ass_species_of = BTreeMap::new();
 
     let mut bs_name_of = BTreeMap::new();
     let mut bs_species_of = BTreeMap::new();
@@ -120,6 +121,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
             // ass
             ass_url_of.insert(name.to_string(), url.to_string());
+            ass_species_of.insert(name.to_string(), species_.to_string());
 
             // bs
             if !sample.is_empty() {
@@ -136,6 +138,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     context.insert("outdir", outdir);
     context.insert("ass_url_of", &ass_url_of);
+    context.insert("ass_species_of", &ass_species_of);
     context.insert("bs_name_of", &bs_name_of);
     context.insert("bs_species_of", &bs_species_of);
 
@@ -168,6 +171,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     if args.get_flag("ass") {
         fs::create_dir_all(format!("{}/ASSEMBLY", outdir))?;
         gen_ass_url(&context)?;
+        gen_ass_rsync(&context)?;
+        gen_ass_check(&context)?;
     }
 
     if args.get_flag("bs") {
@@ -181,7 +186,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// rsync urls
+// rsync urls - name, url, species
 //----------------------------
 fn gen_ass_url(context: &Context) -> anyhow::Result<()> {
     let outname = "url.tsv";
@@ -189,6 +194,7 @@ fn gen_ass_url(context: &Context) -> anyhow::Result<()> {
 
     let outdir = context.get("outdir").unwrap().as_str().unwrap();
     let ass_url_of = context.get("ass_url_of").unwrap().as_object().unwrap();
+    let ass_species_of = context.get("ass_species_of").unwrap().as_object().unwrap();
 
     let mut writer = if outdir == "stdout" {
         intspan::writer("stdout")
@@ -198,6 +204,8 @@ fn gen_ass_url(context: &Context) -> anyhow::Result<()> {
 
     for (key, value) in ass_url_of {
         let url = value.as_str().unwrap();
+        let species = ass_species_of.get(key).unwrap().as_str().unwrap();
+
         // ftp   - ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/167/675/GCA_000167675.2_v2.0
         // rsync - ftp.ncbi.nlm.nih.gov::genomes/all/GCA/000/167/675/GCA_000167675.2_v2.0
         lazy_static! {
@@ -209,9 +217,65 @@ fn gen_ass_url(context: &Context) -> anyhow::Result<()> {
         if url == rsync.to_string() {
             eprintln!("Check the ftp url: [{}] {}", key, url);
         } else {
-            writer.write_all(format!("{}\t{}\n", key, rsync).as_ref())?;
+            writer.write_all(format!("{}\t{}\t{}\n", key, rsync, species).as_ref())?;
         }
     }
+
+    Ok(())
+}
+
+//----------------------------
+// rsync.sh
+//----------------------------
+fn gen_ass_rsync(context: &Context) -> anyhow::Result<()> {
+    let outname = "rsync.sh";
+    eprintln!("Create ASSEMBLY/{}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/ASSEMBLY/{}", outdir, outname).as_ref())
+    };
+
+    let mut tera = Tera::default();
+    tera.add_raw_templates(vec![
+        ("header", include_str!("../../templates/header.tera.sh")),
+        ("t", include_str!("../../templates/ass_rsync.tera.sh")),
+    ])
+    .unwrap();
+
+    let rendered = tera.render("t", &context).unwrap();
+    writer.write_all(rendered.as_ref())?;
+
+    Ok(())
+}
+
+//----------------------------
+// check.sh
+//----------------------------
+fn gen_ass_check(context: &Context) -> anyhow::Result<()> {
+    let outname = "check.sh";
+    eprintln!("Create ASSEMBLY/{}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/ASSEMBLY/{}", outdir, outname).as_ref())
+    };
+
+    let mut tera = Tera::default();
+    tera.add_raw_templates(vec![
+        ("header", include_str!("../../templates/header.tera.sh")),
+        ("t", include_str!("../../templates/ass_check.tera.sh")),
+    ])
+    .unwrap();
+
+    let rendered = tera.render("t", &context).unwrap();
+    writer.write_all(rendered.as_ref())?;
 
     Ok(())
 }
