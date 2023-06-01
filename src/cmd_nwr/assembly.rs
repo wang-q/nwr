@@ -1,5 +1,4 @@
 use clap::*;
-use intspan::*;
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::BTreeMap;
@@ -16,7 +15,7 @@ pub fn make_subcommand() -> Command {
 One tsv file:
     * url.tsv
 
-And three bash scripts:
+and five bash scripts:
     * rsync.sh
     * check.sh
     * collect.sh
