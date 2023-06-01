@@ -393,7 +393,7 @@ cd ${BASE_DIR}
 # Usage
 #----------------------------#
 USAGE="
-Usage: $0 LEN_N50 COUNT_CONTIG LEN_SUM
+Usage: $0 [LEN_N50] [COUNT_CONTIG] [LEN_SUM]
 
 Default values:
     LEN_N50         100000
