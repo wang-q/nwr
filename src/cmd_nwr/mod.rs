@@ -3,7 +3,6 @@
 pub mod append;
 pub mod ardb;
 pub mod assembly;
-pub mod biosample;
 pub mod download;
 pub mod info;
 pub mod lineage;
