@@ -33,15 +33,16 @@ log_warn n50.sh
 
 touch n50.tsv
 
-# Keep only the results in the list
+log_info Keep only the results in the list
 cat n50.tsv |
-    tsv-uniq |
-    tsv-filter -H --gt 2:0 | # unfinished downloads
-    tsv-join -f url.tsv -k 1 \
+    (echo -e "name\tN50\tS\tC" && cat) | # Headers
+    tsv-uniq | # keep the first header line
+    tsv-filter -H --gt "N50:0" | # unfinished downloads
+    keep-header -- tsv-join -f url.tsv -k 1 \
     > tmp.tsv
 mv tmp.tsv n50.tsv
 
-# Calculate N50 not in the list
+log_info Calculate N50 not in the list
 cat url.tsv |
     tsv-join -f n50.tsv -k 1 -e |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
@@ -53,15 +54,15 @@ cat url.tsv |
         find "{3}/{1}" -type f -name "*_genomic.fna.gz" |
             grep -v "_from_" | # exclude CDS and rna
             xargs cat |
-            faops n50 -C -S stdin |
-            (echo -e "name\t{1}" && cat) |
+            faops n50 -H -S -C stdin | # do not display header
+            (echo -e "{1}" && cat) |
             datamash transpose
     ' \
     > tmp1.tsv
 
 # Combine new results with the old ones
-cat tmp1.tsv n50.tsv |
-    tsv-uniq | # keep the first header
+cat n50.tsv tmp1.tsv |
+    tsv-uniq |
     keep-header -- sort \
     > tmp2.tsv
 mv tmp2.tsv n50.tsv
