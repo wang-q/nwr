@@ -9,7 +9,7 @@ use tera::{Context, Tera};
 // Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
     Command::new("template")
-        .about("Create dirs, files and scripts for a phylogenomic research")
+        .about("Create dirs, data and scripts for a phylogenomic research")
         .after_help(
             r###"
 .assembly.tsv: a TAB delimited file to guide downloading and processing of files.
@@ -28,8 +28,8 @@ pub fn make_subcommand() -> Command {
     * And five Bash scripts
         * rsync.sh
         * check.sh
+        * n50.sh [LEN_N50] [N_CONTIG] [LEN_SUM]
         * collect.sh
-        * n50.sh
         * finish.sh
 
 * --bs: BioSample/
@@ -37,7 +37,7 @@ pub fn make_subcommand() -> Command {
         * sample.tsv
     * And two Bash scripts
         * download.sh
-        * collect.sh
+        * collect.sh [N_ATTR]
 
 "###,
         )
@@ -173,8 +173,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         gen_ass_url(&context)?;
         gen_ass_rsync(&context)?;
         gen_ass_check(&context)?;
-        gen_ass_collect(&context)?;
         gen_ass_n50(&context)?;
+        gen_ass_collect(&context)?;
+        gen_ass_finish(&context)?;
     }
 
     if args.get_flag("bs") {
@@ -283,6 +284,34 @@ fn gen_ass_check(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
+// n50.sh
+//----------------------------
+fn gen_ass_n50(context: &Context) -> anyhow::Result<()> {
+    let outname = "n50.sh";
+    eprintln!("Create ASSEMBLY/{}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/ASSEMBLY/{}", outdir, outname).as_ref())
+    };
+
+    let mut tera = Tera::default();
+    tera.add_raw_templates(vec![
+        ("header", include_str!("../../templates/header.tera.sh")),
+        ("t", include_str!("../../templates/ass_n50.tera.sh")),
+    ])
+    .unwrap();
+
+    let rendered = tera.render("t", &context).unwrap();
+    writer.write_all(rendered.as_ref())?;
+
+    Ok(())
+}
+
+//----------------------------
 // collect.sh
 //----------------------------
 fn gen_ass_collect(context: &Context) -> anyhow::Result<()> {
@@ -311,10 +340,10 @@ fn gen_ass_collect(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// n50.sh
+// finish.sh
 //----------------------------
-fn gen_ass_n50(context: &Context) -> anyhow::Result<()> {
-    let outname = "n50.sh";
+fn gen_ass_finish(context: &Context) -> anyhow::Result<()> {
+    let outname = "finish.sh";
     eprintln!("Create ASSEMBLY/{}", outname);
 
     let outdir = context.get("outdir").unwrap().as_str().unwrap();
@@ -328,7 +357,7 @@ fn gen_ass_n50(context: &Context) -> anyhow::Result<()> {
     let mut tera = Tera::default();
     tera.add_raw_templates(vec![
         ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/ass_n50.tera.sh")),
+        ("t", include_str!("../../templates/ass_finish.tera.sh")),
     ])
     .unwrap();
 

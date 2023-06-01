@@ -4,10 +4,10 @@
 # Usage
 #----------------------------#
 USAGE="
-Usage: $0 [COUNT_ATTR]
+Usage: $0 [N_ATTR]
 
 Default values:
-    COUNT_ATTR  50
+    N_ATTR  larger than 50
 
 $ bash collect.sh 100
 
@@ -20,7 +20,7 @@ if ! [ -z "$1" ]; then
     fi
 fi
 
-COUNT_ATTR=${1:-50}
+N_ATTR=${1:-50}
 
 #----------------------------#
 # Run
@@ -37,7 +37,7 @@ cat sample.tsv |
                 '\''
         fi
     ' |
-    tsv-uniq --at-least ${COUNT_ATTR} | # ignore rare attributes
+    tsv-uniq --at-least ${N_ATTR} | # ignore rare attributes
     grep -v "^INSDC" |
     grep -v "^ENA" \
     > attributes.lst
