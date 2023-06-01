@@ -2,8 +2,10 @@
 
 ## Unreleased - ReleaseDate
 
+* Add `nwr template` to replace `nwr assembly` and temporally existed `nwr biosample`
+    * `nwr template --ass`
+    * `nwr template --bs`
 * Add columns `infraspecific_name` and `gbrs_paired_asm` to ardb
-* Add `nwr template` to replace `nwr assembly`
 
 ## 0.5.10 - 2023-01-28
 
