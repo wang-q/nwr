@@ -28,6 +28,10 @@ log_debug () {
     echo >&2 -e "==> $@"
 }
 
+export -f log_warn
+export -f log_info
+export -f log_debug
+
 #----------------------------#
 # helper functions
 #----------------------------#
@@ -47,3 +51,5 @@ trap signaled TERM QUIT INT
 readlinkf () {
     perl -MCwd -l -e 'print Cwd::abs_path shift' "$1";
 }
+
+export -f readlinkf

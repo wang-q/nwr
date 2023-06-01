@@ -133,13 +133,12 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     //----------------------------
     // Writing
     //----------------------------
-
     if args.get_flag("bs") {
         fs::create_dir_all(format!("{}/BioSample", outdir))?;
         gen_bs_sample(&context)?;
         gen_bs_download(&context)?;
+        gen_bs_collect(&context)?;
     }
-    // gen_collect(&context)?;
 
     Ok(())
 }
@@ -192,6 +191,34 @@ fn gen_bs_download(context: &Context) -> anyhow::Result<()> {
         ("t", include_str!("../../templates/bs_download.tera.sh")),
     ])
     .unwrap();
+
+    let rendered = tera.render("t", &context).unwrap();
+    writer.write_all(rendered.as_ref())?;
+
+    Ok(())
+}
+
+//----------------------------
+// collect.sh
+//----------------------------
+fn gen_bs_collect(context: &Context) -> anyhow::Result<()> {
+    let outname = "collect.sh";
+    eprintln!("Create BioSample/{}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/BioSample/{}", outdir, outname).as_ref())
+    };
+
+    let mut tera = Tera::default();
+    tera.add_raw_templates(vec![
+        ("header", include_str!("../../templates/header.tera.sh")),
+        ("t", include_str!("../../templates/bs_collect.tera.sh")),
+    ])
+        .unwrap();
 
     let rendered = tera.render("t", &context).unwrap();
     writer.write_all(rendered.as_ref())?;
