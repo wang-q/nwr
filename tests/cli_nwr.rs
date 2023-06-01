@@ -236,7 +236,7 @@ fn command_template_ass() -> anyhow::Result<()> {
     let stdout = String::from_utf8(output.stdout).unwrap();
     let stderr = String::from_utf8(output.stderr).unwrap();
 
-    assert_eq!(stderr.lines().count(), 6);
+    assert_eq!(stderr.lines().count(), 7);
     assert!(stderr.contains("Create ASSEMBLY/url.tsv"));
 
     assert!(stdout.lines().count() > 100);
