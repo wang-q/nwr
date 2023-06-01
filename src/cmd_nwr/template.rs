@@ -173,6 +173,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         gen_ass_url(&context)?;
         gen_ass_rsync(&context)?;
         gen_ass_check(&context)?;
+        gen_ass_collect(&context)?;
     }
 
     if args.get_flag("bs") {
@@ -271,6 +272,34 @@ fn gen_ass_check(context: &Context) -> anyhow::Result<()> {
     tera.add_raw_templates(vec![
         ("header", include_str!("../../templates/header.tera.sh")),
         ("t", include_str!("../../templates/ass_check.tera.sh")),
+    ])
+    .unwrap();
+
+    let rendered = tera.render("t", &context).unwrap();
+    writer.write_all(rendered.as_ref())?;
+
+    Ok(())
+}
+
+//----------------------------
+// collect.sh
+//----------------------------
+fn gen_ass_collect(context: &Context) -> anyhow::Result<()> {
+    let outname = "collect.sh";
+    eprintln!("Create ASSEMBLY/{}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/ASSEMBLY/{}", outdir, outname).as_ref())
+    };
+
+    let mut tera = Tera::default();
+    tera.add_raw_templates(vec![
+        ("header", include_str!("../../templates/header.tera.sh")),
+        ("t", include_str!("../../templates/ass_collect.tera.sh")),
     ])
     .unwrap();
 
