@@ -3,8 +3,7 @@
 ## Unreleased - ReleaseDate
 
 * Add columns `infraspecific_name` and `gbrs_paired_asm` to ardb
-* Add `n50.sh` and `finish.sh` to `nwr assembly`
-* Add `nwr biosample`
+* Add `nwr template` to replace `nwr assembly`
 
 ## 0.5.10 - 2023-01-28
 

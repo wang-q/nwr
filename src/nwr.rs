@@ -20,6 +20,7 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::lineage::make_subcommand())
         .subcommand(cmd_nwr::member::make_subcommand())
         .subcommand(cmd_nwr::restrict::make_subcommand())
+        .subcommand(cmd_nwr::template::make_subcommand())
         .subcommand(cmd_nwr::txdb::make_subcommand());
 
     // Check which subcomamnd the user ran...
@@ -33,6 +34,7 @@ fn main() -> anyhow::Result<()> {
         Some(("lineage", sub_matches)) => cmd_nwr::lineage::execute(sub_matches),
         Some(("member", sub_matches)) => cmd_nwr::member::execute(sub_matches),
         Some(("restrict", sub_matches)) => cmd_nwr::restrict::execute(sub_matches),
+        Some(("template", sub_matches)) => cmd_nwr::template::execute(sub_matches),
         Some(("txdb", sub_matches)) => cmd_nwr::txdb::execute(sub_matches),
         _ => unreachable!(),
     }

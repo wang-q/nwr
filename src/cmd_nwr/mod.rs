@@ -9,4 +9,5 @@ pub mod info;
 pub mod lineage;
 pub mod member;
 pub mod restrict;
+pub mod template;
 pub mod txdb;
