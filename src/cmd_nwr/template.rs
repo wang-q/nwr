@@ -169,7 +169,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     // Writing
     //----------------------------
     if args.get_flag("ass") {
-        fs::create_dir_all(format!("{}/ASSEMBLY", outdir))?;
+        if outdir != "stdout" {
+            fs::create_dir_all(format!("{}/ASSEMBLY", outdir))?;
+        }
         gen_ass_url(&context)?;
         gen_ass_rsync(&context)?;
         gen_ass_check(&context)?;
@@ -179,7 +181,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     }
 
     if args.get_flag("bs") {
-        fs::create_dir_all(format!("{}/BioSample", outdir))?;
+        if outdir != "stdout" {
+            fs::create_dir_all(format!("{}/BioSample", outdir))?;
+        }
         gen_bs_sample(&context)?;
         gen_bs_download(&context)?;
         gen_bs_collect(&context)?;

@@ -84,6 +84,8 @@ nwr ardb --genbank
 # Concurrent tests may trigger sqlite locking
 cargo test -- --test-threads=1
 
+cargo test --color=always --package nwr --test cli_nwr command_template -- --show-output
+
 # debug mode has a slow connection
 cargo run --release --bin nwr download
 
