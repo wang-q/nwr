@@ -22,20 +22,20 @@ pub fn make_subcommand() -> Command {
 |   4 | string | species                                                  |
 |   5 | string | assembly_level                                           |
 
-* --ass - ASSEMBLY/
-    * One TSV file:
+* --ass: ASSEMBLY/
+    * One TSV file
         * url.tsv
-    * And five Bash scripts:
+    * And five Bash scripts
         * rsync.sh
         * check.sh
         * collect.sh
         * n50.sh
         * finish.sh
 
-* --bs - BioSample/
-    * One TSV file:
+* --bs: BioSample/
+    * One TSV file
         * sample.tsv
-    * And two Bash scripts:
+    * And two Bash scripts
         * download.sh
         * collect.sh
 
@@ -77,8 +77,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     //----------------------------
     // Loading
     //----------------------------
-    let mut name_of = BTreeMap::new();
-    let mut species_of = BTreeMap::new();
+    let mut ass_url_of = BTreeMap::new();
+
+    let mut bs_name_of = BTreeMap::new();
+    let mut bs_species_of = BTreeMap::new();
 
     let outdir = args.get_one::<String>("outdir").unwrap();
     if outdir != "stdout" {
@@ -99,24 +101,30 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             }
 
             let name = fields[0];
+            let url = fields[1];
             let sample = fields[2];
+
+            // format species strings
             let species = fields[3];
+            lazy_static! {
+                static ref RE_S1: Regex = Regex::new(r#"(?xi)\W+"#).unwrap();
+                static ref RE_S2: Regex = Regex::new(r#"(?xi)_+"#).unwrap();
+                static ref RE_S3: Regex = Regex::new(r#"(?xi)_$"#).unwrap();
+                static ref RE_S4: Regex = Regex::new(r#"(?xi)^_"#).unwrap();
+            }
+            let s1 = RE_S1.replace(species, "_");
+            let s2 = RE_S2.replace(&*s1, "_");
+            let s3 = RE_S3.replace(&*s2, "");
+            let s4 = RE_S4.replace(&*s3, "");
+            let species_ = s4.to_string();
 
+            // ass
+            ass_url_of.insert(name.to_string(), url.to_string());
+
+            // bs
             if !sample.is_empty() {
-                name_of.insert(sample.to_string(), name.to_string());
-
-                lazy_static! {
-                    static ref RE1: Regex = Regex::new(r#"(?xi)\W+"#).unwrap();
-                    static ref RE2: Regex = Regex::new(r#"(?xi)_+"#).unwrap();
-                    static ref RE3: Regex = Regex::new(r#"(?xi)_$"#).unwrap();
-                    static ref RE4: Regex = Regex::new(r#"(?xi)^_"#).unwrap();
-                }
-                let s1 = RE1.replace(species, "_");
-                let s2 = RE2.replace(&*s1, "_");
-                let s3 = RE3.replace(&*s2, "");
-                let s4 = RE4.replace(&*s3, "");
-
-                species_of.insert(sample.to_string(), s4.to_string());
+                bs_name_of.insert(sample.to_string(), name.to_string());
+                bs_species_of.insert(sample.to_string(), species_.to_string());
             }
         }
     }
@@ -127,17 +135,82 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut context = Context::new();
 
     context.insert("outdir", outdir);
-    context.insert("name_of", &name_of);
-    context.insert("species_of", &species_of);
+    context.insert("ass_url_of", &ass_url_of);
+    context.insert("bs_name_of", &bs_name_of);
+    context.insert("bs_species_of", &bs_species_of);
+
+    let ass_columns = vec![
+        "Organism_name",
+        "Taxid",
+        "Assembly_name",
+        "Infraspecific_name",
+        "BioSample",
+        "BioProject",
+        "Submitter",
+        "Date",
+        "Assembly_type",
+        "Release_type",
+        "Assembly_level",
+        "Genome_representation",
+        "WGS_project",
+        "Assembly_method",
+        "Genome_coverage",
+        "Sequencing_technology",
+        "RefSeq_category",
+        "RefSeq_assembly_accession",
+        "GenBank_assembly_accession",
+    ];
+    context.insert("ass_columns", &ass_columns);
 
     //----------------------------
     // Writing
     //----------------------------
+    if args.get_flag("ass") {
+        fs::create_dir_all(format!("{}/ASSEMBLY", outdir))?;
+        gen_ass_url(&context)?;
+    }
+
     if args.get_flag("bs") {
         fs::create_dir_all(format!("{}/BioSample", outdir))?;
         gen_bs_sample(&context)?;
         gen_bs_download(&context)?;
         gen_bs_collect(&context)?;
+    }
+
+    Ok(())
+}
+
+//----------------------------
+// rsync urls
+//----------------------------
+fn gen_ass_url(context: &Context) -> anyhow::Result<()> {
+    let outname = "url.tsv";
+    eprintln!("Create ASSEMBLY/{}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+    let ass_url_of = context.get("ass_url_of").unwrap().as_object().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/ASSEMBLY/{}", outdir, outname).as_ref())
+    };
+
+    for (key, value) in ass_url_of {
+        let url = value.as_str().unwrap();
+        // ftp   - ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/167/675/GCA_000167675.2_v2.0
+        // rsync - ftp.ncbi.nlm.nih.gov::genomes/all/GCA/000/167/675/GCA_000167675.2_v2.0
+        lazy_static! {
+            static ref RE_URL: Regex =
+                Regex::new(r#"(?xi)(ftp|https?)://ftp.ncbi.nlm.nih.gov/"#).unwrap();
+        }
+        let rsync = RE_URL.replace(url, "ftp.ncbi.nlm.nih.gov::");
+
+        if url == rsync.to_string() {
+            eprintln!("Check the ftp url: [{}] {}", key, url);
+        } else {
+            writer.write_all(format!("{}\t{}\n", key, rsync).as_ref())?;
+        }
     }
 
     Ok(())
@@ -151,8 +224,8 @@ fn gen_bs_sample(context: &Context) -> anyhow::Result<()> {
     eprintln!("Create BioSample/{}", outname);
 
     let outdir = context.get("outdir").unwrap().as_str().unwrap();
-    let name_of = context.get("name_of").unwrap().as_object().unwrap();
-    let species_of = context.get("species_of").unwrap().as_object().unwrap();
+    let bs_name_of = context.get("bs_name_of").unwrap().as_object().unwrap();
+    let bs_species_of = context.get("bs_species_of").unwrap().as_object().unwrap();
 
     let mut writer = if outdir == "stdout" {
         intspan::writer("stdout")
@@ -160,9 +233,9 @@ fn gen_bs_sample(context: &Context) -> anyhow::Result<()> {
         intspan::writer(format!("{}/BioSample/{}", outdir, outname).as_ref())
     };
 
-    for (key, value) in name_of {
+    for (key, value) in bs_name_of {
         let name = value.as_str().unwrap();
-        let species = species_of.get(key).unwrap().as_str().unwrap();
+        let species = bs_species_of.get(key).unwrap().as_str().unwrap();
 
         writer.write_all(format!("{}\t{}\t{}\n", key, name, species).as_ref())?;
     }
@@ -218,7 +291,7 @@ fn gen_bs_collect(context: &Context) -> anyhow::Result<()> {
         ("header", include_str!("../../templates/header.tera.sh")),
         ("t", include_str!("../../templates/bs_collect.tera.sh")),
     ])
-        .unwrap();
+    .unwrap();
 
     let rendered = tera.render("t", &context).unwrap();
     writer.write_all(rendered.as_ref())?;
