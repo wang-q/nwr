@@ -4,6 +4,7 @@
 
 * Add columns `infraspecific_name` and `gbrs_paired_asm` to ardb
 * Add `n50.sh` and `finish.sh` to `nwr assembly`
+* Add `nwr biosample`
 
 ## 0.5.10 - 2023-01-28
 

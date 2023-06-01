@@ -243,3 +243,25 @@ fn command_assembly() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn command_biosample() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("biosample")
+        .arg("tests/assembly/Trichoderma.assembly.tsv")
+        .arg("-o")
+        .arg("stdout")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stderr = String::from_utf8(output.stderr).unwrap();
+
+    assert_eq!(stderr.lines().count(), 2);
+    assert!(stderr.contains("Create sample.tsv"));
+
+    assert!(stdout.lines().count() > 100);
+    assert!(stdout.contains("T_atrov"));
+
+    Ok(())
+}

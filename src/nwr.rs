@@ -14,6 +14,7 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::append::make_subcommand())
         .subcommand(cmd_nwr::ardb::make_subcommand())
         .subcommand(cmd_nwr::assembly::make_subcommand())
+        .subcommand(cmd_nwr::biosample::make_subcommand())
         .subcommand(cmd_nwr::download::make_subcommand())
         .subcommand(cmd_nwr::info::make_subcommand())
         .subcommand(cmd_nwr::lineage::make_subcommand())
@@ -26,6 +27,7 @@ fn main() -> anyhow::Result<()> {
         Some(("append", sub_matches)) => cmd_nwr::append::execute(sub_matches),
         Some(("ardb", sub_matches)) => cmd_nwr::ardb::execute(sub_matches),
         Some(("assembly", sub_matches)) => cmd_nwr::assembly::execute(sub_matches),
+        Some(("biosample", sub_matches)) => cmd_nwr::biosample::execute(sub_matches),
         Some(("download", sub_matches)) => cmd_nwr::download::execute(sub_matches),
         Some(("info", sub_matches)) => cmd_nwr::info::execute(sub_matches),
         Some(("lineage", sub_matches)) => cmd_nwr::lineage::execute(sub_matches),
