@@ -113,10 +113,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 static ref RE_S3: Regex = Regex::new(r#"(?xi)_$"#).unwrap();
                 static ref RE_S4: Regex = Regex::new(r#"(?xi)^_"#).unwrap();
             }
-            let s1 = RE_S1.replace(species, "_");
-            let s2 = RE_S2.replace(&*s1, "_");
-            let s3 = RE_S3.replace(&*s2, "");
-            let s4 = RE_S4.replace(&*s3, "");
+            let s1 = RE_S1.replace_all(species, "_");
+            let s2 = RE_S2.replace_all(&*s1, "_");
+            let s3 = RE_S3.replace_all(&*s2, "");
+            let s4 = RE_S4.replace_all(&*s3, "");
             let species_ = s4.to_string();
 
             // ass
