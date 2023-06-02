@@ -44,16 +44,22 @@ find . -maxdepth 3 -mindepth 2 -type f -name "*_genomic.fna.gz" |
 
 cat misplaced.tsv |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
-        TARGET=$(
+        SPECIES=$(
             tsv-filter url.tsv --str-in-fld "1:{2}" |
-                tsv-select -f 3,1 |
-                tr "\t" "/"
+                tsv-select -f 3
             )
-        if [ -e ${TARGET} ]; then
-            echo >&2 "${TARGET} exiests"
-        else
-            echo >&2 "Moving ${TARGET}"
-            mv {1} "${TARGET}"
+        NAME=$(
+            tsv-filter url.tsv --str-in-fld "1:{2}" |
+                tsv-select -f 1
+            )
+        if [ ! -z "${NAME}" ]; then
+            if [ -e "${SPECIES}/${NAME}" ]; then
+                echo >&2 "${SPECIES}/${NAME} exists"
+            else
+                echo >&2 "Moving {1} to ${SPECIES}/${NAME}"
+                mkdir -p "${SPECIES}"
+                mv {1} "${SPECIES}/${NAME}"
+            fi
         fi
     '
 
