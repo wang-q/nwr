@@ -39,6 +39,10 @@ pub fn make_subcommand() -> Command {
         * download.sh
         * collect.sh [N_ATTR]
 
+* --mh: MinHash/
+    * One TSV file
+        * species.tsv
+
 "###,
         )
         .arg(
@@ -70,6 +74,20 @@ pub fn make_subcommand() -> Command {
                 .action(ArgAction::SetTrue)
                 .help("Prepare BioSample materials"),
         )
+        // MinHash
+        .arg(
+            Arg::new("mh")
+                .long("mh")
+                .action(ArgAction::SetTrue)
+                .help("Prepare MinHash materials"),
+        )
+        .arg(
+            Arg::new("sketch")
+                .long("sketch")
+                .num_args(1)
+                .default_value("100000")
+                .help("Sketch size passed to `mash sketch`"),
+        )
 }
 
 // command implementation
@@ -82,6 +100,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     let mut bs_name_of = BTreeMap::new();
     let mut bs_species_of = BTreeMap::new();
+
+    let mut mh_species_of = BTreeMap::new();
 
     let outdir = args.get_one::<String>("outdir").unwrap();
     if outdir != "stdout" {
@@ -128,6 +148,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 bs_name_of.insert(sample.to_string(), name.to_string());
                 bs_species_of.insert(sample.to_string(), species_.to_string());
             }
+
+            // mh
+            mh_species_of.insert(name.to_string(), species_.to_string());
         }
     }
 
@@ -141,6 +164,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     context.insert("ass_species_of", &ass_species_of);
     context.insert("bs_name_of", &bs_name_of);
     context.insert("bs_species_of", &bs_species_of);
+    context.insert("mh_species_of", &mh_species_of);
+    context.insert("mh_sketch", args.get_one::<String>("sketch").unwrap());
 
     let ass_columns = vec![
         "Organism_name",
@@ -188,6 +213,14 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         gen_bs_sample(&context)?;
         gen_bs_download(&context)?;
         gen_bs_collect(&context)?;
+    }
+
+    if args.get_flag("mh") {
+        if outdir != "stdout" {
+            fs::create_dir_all(format!("{}/MinHash", outdir))?;
+        }
+        gen_mh_species(&context)?;
+        gen_mh_compute(&context)?;
     }
 
     Ok(())
@@ -474,6 +507,59 @@ fn gen_bs_collect(context: &Context) -> anyhow::Result<()> {
     tera.add_raw_templates(vec![
         ("header", include_str!("../../templates/header.tera.sh")),
         ("t", include_str!("../../templates/bs_collect.tera.sh")),
+    ])
+    .unwrap();
+
+    let rendered = tera.render("t", &context).unwrap();
+    writer.write_all(rendered.as_ref())?;
+
+    Ok(())
+}
+
+//----------------------------
+// species.tsv - name, species
+//----------------------------
+fn gen_mh_species(context: &Context) -> anyhow::Result<()> {
+    let outname = "species.tsv";
+    eprintln!("Create MinHash/{}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+    let mh_species_of = context.get("mh_species_of").unwrap().as_object().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/MinHash/{}", outdir, outname).as_ref())
+    };
+
+    for (key, value) in mh_species_of {
+        let species = value.as_str().unwrap();
+
+        writer.write_all(format!("{}\t{}\n", key, species).as_ref())?;
+    }
+
+    Ok(())
+}
+
+//----------------------------
+// compute.sh
+//----------------------------
+fn gen_mh_compute(context: &Context) -> anyhow::Result<()> {
+    let outname = "compute.sh";
+    eprintln!("Create MinHash/{}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/MinHash/{}", outdir, outname).as_ref())
+    };
+
+    let mut tera = Tera::default();
+    tera.add_raw_templates(vec![
+        ("header", include_str!("../../templates/header.tera.sh")),
+        ("t", include_str!("../../templates/mh_compute.tera.sh")),
     ])
     .unwrap();
 

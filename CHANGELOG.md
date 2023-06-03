@@ -2,6 +2,9 @@
 
 ## Unreleased - ReleaseDate
 
+* Add more templates to `nwr template`
+    * `--mh` for MinHash
+
 ## 0.6.0 - 2023-06-03
 
 * Add `nwr template` to replace `nwr assembly` and temporally existed `nwr biosample`
