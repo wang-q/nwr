@@ -2,6 +2,8 @@
 
 ## Unreleased - ReleaseDate
 
+## 0.6.0 - 2023-06-03
+
 * Add `nwr template` to replace `nwr assembly` and temporally existed `nwr biosample`
     * `nwr template --ass`
     * `nwr template --bs`
