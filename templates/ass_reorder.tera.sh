@@ -63,35 +63,33 @@ cat misplaced.tsv |
         fi
     '
 
-log_info "Remove dirs (species) not in the list"
-find . -maxdepth 1 -mindepth 1 -type d |
-    tr "/" "\t" |
-    tsv-select -f 2 |
-    tsv-join --exclude -k 3 -f ./url.tsv -d 1 |
-    xargs -I[] rm -fr "./[]"
+log_info "Temporary files, possibly caused by an interrupted rsync process"
+find . -type f -name ".*" > remove.list
 
-log_info "Remove dirs (assemblies) not in the list"
-cat ./url.tsv |
+log_info "List dirs (species/assembly) not in the list"
+cat url.tsv |
     tsv-select -f 3 |
     tsv-uniq |
 while read SPECIES; do
     find "./${SPECIES}" -maxdepth 1 -mindepth 1 -type d |
         tr "/" "\t" |
         tsv-select -f 3 |
-        tsv-join --exclude -k 1 -f ./url.tsv -d 1 |
-        xargs -I[] rm -fr "./${SPECIES}/[]"
-done
+        tsv-join --exclude -k 1 -f url.tsv -d 1 |
+        xargs -I[] echo "./${SPECIES}/[]"
+done \
+    >> remove.list
 
-log_info "Temporary files, possibly caused by an interrupted rsync process"
-find . -type f -name ".*" > temp.list
+log_info "List dirs (species) not in the list"
+find . -maxdepth 1 -mindepth 1 -type d |
+    tr "/" "\t" |
+    tsv-select -f 2 |
+    tsv-join --exclude -k 3 -f url.tsv -d 1 |
+    xargs -I[] echo "./[]" \
+    >> remove.list
 
-cat ./temp.list |
-    parallel --no-run-if-empty --linebuffer -k -j 1 '
-        if [[ -f {} ]]; then
-            echo Remove {}
-            rm {}
-        fi
-    '
+if [ -e remove.lst ]; then
+    log_info "remove.list is created."
+fi
 
 log_info Done.
 
