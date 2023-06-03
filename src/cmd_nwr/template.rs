@@ -42,6 +42,9 @@ pub fn make_subcommand() -> Command {
 * --mh: MinHash/
     * One TSV file
         * species.tsv
+    * And two Bash scripts
+        * compute.sh
+        * dist.sh
 
 "###,
         )
@@ -87,6 +90,13 @@ pub fn make_subcommand() -> Command {
                 .num_args(1)
                 .default_value("100000")
                 .help("Sketch size passed to `mash sketch`"),
+        )
+        .arg(
+            Arg::new("height")
+                .long("height")
+                .num_args(1)
+                .default_value("0.5")
+                .help("Height value passed to `cutree()`"),
         )
 }
 
@@ -166,6 +176,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     context.insert("bs_species_of", &bs_species_of);
     context.insert("mh_species_of", &mh_species_of);
     context.insert("mh_sketch", args.get_one::<String>("sketch").unwrap());
+    context.insert("mh_height", args.get_one::<String>("height").unwrap());
 
     let ass_columns = vec![
         "Organism_name",
@@ -221,6 +232,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
         gen_mh_species(&context)?;
         gen_mh_compute(&context)?;
+        gen_mh_dist(&context)?;
     }
 
     Ok(())
@@ -560,6 +572,34 @@ fn gen_mh_compute(context: &Context) -> anyhow::Result<()> {
     tera.add_raw_templates(vec![
         ("header", include_str!("../../templates/header.tera.sh")),
         ("t", include_str!("../../templates/mh_compute.tera.sh")),
+    ])
+    .unwrap();
+
+    let rendered = tera.render("t", &context).unwrap();
+    writer.write_all(rendered.as_ref())?;
+
+    Ok(())
+}
+
+//----------------------------
+// dist.sh
+//----------------------------
+fn gen_mh_dist(context: &Context) -> anyhow::Result<()> {
+    let outname = "dist.sh";
+    eprintln!("Create MinHash/{}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/MinHash/{}", outdir, outname).as_ref())
+    };
+
+    let mut tera = Tera::default();
+    tera.add_raw_templates(vec![
+        ("header", include_str!("../../templates/header.tera.sh")),
+        ("t", include_str!("../../templates/mh_dist.tera.sh")),
     ])
     .unwrap();
 
