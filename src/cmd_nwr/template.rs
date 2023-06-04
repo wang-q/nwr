@@ -258,7 +258,6 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     if args.get_flag("mh") {
         if outdir != "stdout" {
             fs::create_dir_all(format!("{}/MinHash", outdir))?;
-            fs::create_dir_all(format!("{}/NR", outdir))?;
         }
         gen_mh_data(&context)?;
         gen_mh_compute(&context)?;
@@ -675,14 +674,14 @@ fn gen_mh_abnormal(context: &Context) -> anyhow::Result<()> {
 //----------------------------
 fn gen_mh_nr(context: &Context) -> anyhow::Result<()> {
     let outname = "nr.sh";
-    eprintln!("Create NR/{}", outname);
+    eprintln!("Create MinHash/{}", outname);
 
     let outdir = context.get("outdir").unwrap().as_str().unwrap();
 
     let mut writer = if outdir == "stdout" {
         intspan::writer("stdout")
     } else {
-        intspan::writer(format!("{}/NR/{}", outdir, outname).as_ref())
+        intspan::writer(format!("{}/MinHash/{}", outdir, outname).as_ref())
     };
 
     let mut tera = Tera::default();
