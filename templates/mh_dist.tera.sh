@@ -8,6 +8,9 @@ log_warn dist.sh
 log_info Distances between assembly sketches
 mash triangle -E -p 8 -l <(
     cat species.tsv |
+{% if pass == "1" -%}
+    tsv-join -f pass.lst -k 1 |
+{% endif -%}
         parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
             if [[ -e "{2}/{1}.msh" ]]; then
                 echo "{2}/{1}.msh"

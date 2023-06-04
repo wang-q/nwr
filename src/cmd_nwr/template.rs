@@ -42,15 +42,18 @@ pub fn make_subcommand() -> Command {
 * --mh: MinHash/
     * One TSV file
         * species.tsv
-    * And two Bash scripts
+    * And five Bash scripts
         * compute.sh
-        * dist.sh
+        * species.sh
+        * abnormal.sh
         * nr.sh
+        * dist.sh
 
 * --pro: PROTEIN/
 
 "###,
         )
+        // Global
         .arg(
             Arg::new("infiles")
                 .help(".assembly.tsv files")
@@ -65,6 +68,12 @@ pub fn make_subcommand() -> Command {
                 .num_args(1)
                 .default_value(".")
                 .help("Output directory. [stdout] for screen"),
+        )
+        .arg(
+            Arg::new("pass")
+                .long("pass")
+                .action(ArgAction::SetTrue)
+                .help("In the MinHash and PROTEIN steps, only the assemblies listed in `collect.pass.csv` are processed"),
         )
         // ASSEMBLY
         .arg(
@@ -93,6 +102,20 @@ pub fn make_subcommand() -> Command {
                 .num_args(1)
                 .default_value("100000")
                 .help("Sketch size passed to `mash sketch`"),
+        )
+        .arg(
+            Arg::new("ani_ab")
+                .long("ani_ab")
+                .num_args(1)
+                .default_value("0.05")
+                .help("The ANI value for abnormal strains"),
+        )
+        .arg(
+            Arg::new("ani_nr")
+                .long("ani_nr")
+                .num_args(1)
+                .default_value("0.005")
+                .help("The ANI value for non-redundant strains"),
         )
         .arg(
             Arg::new("height")
@@ -173,12 +196,15 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut context = Context::new();
 
     context.insert("outdir", outdir);
+    context.insert("pass", if args.get_flag("pass") { "1" } else { "0" });
     context.insert("ass_url_of", &ass_url_of);
     context.insert("ass_species_of", &ass_species_of);
     context.insert("bs_name_of", &bs_name_of);
     context.insert("bs_species_of", &bs_species_of);
     context.insert("mh_species_of", &mh_species_of);
     context.insert("mh_sketch", args.get_one::<String>("sketch").unwrap());
+    context.insert("mh_ani_ab", args.get_one::<String>("ani_ab").unwrap());
+    context.insert("mh_ani_nr", args.get_one::<String>("ani_nr").unwrap());
     context.insert("mh_height", args.get_one::<String>("height").unwrap());
 
     let ass_columns = vec![
@@ -211,7 +237,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         if outdir != "stdout" {
             fs::create_dir_all(format!("{}/ASSEMBLY", outdir))?;
         }
-        gen_ass_url(&context)?;
+        gen_ass_data(&context)?;
         gen_ass_rsync(&context)?;
         gen_ass_check(&context)?;
         gen_ass_n50(&context)?;
@@ -224,7 +250,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         if outdir != "stdout" {
             fs::create_dir_all(format!("{}/BioSample", outdir))?;
         }
-        gen_bs_sample(&context)?;
+        gen_bs_data(&context)?;
         gen_bs_download(&context)?;
         gen_bs_collect(&context)?;
     }
@@ -232,9 +258,13 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     if args.get_flag("mh") {
         if outdir != "stdout" {
             fs::create_dir_all(format!("{}/MinHash", outdir))?;
+            fs::create_dir_all(format!("{}/NR", outdir))?;
         }
-        gen_mh_species(&context)?;
+        gen_mh_data(&context)?;
         gen_mh_compute(&context)?;
+        gen_mh_species(&context)?;
+        gen_mh_abnormal(&context)?;
+        gen_mh_nr(&context)?;
         gen_mh_dist(&context)?;
     }
 
@@ -244,7 +274,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 //----------------------------
 // rsync urls - name, url, species
 //----------------------------
-fn gen_ass_url(context: &Context) -> anyhow::Result<()> {
+fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
     let outname = "url.tsv";
     eprintln!("Create ASSEMBLY/{}", outname);
 
@@ -451,7 +481,7 @@ fn gen_ass_reorder(context: &Context) -> anyhow::Result<()> {
 //----------------------------
 // sample.tsv - biosample, name, species
 //----------------------------
-fn gen_bs_sample(context: &Context) -> anyhow::Result<()> {
+fn gen_bs_data(context: &Context) -> anyhow::Result<()> {
     let outname = "sample.tsv";
     eprintln!("Create BioSample/{}", outname);
 
@@ -534,7 +564,7 @@ fn gen_bs_collect(context: &Context) -> anyhow::Result<()> {
 //----------------------------
 // species.tsv - name, species
 //----------------------------
-fn gen_mh_species(context: &Context) -> anyhow::Result<()> {
+fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
     let outname = "species.tsv";
     eprintln!("Create MinHash/{}", outname);
 
@@ -575,6 +605,90 @@ fn gen_mh_compute(context: &Context) -> anyhow::Result<()> {
     tera.add_raw_templates(vec![
         ("header", include_str!("../../templates/header.tera.sh")),
         ("t", include_str!("../../templates/mh_compute.tera.sh")),
+    ])
+    .unwrap();
+
+    let rendered = tera.render("t", &context).unwrap();
+    writer.write_all(rendered.as_ref())?;
+
+    Ok(())
+}
+
+//----------------------------
+// species.sh
+//----------------------------
+fn gen_mh_species(context: &Context) -> anyhow::Result<()> {
+    let outname = "species.sh";
+    eprintln!("Create MinHash/{}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/MinHash/{}", outdir, outname).as_ref())
+    };
+
+    let mut tera = Tera::default();
+    tera.add_raw_templates(vec![
+        ("header", include_str!("../../templates/header.tera.sh")),
+        ("t", include_str!("../../templates/mh_species.tera.sh")),
+    ])
+    .unwrap();
+
+    let rendered = tera.render("t", &context).unwrap();
+    writer.write_all(rendered.as_ref())?;
+
+    Ok(())
+}
+
+//----------------------------
+// abnormal.sh
+//----------------------------
+fn gen_mh_abnormal(context: &Context) -> anyhow::Result<()> {
+    let outname = "abnormal.sh";
+    eprintln!("Create MinHash/{}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/MinHash/{}", outdir, outname).as_ref())
+    };
+
+    let mut tera = Tera::default();
+    tera.add_raw_templates(vec![
+        ("header", include_str!("../../templates/header.tera.sh")),
+        ("t", include_str!("../../templates/mh_abnormal.tera.sh")),
+    ])
+    .unwrap();
+
+    let rendered = tera.render("t", &context).unwrap();
+    writer.write_all(rendered.as_ref())?;
+
+    Ok(())
+}
+
+//----------------------------
+// nr.sh
+//----------------------------
+fn gen_mh_nr(context: &Context) -> anyhow::Result<()> {
+    let outname = "nr.sh";
+    eprintln!("Create NR/{}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/NR/{}", outdir, outname).as_ref())
+    };
+
+    let mut tera = Tera::default();
+    tera.add_raw_templates(vec![
+        ("header", include_str!("../../templates/header.tera.sh")),
+        ("t", include_str!("../../templates/mh_nr.tera.sh")),
     ])
     .unwrap();
 
