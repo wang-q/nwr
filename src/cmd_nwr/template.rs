@@ -45,6 +45,9 @@ pub fn make_subcommand() -> Command {
     * And two Bash scripts
         * compute.sh
         * dist.sh
+        * nr.sh
+
+* --pro: PROTEIN/
 
 "###,
         )
