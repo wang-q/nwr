@@ -32,14 +32,6 @@ cat collect.pass.csv |
     sed '1d' \
     > rep.lst
 
-log_info "Strains.taxon.tsv"
-cat collect.pass.csv |
-    sed -e '1d' |
-    tr "," "\t" |
-    tsv-select -f 1,3 |
-    nwr append stdin -c 2 -r species -r genus -r family -r order -r class \
-    > strains.taxon.tsv
-
 log_info "Counts of lines"
 printf "#item\tcount\n" \
     > counts.tsv

@@ -40,13 +40,13 @@ while read SPECIES; do
         ' \
         > "${SPECIES}/connected_components.tsv"
 
-    echo >&2 "    Scores based on representative.lst, omit.lst, and assembly_level"
+    echo >&2 "    Scores based on rep.lst, omit.lst, and assembly_level"
     # score.tsv
 
     cat "${SPECIES}/connected_components.tsv" |
         perl -nla -MPath::Tiny -F"\t" -e '
             BEGIN {
-                our %rep = map { ($_, 1) } path( q(../ASSEMBLY/representative.lst) )->lines({chomp => 1});
+                our %rep = map { ($_, 1) } path( q(../ASSEMBLY/rep.lst) )->lines({chomp => 1});
                 our %omit = map { ($_, 1) } path( q(../ASSEMBLY/omit.lst) )->lines({chomp => 1});
             }
 
