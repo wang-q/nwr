@@ -57,7 +57,9 @@ pub fn make_subcommand() -> Command {
         * rank.sh - count species and strains
         * lineage.sh - count strains
 
-* --pro: PROTEIN/
+* --pro: Protein/
+    * One TSV file
+        * species.tsv
 
 "###,
         )
@@ -65,7 +67,8 @@ pub fn make_subcommand() -> Command {
         .arg(
             Arg::new("infiles")
                 .help(".assembly.tsv files")
-                .num_args(0..)
+                .num_args(1..)
+                .required(true)
                 .index(1),
         )
         .arg(
@@ -77,31 +80,39 @@ pub fn make_subcommand() -> Command {
                 .help("Output directory. [stdout] for screen"),
         )
         .arg(
-            Arg::new("pass")
-                .long("pass")
-                .action(ArgAction::SetTrue)
-                .help("In the MinHash and PROTEIN steps, only the assemblies listed in `collect.pass.csv` are processed"),
+            Arg::new("in")
+                .long("in")
+                .num_args(1..)
+                .action(ArgAction::Append)
+                .help("Only the assemblies *in* these lists in the MinHash, Count and Protein steps"),
+        )
+        .arg(
+            Arg::new("not-in")
+                .long("not-in")
+                .num_args(1..)
+                .action(ArgAction::Append)
+                .help("Only the assemblies *not in* these lists"),
         )
         // ASSEMBLY
         .arg(
             Arg::new("ass")
                 .long("ass")
                 .action(ArgAction::SetTrue)
-                .help("Prepare ASSEMBLY materials"),
+                .help("Prepare ASSEMBLY/ materials"),
         )
         // BioSample
         .arg(
             Arg::new("bs")
                 .long("bs")
                 .action(ArgAction::SetTrue)
-                .help("Prepare BioSample materials"),
+                .help("Prepare BioSample/ materials"),
         )
         // MinHash
         .arg(
             Arg::new("mh")
                 .long("mh")
                 .action(ArgAction::SetTrue)
-                .help("Prepare MinHash materials"),
+                .help("Prepare MinHash/ materials"),
         )
         .arg(
             Arg::new("sketch")
@@ -111,15 +122,15 @@ pub fn make_subcommand() -> Command {
                 .help("Sketch size passed to `mash sketch`"),
         )
         .arg(
-            Arg::new("ani_ab")
-                .long("ani_ab")
+            Arg::new("ani-ab")
+                .long("ani-ab")
                 .num_args(1)
                 .default_value("0.05")
                 .help("The ANI value for abnormal strains"),
         )
         .arg(
-            Arg::new("ani_nr")
-                .long("ani_nr")
+            Arg::new("ani-nr")
+                .long("ani-nr")
                 .num_args(1)
                 .default_value("0.005")
                 .help("The ANI value for non-redundant strains"),
@@ -136,21 +147,7 @@ pub fn make_subcommand() -> Command {
             Arg::new("count")
                 .long("count")
                 .action(ArgAction::SetTrue)
-                .help("Prepare Count materials"),
-        )
-        .arg(
-            Arg::new("in")
-                .long("in")
-                .num_args(1..)
-                .action(ArgAction::Append)
-                .help("In these lists"),
-        )
-        .arg(
-            Arg::new("not-in")
-                .long("not-in")
-                .num_args(1..)
-                .action(ArgAction::Append)
-                .help("Not in these lists"),
+                .help("Prepare Count/ materials"),
         )
         .arg(
             Arg::new("rank")
@@ -166,6 +163,14 @@ pub fn make_subcommand() -> Command {
                 .action(ArgAction::Append)
                 .help("To list which rank(s) in the lineage"),
         )
+        // Protein
+        .arg(
+            Arg::new("pro")
+                .long("pro")
+                .action(ArgAction::SetTrue)
+                .help("Prepare Protein/ materials"),
+        )
+
 }
 
 // command implementation
@@ -173,6 +178,25 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     //----------------------------
     // Loading
     //----------------------------
+    let outdir = args.get_one::<String>("outdir").unwrap();
+    if outdir != "stdout" {
+        fs::create_dir_all(outdir)?;
+    }
+
+    let mut ins = vec![];
+    if args.contains_id("in") {
+        for i in args.get_many::<String>("in").unwrap() {
+            ins.push(i.to_string());
+        }
+    }
+
+    let mut not_ins = vec![];
+    if args.contains_id("not-in") {
+        for i in args.get_many::<String>("not-in").unwrap() {
+            not_ins.push(i.to_string());
+        }
+    }
+
     let mut ass_url_of = BTreeMap::new();
     let mut ass_species_of = BTreeMap::new();
 
@@ -182,11 +206,6 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut mh_species_of = BTreeMap::new();
 
     let mut count_species_of = BTreeMap::new();
-
-    let outdir = args.get_one::<String>("outdir").unwrap();
-    if outdir != "stdout" {
-        fs::create_dir_all(outdir)?;
-    }
 
     if args.contains_id("infiles") {
         for infile in args.get_many::<String>("infiles").unwrap() {
@@ -243,20 +262,6 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
     }
 
-    let mut ins = vec![];
-    if args.contains_id("in") {
-        for i in args.get_many::<String>("in").unwrap() {
-            ins.push(i.to_string());
-        }
-    }
-
-    let mut not_ins = vec![];
-    if args.contains_id("not-in") {
-        for i in args.get_many::<String>("not-in").unwrap() {
-            not_ins.push(i.to_string());
-        }
-    }
-
     let mut ranks = vec![];
     if args.contains_id("rank") {
         for rank in args.get_many::<String>("rank").unwrap() {
@@ -284,19 +289,18 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut context = Context::new();
 
     context.insert("outdir", outdir);
-    context.insert("pass", if args.get_flag("pass") { "1" } else { "0" });
+    context.insert("ins", &ins);
+    context.insert("not_ins", &not_ins);
     context.insert("ass_url_of", &ass_url_of);
     context.insert("ass_species_of", &ass_species_of);
     context.insert("bs_name_of", &bs_name_of);
     context.insert("bs_species_of", &bs_species_of);
     context.insert("mh_species_of", &mh_species_of);
     context.insert("mh_sketch", args.get_one::<String>("sketch").unwrap());
-    context.insert("mh_ani_ab", args.get_one::<String>("ani_ab").unwrap());
-    context.insert("mh_ani_nr", args.get_one::<String>("ani_nr").unwrap());
+    context.insert("mh_ani_ab", args.get_one::<String>("ani-ab").unwrap());
+    context.insert("mh_ani_nr", args.get_one::<String>("ani-nr").unwrap());
     context.insert("mh_height", args.get_one::<String>("height").unwrap());
     context.insert("count_species_of", &count_species_of);
-    context.insert("count_ins", &ins);
-    context.insert("count_not_ins", &not_ins);
     context.insert("count_ranks", &ranks);
     context.insert("count_lineages", &lineages);
     context.insert("rank_col_of", &rank_col_of);

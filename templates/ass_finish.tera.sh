@@ -5,12 +5,17 @@
 #----------------------------#
 log_warn finish.sh
 
-log_info "ASMs passed the N50 check"
+log_info "ASMs passes the N50 check"
 tsv-join \
     collect.csv \
     --delimiter "," -H --key-fields 1 \
     --filter-file n50.pass.csv \
     > collect.pass.csv
+
+cat "collect.pass.csv" |
+    sed '1d' |
+    tsv-select -d, -f 1 \
+    > pass.lst
 
 log_info "Strains without protein annotations"
 cat url.tsv |
@@ -38,7 +43,8 @@ printf "#item\tcount\n" \
 
 for FILE in \
     url.tsv check.lst collect.csv \
-    n50.tsv n50.pass.csv collect.pass.csv \
+    n50.tsv n50.pass.csv \
+    collect.pass.csv pass.lst \
     omit.lst rep.lst \
     ; do
     cat ${FILE} |

@@ -8,9 +8,12 @@ log_warn species.sh
 log_info ANI distance within species
 
 cat species.tsv |
-{% if pass == "1" -%}
-    tsv-join -f pass.lst -k 1 |
-{% endif -%}
+{% for i in ins -%}
+    tsv-join -f ../{{ i }} -k 1 |
+{% endfor -%}
+{% for i in not_ins -%}
+    tsv-join -e -f ../{{ i }} -k 1 |
+{% endfor -%}
     tsv-select -f 2 |
     tsv-uniq \
     > species.lst
@@ -21,9 +24,12 @@ while read SPECIES; do
     mkdir -p "${SPECIES}"
 
     cat species.tsv |
-{% if pass == "1" -%}
-    tsv-join -f pass.lst -k 1 |
-{% endif -%}
+{% for i in ins -%}
+    tsv-join -f ../{{ i }} -k 1 |
+{% endfor -%}
+{% for i in not_ins -%}
+    tsv-join -e -f ../{{ i }} -k 1 |
+{% endfor -%}
         tsv-filter --str-eq "2:${SPECIES}" |
         tsv-select -f 1 \
         > "${SPECIES}/assembly.lst"
