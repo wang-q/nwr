@@ -49,6 +49,13 @@ pub fn make_subcommand() -> Command {
         * nr.sh
         * dist.sh
 
+* --count: Count/
+    * Use `collect.pass.csv` to count assemblies
+    * Two Bash scripts
+        * strains.sh - strains.taxon.tsv, species, genus, family, order, and class
+        * rank.sh - count species and strains
+        * lineage.sh - count strains
+
 * --pro: PROTEIN/
 
 "###,
@@ -124,7 +131,35 @@ pub fn make_subcommand() -> Command {
                 .default_value("0.5")
                 .help("Height value passed to `cutree()`"),
         )
+        // Count
+        .arg(
+            Arg::new("count")
+                .long("count")
+                .action(ArgAction::SetTrue)
+                .help("Prepare Count materials"),
+        )
+        .arg(
+            Arg::new("rank")
+                .long("rank")
+                .num_args(1..)
+                .action(ArgAction::Append)
+                .help("To list which rank(s)"),
+        )
+        .arg(
+            Arg::new("lineage")
+                .long("lineage")
+                .num_args(1..)
+                .action(ArgAction::Append)
+                .help("To list which rank(s) in the lineage"),
+        )
+        .arg(
+            Arg::new("count_nr")
+                .long("count_nr")
+                .action(ArgAction::SetTrue)
+                .help("Also count non-redundant strains"),
+        )
 }
+
 
 // command implementation
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
@@ -190,6 +225,28 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
     }
 
+    let mut ranks = vec![];
+    if args.contains_id("rank") {
+        for rank in args.get_many::<String>("rank").unwrap() {
+            ranks.push(rank.to_string());
+        }
+    }
+
+    let mut lineages = vec![];
+    if args.contains_id("lineage") {
+        for rank in args.get_many::<String>("lineage").unwrap() {
+            lineages.push(rank.to_string());
+        }
+    }
+
+    // column index in strains.taxon.tsv
+    let mut rank_col_of = BTreeMap::new();
+    rank_col_of.insert("species".to_string(), "3".to_string());
+    rank_col_of.insert("genus".to_string(), "4".to_string());
+    rank_col_of.insert("family".to_string(), "5".to_string());
+    rank_col_of.insert("order".to_string(), "6".to_string());
+    rank_col_of.insert("class".to_string(), "7".to_string());
+
     //----------------------------
     // Context
     //----------------------------
@@ -206,6 +263,13 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     context.insert("mh_ani_ab", args.get_one::<String>("ani_ab").unwrap());
     context.insert("mh_ani_nr", args.get_one::<String>("ani_nr").unwrap());
     context.insert("mh_height", args.get_one::<String>("height").unwrap());
+    context.insert("count_ranks", &ranks);
+    context.insert("count_lineages", &lineages);
+    context.insert("rank_col_of", &rank_col_of);
+    context.insert(
+        "count_nr",
+        if args.get_flag("count_nr") { "1" } else { "0" },
+    );
 
     let ass_columns = vec![
         "Organism_name",
@@ -265,6 +329,14 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         gen_mh_abnormal(&context)?;
         gen_mh_nr(&context)?;
         gen_mh_dist(&context)?;
+    }
+
+    if args.get_flag("count") {
+        if outdir != "stdout" {
+            fs::create_dir_all(format!("{}/Count", outdir))?;
+        }
+        gen_count_strains(&context)?;
+        gen_count_rank(&context)?;
     }
 
     Ok(())
@@ -716,6 +788,62 @@ fn gen_mh_dist(context: &Context) -> anyhow::Result<()> {
     tera.add_raw_templates(vec![
         ("header", include_str!("../../templates/header.tera.sh")),
         ("t", include_str!("../../templates/mh_dist.tera.sh")),
+    ])
+    .unwrap();
+
+    let rendered = tera.render("t", &context).unwrap();
+    writer.write_all(rendered.as_ref())?;
+
+    Ok(())
+}
+
+//----------------------------
+// strains.sh
+//----------------------------
+fn gen_count_strains(context: &Context) -> anyhow::Result<()> {
+    let outname = "strains.sh";
+    eprintln!("Create Count/{}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/Count/{}", outdir, outname).as_ref())
+    };
+
+    let mut tera = Tera::default();
+    tera.add_raw_templates(vec![
+        ("header", include_str!("../../templates/header.tera.sh")),
+        ("t", include_str!("../../templates/count_strains.tera.sh")),
+    ])
+    .unwrap();
+
+    let rendered = tera.render("t", &context).unwrap();
+    writer.write_all(rendered.as_ref())?;
+
+    Ok(())
+}
+
+//----------------------------
+// rank.sh
+//----------------------------
+fn gen_count_rank(context: &Context) -> anyhow::Result<()> {
+    let outname = "rank.sh";
+    eprintln!("Create Count/{}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/Count/{}", outdir, outname).as_ref())
+    };
+
+    let mut tera = Tera::default();
+    tera.add_raw_templates(vec![
+        ("header", include_str!("../../templates/header.tera.sh")),
+        ("t", include_str!("../../templates/count_rank.tera.sh")),
     ])
     .unwrap();
 
