@@ -50,8 +50,9 @@ pub fn make_subcommand() -> Command {
         * dist.sh
 
 * --count: Count/
-    * Use `collect.pass.csv` to count assemblies
-    * Two Bash scripts
+    * One TSV file
+        * species.tsv
+    * Three Bash scripts
         * strains.sh - strains.taxon.tsv, species, genus, family, order, and class
         * rank.sh - count species and strains
         * lineage.sh - count strains
@@ -152,14 +153,7 @@ pub fn make_subcommand() -> Command {
                 .action(ArgAction::Append)
                 .help("To list which rank(s) in the lineage"),
         )
-        .arg(
-            Arg::new("count_nr")
-                .long("count_nr")
-                .action(ArgAction::SetTrue)
-                .help("Also count non-redundant strains"),
-        )
 }
-
 
 // command implementation
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
@@ -173,6 +167,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut bs_species_of = BTreeMap::new();
 
     let mut mh_species_of = BTreeMap::new();
+
+    let mut count_species_of = BTreeMap::new();
 
     let outdir = args.get_one::<String>("outdir").unwrap();
     if outdir != "stdout" {
@@ -211,17 +207,24 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             let species_ = s4.to_string();
 
             // ass
+            // formatted species
             ass_url_of.insert(name.to_string(), url.to_string());
             ass_species_of.insert(name.to_string(), species_.to_string());
 
             // bs
+            // formatted species
             if !sample.is_empty() {
                 bs_name_of.insert(sample.to_string(), name.to_string());
                 bs_species_of.insert(sample.to_string(), species_.to_string());
             }
 
             // mh
+            // formatted species
             mh_species_of.insert(name.to_string(), species_.to_string());
+
+            // count
+            // original species
+            count_species_of.insert(name.to_string(), species.to_string());
         }
     }
 
@@ -263,13 +266,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     context.insert("mh_ani_ab", args.get_one::<String>("ani_ab").unwrap());
     context.insert("mh_ani_nr", args.get_one::<String>("ani_nr").unwrap());
     context.insert("mh_height", args.get_one::<String>("height").unwrap());
+    context.insert("count_species_of", &count_species_of);
     context.insert("count_ranks", &ranks);
     context.insert("count_lineages", &lineages);
     context.insert("rank_col_of", &rank_col_of);
-    context.insert(
-        "count_nr",
-        if args.get_flag("count_nr") { "1" } else { "0" },
-    );
 
     let ass_columns = vec![
         "Organism_name",
@@ -335,6 +335,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         if outdir != "stdout" {
             fs::create_dir_all(format!("{}/Count", outdir))?;
         }
+        gen_count_data(&context)?;
         gen_count_strains(&context)?;
         gen_count_rank(&context)?;
     }
@@ -793,6 +794,31 @@ fn gen_mh_dist(context: &Context) -> anyhow::Result<()> {
 
     let rendered = tera.render("t", &context).unwrap();
     writer.write_all(rendered.as_ref())?;
+
+    Ok(())
+}
+
+//----------------------------
+// species.tsv - name, species
+//----------------------------
+fn gen_count_data(context: &Context) -> anyhow::Result<()> {
+    let outname = "species.tsv";
+    eprintln!("Create Count/{}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+    let mh_species_of = context.get("count_species_of").unwrap().as_object().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/Count/{}", outdir, outname).as_ref())
+    };
+
+    for (key, value) in mh_species_of {
+        let species = value.as_str().unwrap();
+
+        writer.write_all(format!("{}\t{}\n", key, species).as_ref())?;
+    }
 
     Ok(())
 }

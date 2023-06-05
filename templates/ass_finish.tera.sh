@@ -47,7 +47,7 @@ printf "#item\tcount\n" \
 for FILE in \
     url.tsv check.lst collect.csv \
     n50.tsv n50.pass.csv collect.pass.csv \
-    omit.lst rep.lst strains.taxon.tsv \
+    omit.lst rep.lst \
     ; do
     cat ${FILE} |
         wc -l |

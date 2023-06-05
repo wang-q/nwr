@@ -36,7 +36,11 @@ cat {{ rank }}.lst |
         )
 
         printf "%s\t%d\t%d\n" {} ${n_species} ${n_strains}
-    '
+    ' |
+    tsv-sort -k1,1 |
+    (echo -e '#{{ rank }}\t#species\t#strains' && cat) \
+    > {{ rank }}.count.tsv
+
 {% endfor -%}
 {# Keep a blank line #}
 log_info Done.
