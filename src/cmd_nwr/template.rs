@@ -65,8 +65,7 @@ pub fn make_subcommand() -> Command {
         .arg(
             Arg::new("infiles")
                 .help(".assembly.tsv files")
-                .required(true)
-                .num_args(1..)
+                .num_args(0..)
                 .index(1),
         )
         .arg(
@@ -189,56 +188,58 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         fs::create_dir_all(outdir)?;
     }
 
-    for infile in args.get_many::<String>("infiles").unwrap() {
-        let reader = intspan::reader(infile);
-        for line in reader.lines().filter_map(|r| r.ok()) {
-            if line.starts_with('#') {
-                continue;
+    if args.contains_id("infiles") {
+        for infile in args.get_many::<String>("infiles").unwrap() {
+            let reader = intspan::reader(infile);
+            for line in reader.lines().filter_map(|r| r.ok()) {
+                if line.starts_with('#') {
+                    continue;
+                }
+
+                let fields: Vec<&str> = line.split('\t').collect();
+
+                if fields.len() < 5 {
+                    continue;
+                }
+
+                let name = fields[0];
+                let url = fields[1];
+                let sample = fields[2];
+
+                // format species strings
+                let species = fields[3];
+                lazy_static! {
+                    static ref RE_S1: Regex = Regex::new(r#"(?xi)\W+"#).unwrap();
+                    static ref RE_S2: Regex = Regex::new(r#"(?xi)_+"#).unwrap();
+                    static ref RE_S3: Regex = Regex::new(r#"(?xi)_$"#).unwrap();
+                    static ref RE_S4: Regex = Regex::new(r#"(?xi)^_"#).unwrap();
+                }
+                let s1 = RE_S1.replace_all(species, "_");
+                let s2 = RE_S2.replace_all(&*s1, "_");
+                let s3 = RE_S3.replace_all(&*s2, "");
+                let s4 = RE_S4.replace_all(&*s3, "");
+                let species_ = s4.to_string();
+
+                // ass
+                // formatted species
+                ass_url_of.insert(name.to_string(), url.to_string());
+                ass_species_of.insert(name.to_string(), species_.to_string());
+
+                // bs
+                // formatted species
+                if !sample.is_empty() {
+                    bs_name_of.insert(sample.to_string(), name.to_string());
+                    bs_species_of.insert(sample.to_string(), species_.to_string());
+                }
+
+                // mh
+                // formatted species
+                mh_species_of.insert(name.to_string(), species_.to_string());
+
+                // count
+                // original species
+                count_species_of.insert(name.to_string(), species.to_string());
             }
-
-            let fields: Vec<&str> = line.split('\t').collect();
-
-            if fields.len() < 5 {
-                continue;
-            }
-
-            let name = fields[0];
-            let url = fields[1];
-            let sample = fields[2];
-
-            // format species strings
-            let species = fields[3];
-            lazy_static! {
-                static ref RE_S1: Regex = Regex::new(r#"(?xi)\W+"#).unwrap();
-                static ref RE_S2: Regex = Regex::new(r#"(?xi)_+"#).unwrap();
-                static ref RE_S3: Regex = Regex::new(r#"(?xi)_$"#).unwrap();
-                static ref RE_S4: Regex = Regex::new(r#"(?xi)^_"#).unwrap();
-            }
-            let s1 = RE_S1.replace_all(species, "_");
-            let s2 = RE_S2.replace_all(&*s1, "_");
-            let s3 = RE_S3.replace_all(&*s2, "");
-            let s4 = RE_S4.replace_all(&*s3, "");
-            let species_ = s4.to_string();
-
-            // ass
-            // formatted species
-            ass_url_of.insert(name.to_string(), url.to_string());
-            ass_species_of.insert(name.to_string(), species_.to_string());
-
-            // bs
-            // formatted species
-            if !sample.is_empty() {
-                bs_name_of.insert(sample.to_string(), name.to_string());
-                bs_species_of.insert(sample.to_string(), species_.to_string());
-            }
-
-            // mh
-            // formatted species
-            mh_species_of.insert(name.to_string(), species_.to_string());
-
-            // count
-            // original species
-            count_species_of.insert(name.to_string(), species.to_string());
         }
     }
 
