@@ -22,9 +22,11 @@ cat url.tsv |
         fi
         log_debug "{3}\t{1}"
         cd "{3}/{1}"
-        md5sum --check md5checksums.txt --quiet
+        md5sum --check md5checksums.txt --status
         if [ "$?" -eq "0" ]; then
             echo "{1}" >> ../../check.lst
+        else
+            log_warn "{1} checksum failed"
         fi
     '
 
