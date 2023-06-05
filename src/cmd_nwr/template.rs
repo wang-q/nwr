@@ -140,11 +140,25 @@ pub fn make_subcommand() -> Command {
                 .help("Prepare Count materials"),
         )
         .arg(
+            Arg::new("in")
+                .long("in")
+                .num_args(1..)
+                .action(ArgAction::Append)
+                .help("In these lists"),
+        )
+        .arg(
+            Arg::new("not-in")
+                .long("not-in")
+                .num_args(1..)
+                .action(ArgAction::Append)
+                .help("Not in these lists"),
+        )
+        .arg(
             Arg::new("rank")
                 .long("rank")
                 .num_args(1..)
                 .action(ArgAction::Append)
-                .help("To list which rank(s)"),
+                .help("To list which rank(s) - genus, family, order, and class"),
         )
         .arg(
             Arg::new("lineage")
@@ -228,6 +242,20 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
     }
 
+    let mut ins = vec![];
+    if args.contains_id("in") {
+        for i in args.get_many::<String>("in").unwrap() {
+            ins.push(i.to_string());
+        }
+    }
+
+    let mut not_ins = vec![];
+    if args.contains_id("not-in") {
+        for i in args.get_many::<String>("not-in").unwrap() {
+            not_ins.push(i.to_string());
+        }
+    }
+
     let mut ranks = vec![];
     if args.contains_id("rank") {
         for rank in args.get_many::<String>("rank").unwrap() {
@@ -244,11 +272,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     // column index in strains.taxon.tsv
     let mut rank_col_of = BTreeMap::new();
-    rank_col_of.insert("species".to_string(), "3".to_string());
-    rank_col_of.insert("genus".to_string(), "4".to_string());
-    rank_col_of.insert("family".to_string(), "5".to_string());
-    rank_col_of.insert("order".to_string(), "6".to_string());
-    rank_col_of.insert("class".to_string(), "7".to_string());
+    rank_col_of.insert("genus".to_string(), "3".to_string());
+    rank_col_of.insert("family".to_string(), "4".to_string());
+    rank_col_of.insert("order".to_string(), "5".to_string());
+    rank_col_of.insert("class".to_string(), "6".to_string());
 
     //----------------------------
     // Context
@@ -267,6 +294,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     context.insert("mh_ani_nr", args.get_one::<String>("ani_nr").unwrap());
     context.insert("mh_height", args.get_one::<String>("height").unwrap());
     context.insert("count_species_of", &count_species_of);
+    context.insert("count_ins", &ins);
+    context.insert("count_not_ins", &not_ins);
     context.insert("count_ranks", &ranks);
     context.insert("count_lineages", &lineages);
     context.insert("rank_col_of", &rank_col_of);
@@ -806,7 +835,11 @@ fn gen_count_data(context: &Context) -> anyhow::Result<()> {
     eprintln!("Create Count/{}", outname);
 
     let outdir = context.get("outdir").unwrap().as_str().unwrap();
-    let mh_species_of = context.get("count_species_of").unwrap().as_object().unwrap();
+    let count_species_of = context
+        .get("count_species_of")
+        .unwrap()
+        .as_object()
+        .unwrap();
 
     let mut writer = if outdir == "stdout" {
         intspan::writer("stdout")
@@ -814,7 +847,7 @@ fn gen_count_data(context: &Context) -> anyhow::Result<()> {
         intspan::writer(format!("{}/Count/{}", outdir, outname).as_ref())
     };
 
-    for (key, value) in mh_species_of {
+    for (key, value) in count_species_of {
         let species = value.as_str().unwrap();
 
         writer.write_all(format!("{}\t{}\n", key, species).as_ref())?;

@@ -20,7 +20,13 @@ cat species.tsv |
 {% if pass == "1" -%}
     tsv-join -f pass.lst -k 1 |
 {% endif -%}
-    nwr append stdin -c 2 -r species -r genus -r family -r order -r class \
+{% for i in count_ins -%}
+    tsv-join -f ../{{ i }} -k 1 |
+{% endfor -%}
+{% for i in count_not_ins -%}
+    tsv-join -e -f ../{{ i }} -k 1 |
+{% endfor -%}
+    nwr append stdin -c 2 -r genus -r family -r order -r class \
     > strains.taxon.tsv
 
 log_info Done.
