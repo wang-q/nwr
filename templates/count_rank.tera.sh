@@ -22,7 +22,7 @@ cat {{ rank }}.lst |
         n_species=$(
             cat strains.taxon.tsv |
                 tsv-filter --str-eq "{{ rank_col_of[rank] }}:{}" |
-                tsv-select -f {{ rank_col_of[rank] }},3 |
+                tsv-select -f {{ rank_col_of[rank] }},2 |
                 tsv-uniq |
                 wc -l
         )
@@ -38,7 +38,7 @@ cat {{ rank }}.lst |
         printf "%s\t%d\t%d\n" {} ${n_species} ${n_strains}
     ' |
     tsv-sort -k1,1 |
-    (echo -e '#{{ rank }}\t#species\t#strains' && cat) \
+    (echo -e '{{ rank }}\t#species\t#strains' && cat) \
     > {{ rank }}.count.tsv
 
 {% endfor -%}
