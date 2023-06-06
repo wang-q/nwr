@@ -293,3 +293,15 @@ fn command_template_mh() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn command_kb() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd.arg("kb").arg("formats").output().unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert!(stdout.lines().count() > 10);
+    assert!(stdout.contains("biosample "));
+
+    Ok(())
+}

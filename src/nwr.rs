@@ -15,6 +15,7 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::ardb::make_subcommand())
         .subcommand(cmd_nwr::download::make_subcommand())
         .subcommand(cmd_nwr::info::make_subcommand())
+        .subcommand(cmd_nwr::kb::make_subcommand())
         .subcommand(cmd_nwr::lineage::make_subcommand())
         .subcommand(cmd_nwr::member::make_subcommand())
         .subcommand(cmd_nwr::restrict::make_subcommand())
@@ -27,6 +28,7 @@ fn main() -> anyhow::Result<()> {
         Some(("ardb", sub_matches)) => cmd_nwr::ardb::execute(sub_matches),
         Some(("download", sub_matches)) => cmd_nwr::download::execute(sub_matches),
         Some(("info", sub_matches)) => cmd_nwr::info::execute(sub_matches),
+        Some(("kb", sub_matches)) => cmd_nwr::kb::execute(sub_matches),
         Some(("lineage", sub_matches)) => cmd_nwr::lineage::execute(sub_matches),
         Some(("member", sub_matches)) => cmd_nwr::member::execute(sub_matches),
         Some(("restrict", sub_matches)) => cmd_nwr::restrict::execute(sub_matches),
