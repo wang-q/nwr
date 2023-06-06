@@ -84,7 +84,9 @@ pub fn make_subcommand() -> Command {
                 .long("in")
                 .num_args(1..)
                 .action(ArgAction::Append)
-                .help("Only the assemblies *in* these lists in the MinHash, Count and Protein steps"),
+                .help(
+                    "Only the assemblies *in* these lists in the MinHash, Count and Protein steps",
+                ),
         )
         .arg(
             Arg::new("not-in")
@@ -170,7 +172,6 @@ pub fn make_subcommand() -> Command {
                 .action(ArgAction::SetTrue)
                 .help("Prepare Protein/ materials"),
         )
-
 }
 
 // command implementation
@@ -206,6 +207,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut mh_species_of = BTreeMap::new();
 
     let mut count_species_of = BTreeMap::new();
+
+    let mut pro_species_of = BTreeMap::new();
 
     if args.contains_id("infiles") {
         for infile in args.get_many::<String>("infiles").unwrap() {
@@ -258,6 +261,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 // count
                 // original species
                 count_species_of.insert(name.to_string(), species.to_string());
+
+                // pro
+                // formatted species
+                pro_species_of.insert(name.to_string(), species_.to_string());
             }
         }
     }
@@ -304,6 +311,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     context.insert("count_ranks", &ranks);
     context.insert("count_lineages", &lineages);
     context.insert("rank_col_of", &rank_col_of);
+    context.insert("pro_species_of", &pro_species_of);
 
     let ass_columns = vec![
         "Organism_name",
@@ -372,6 +380,14 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         gen_count_data(&context)?;
         gen_count_strains(&context)?;
         gen_count_rank(&context)?;
+    }
+
+    if args.get_flag("pro") {
+        if outdir != "stdout" {
+            fs::create_dir_all(format!("{}/Protein", outdir))?;
+        }
+        gen_pro_data(&context)?;
+        gen_pro_collect(&context)?;
     }
 
     Ok(())
@@ -908,6 +924,59 @@ fn gen_count_rank(context: &Context) -> anyhow::Result<()> {
     tera.add_raw_templates(vec![
         ("header", include_str!("../../templates/header.tera.sh")),
         ("t", include_str!("../../templates/count_rank.tera.sh")),
+    ])
+    .unwrap();
+
+    let rendered = tera.render("t", &context).unwrap();
+    writer.write_all(rendered.as_ref())?;
+
+    Ok(())
+}
+
+//----------------------------
+// species.tsv - name, species
+//----------------------------
+fn gen_pro_data(context: &Context) -> anyhow::Result<()> {
+    let outname = "species.tsv";
+    eprintln!("Create Protein/{}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+    let species_of = context.get("pro_species_of").unwrap().as_object().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/Protein/{}", outdir, outname).as_ref())
+    };
+
+    for (key, value) in species_of {
+        let species = value.as_str().unwrap();
+
+        writer.write_all(format!("{}\t{}\n", key, species).as_ref())?;
+    }
+
+    Ok(())
+}
+
+//----------------------------
+// collect.sh
+//----------------------------
+fn gen_pro_collect(context: &Context) -> anyhow::Result<()> {
+    let outname = "collect.sh";
+    eprintln!("Create Protein/{}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/Protein/{}", outdir, outname).as_ref())
+    };
+
+    let mut tera = Tera::default();
+    tera.add_raw_templates(vec![
+        ("header", include_str!("../../templates/header.tera.sh")),
+        ("t", include_str!("../../templates/pro_collect.tera.sh")),
     ])
     .unwrap();
 
