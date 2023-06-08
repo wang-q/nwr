@@ -380,6 +380,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         gen_count_data(&context)?;
         gen_count_strains(&context)?;
         gen_count_rank(&context)?;
+        gen_count_lineage(&context)?;
     }
 
     if args.get_flag("pro") {
@@ -924,6 +925,34 @@ fn gen_count_rank(context: &Context) -> anyhow::Result<()> {
     tera.add_raw_templates(vec![
         ("header", include_str!("../../templates/header.tera.sh")),
         ("t", include_str!("../../templates/count_rank.tera.sh")),
+    ])
+    .unwrap();
+
+    let rendered = tera.render("t", &context).unwrap();
+    writer.write_all(rendered.as_ref())?;
+
+    Ok(())
+}
+
+//----------------------------
+// lineage.sh
+//----------------------------
+fn gen_count_lineage(context: &Context) -> anyhow::Result<()> {
+    let outname = "lineage.sh";
+    eprintln!("Create Count/{}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/Count/{}", outdir, outname).as_ref())
+    };
+
+    let mut tera = Tera::default();
+    tera.add_raw_templates(vec![
+        ("header", include_str!("../../templates/header.tera.sh")),
+        ("t", include_str!("../../templates/count_lineage.tera.sh")),
     ])
     .unwrap();
 
