@@ -395,7 +395,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// rsync urls - name, url, species
+// ASSEMBLY/url.tsv - name, url, species
 //----------------------------
 fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
     let outname = "url.tsv";
@@ -434,7 +434,7 @@ fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// rsync.sh
+// ASSEMBLY/rsync.sh
 //----------------------------
 fn gen_ass_rsync(context: &Context) -> anyhow::Result<()> {
     let outname = "rsync.sh";
@@ -462,7 +462,7 @@ fn gen_ass_rsync(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// check.sh
+// ASSEMBLY/check.sh
 //----------------------------
 fn gen_ass_check(context: &Context) -> anyhow::Result<()> {
     let outname = "check.sh";
@@ -490,7 +490,7 @@ fn gen_ass_check(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// n50.sh
+// ASSEMBLY/n50.sh
 //----------------------------
 fn gen_ass_n50(context: &Context) -> anyhow::Result<()> {
     let outname = "n50.sh";
@@ -518,7 +518,7 @@ fn gen_ass_n50(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// collect.sh
+// ASSEMBLY/collect.sh
 //----------------------------
 fn gen_ass_collect(context: &Context) -> anyhow::Result<()> {
     let outname = "collect.sh";
@@ -546,7 +546,7 @@ fn gen_ass_collect(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// finish.sh
+// ASSEMBLY/finish.sh
 //----------------------------
 fn gen_ass_finish(context: &Context) -> anyhow::Result<()> {
     let outname = "finish.sh";
@@ -574,7 +574,7 @@ fn gen_ass_finish(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// clean.sh
+// ASSEMBLY/clean.sh
 //----------------------------
 fn gen_ass_reorder(context: &Context) -> anyhow::Result<()> {
     let outname = "reorder.sh";
@@ -602,7 +602,7 @@ fn gen_ass_reorder(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// sample.tsv - biosample, name, species
+// BioSample/sample.tsv - biosample, name, species
 //----------------------------
 fn gen_bs_data(context: &Context) -> anyhow::Result<()> {
     let outname = "sample.tsv";
@@ -629,7 +629,7 @@ fn gen_bs_data(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// download.sh
+// BioSample/download.sh
 //----------------------------
 fn gen_bs_download(context: &Context) -> anyhow::Result<()> {
     let outname = "download.sh";
@@ -657,7 +657,7 @@ fn gen_bs_download(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// collect.sh
+// BioSample/collect.sh
 //----------------------------
 fn gen_bs_collect(context: &Context) -> anyhow::Result<()> {
     let outname = "collect.sh";
@@ -685,7 +685,7 @@ fn gen_bs_collect(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// species.tsv - name, species
+// MinHash/species.tsv - name, species
 //----------------------------
 fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
     let outname = "species.tsv";
@@ -710,7 +710,7 @@ fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// compute.sh
+// MinHash/compute.sh
 //----------------------------
 fn gen_mh_compute(context: &Context) -> anyhow::Result<()> {
     let outname = "compute.sh";
@@ -738,7 +738,7 @@ fn gen_mh_compute(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// species.sh
+// MinHash/species.sh
 //----------------------------
 fn gen_mh_species(context: &Context) -> anyhow::Result<()> {
     let outname = "species.sh";
@@ -766,7 +766,7 @@ fn gen_mh_species(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// abnormal.sh
+// MinHash/abnormal.sh
 //----------------------------
 fn gen_mh_abnormal(context: &Context) -> anyhow::Result<()> {
     let outname = "abnormal.sh";
@@ -794,7 +794,7 @@ fn gen_mh_abnormal(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// nr.sh
+// MinHash/nr.sh
 //----------------------------
 fn gen_mh_nr(context: &Context) -> anyhow::Result<()> {
     let outname = "nr.sh";
@@ -822,7 +822,7 @@ fn gen_mh_nr(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// dist.sh
+// MinHash/dist.sh
 //----------------------------
 fn gen_mh_dist(context: &Context) -> anyhow::Result<()> {
     let outname = "dist.sh";
@@ -850,7 +850,7 @@ fn gen_mh_dist(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// species.tsv - name, species
+// Count/species.tsv - name, species
 //----------------------------
 fn gen_count_data(context: &Context) -> anyhow::Result<()> {
     let outname = "species.tsv";
@@ -879,7 +879,7 @@ fn gen_count_data(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// strains.sh
+// Count/strains.sh
 //----------------------------
 fn gen_count_strains(context: &Context) -> anyhow::Result<()> {
     let outname = "strains.sh";
@@ -907,7 +907,7 @@ fn gen_count_strains(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// rank.sh
+// Count/rank.sh
 //----------------------------
 fn gen_count_rank(context: &Context) -> anyhow::Result<()> {
     let outname = "rank.sh";
@@ -935,7 +935,7 @@ fn gen_count_rank(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// lineage.sh
+// Count/lineage.sh
 //----------------------------
 fn gen_count_lineage(context: &Context) -> anyhow::Result<()> {
     let outname = "lineage.sh";
@@ -963,7 +963,7 @@ fn gen_count_lineage(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// species.tsv - name, species
+// Protein/species.tsv - name, species
 //----------------------------
 fn gen_pro_data(context: &Context) -> anyhow::Result<()> {
     let outname = "species.tsv";
@@ -988,7 +988,7 @@ fn gen_pro_data(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// collect.sh
+// Protein/collect.sh
 //----------------------------
 fn gen_pro_collect(context: &Context) -> anyhow::Result<()> {
     let outname = "collect.sh";
