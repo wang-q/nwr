@@ -45,7 +45,7 @@ mv tmp.tsv n50.tsv
 log_info Calculate N50 not in the list
 cat url.tsv |
     tsv-join -f n50.tsv -k 1 -e |
-    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j {{ parallel }} '
         if [[ ! -e "{3}/{1}" ]]; then
             exit
         fi

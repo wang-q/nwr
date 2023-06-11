@@ -5,6 +5,10 @@
 #----------------------------#
 log_warn compute.sh
 
+{% set parallel2 = parallel | int / 2 -%}
+{% set parallel2 = parallel2 | round(method="floor") -%}
+{% if parallel2 < 2 %}{% set parallel2 = 2 %}{% endif -%}
+
 cat species.tsv |
 {% for i in ins -%}
     tsv-join -f ../{{ i }} -k 1 |
@@ -12,7 +16,7 @@ cat species.tsv |
 {% for i in not_ins -%}
     tsv-join -e -f ../{{ i }} -k 1 |
 {% endfor -%}
-    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j {{ parallel2 }} '
         if [[ -e "{2}/{1}.msh" ]]; then
             exit
         fi

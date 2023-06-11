@@ -18,7 +18,7 @@ cat strains.taxon.tsv |
 
 log_debug "{{ rank }}.count.tsv"
 cat {{ rank }}.lst |
-    parallel --no-run-if-empty --linebuffer -k -j 4 '
+    parallel --no-run-if-empty --linebuffer -k -j {{ parallel }} '
         n_species=$(
             cat strains.taxon.tsv |
                 tsv-filter --str-eq "{{ rank_col_of[rank] }}:{}" |

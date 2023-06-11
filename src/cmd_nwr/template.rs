@@ -95,6 +95,13 @@ pub fn make_subcommand() -> Command {
                 .action(ArgAction::Append)
                 .help("Only the assemblies *not in* these lists"),
         )
+        .arg(
+            Arg::new("parallel")
+                .long("parallel")
+                .num_args(1)
+                .default_value("8")
+                .help("Number of threads"),
+        )
         // ASSEMBLY
         .arg(
             Arg::new("ass")
@@ -298,6 +305,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     context.insert("outdir", outdir);
     context.insert("ins", &ins);
     context.insert("not_ins", &not_ins);
+    context.insert("parallel", args.get_one::<String>("parallel").unwrap());
+
     context.insert("ass_url_of", &ass_url_of);
     context.insert("ass_species_of", &ass_species_of);
     context.insert("bs_name_of", &bs_name_of);

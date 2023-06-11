@@ -16,7 +16,7 @@ mv tmp.list check.lst
 
 cat url.tsv |
     tsv-join -f check.lst -k 1 -e |
-    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j {{ parallel }} '
         if [[ ! -e "{3}/{1}" ]]; then
             exit
         fi

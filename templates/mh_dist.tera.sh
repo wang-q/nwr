@@ -6,7 +6,7 @@
 log_warn dist.sh
 
 log_info Distances between assembly sketches
-mash triangle -E -p 8 -l <(
+mash triangle -E -p {{ parallel }} -l <(
     cat species.tsv |
 {% for i in ins -%}
     tsv-join -f ../{{ i }} -k 1 |
