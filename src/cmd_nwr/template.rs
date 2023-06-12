@@ -355,10 +355,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         gen_ass_data(&context)?;
         gen_ass_rsync(&context)?;
         gen_ass_check(&context)?;
+        gen_ass_reorder(&context)?;
         gen_ass_n50(&context)?;
         gen_ass_collect(&context)?;
         gen_ass_finish(&context)?;
-        gen_ass_reorder(&context)?;
     }
 
     if args.get_flag("bs") {
