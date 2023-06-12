@@ -7,8 +7,8 @@ log_warn collect.sh
 
 touch check.lst
 
-echo "name,{{ ass_columns | join(sep=",") }}" \
-    > collect.csv
+echo -e "name\t{{ ass_columns | join(sep="\t") }}" \
+    > collect.tsv
 
 cat url.tsv |
     tsv-join -f check.lst -k 1 |
@@ -38,10 +38,10 @@ cat url.tsv |
                             push @c, q();
                         }
                     }
-                    print join(q(,), q({1}), @c);
+                    print join(qq(\t), q({1}), @c);
                 }
             '\'' \
-            >> collect.csv
+            >> collect.tsv
     '
 
 log_info Done.

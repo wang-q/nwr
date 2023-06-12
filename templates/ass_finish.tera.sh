@@ -5,18 +5,6 @@
 #----------------------------#
 log_warn finish.sh
 
-log_info "ASMs passes the N50 check"
-tsv-join \
-    collect.csv \
-    --delimiter "," -H --key-fields 1 \
-    --filter-file n50.pass.csv \
-    > collect.pass.csv
-
-cat "collect.pass.csv" |
-    sed '1d' |
-    tsv-select -d, -f 1 \
-    > pass.lst
-
 log_info "Strains without protein annotations"
 cat url.tsv |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
@@ -30,27 +18,51 @@ cat url.tsv |
     tsv-uniq \
     > omit.lst
 
+log_info "ASMs passes the N50 check"
+cat collect.tsv |
+    tsv-join \
+        -H --key-fields 1 \
+        --filter-file n50.pass.tsv \
+        --append-fields N50,C |
+    tsv-join \
+        -H --key-fields 1 \
+        --filter-file <(
+            cat omit.lst |
+                sed 's/$/\tNo/' |
+                (echo -e "name\tannotations" && cat)
+        ) \
+        --append-fields annotations --write-all "Yes" \
+    > collect.pass.tsv
+
+cat "collect.pass.tsv" |
+    sed '1d' |
+    tsv-select -f 1 \
+    > pass.lst
+
 log_info "Representative or reference strains"
-cat collect.pass.csv |
-    tsv-filter -H -d, --not-empty "RefSeq_category" |
-    tsv-select -H -d, -f name |
+cat collect.pass.tsv |
+    tsv-filter -H --not-empty "RefSeq_category" |
+    tsv-select -H -f name |
     sed '1d' \
     > rep.lst
 
 log_info "Counts of lines"
-printf "#item\tcount\n" \
+printf "#item\tfields\tlines\n" \
     > counts.tsv
 
 for FILE in \
-    url.tsv check.lst collect.csv \
-    n50.tsv n50.pass.csv \
-    collect.pass.csv pass.lst \
+    url.tsv check.lst collect.tsv \
+    n50.tsv n50.pass.tsv \
+    collect.pass.tsv pass.lst \
     omit.lst rep.lst \
     ; do
     cat ${FILE} |
-        wc -l |
+        datamash check |
         FILE=${FILE} perl -nl -MNumber::Format -e '
-            printf qq($ENV{FILE}\t%s\n), Number::Format::format_number($_, 0,);
+            m/(\d+)\s*lines?.+(\d+)\s*fields?/ or next;
+            printf qq($ENV{FILE}\t%s\t%s\n),
+                Number::Format::format_number($2, 0,),
+                Number::Format::format_number($1, 0,);
             ' \
         >> counts.tsv
 done

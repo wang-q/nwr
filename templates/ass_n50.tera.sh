@@ -72,9 +72,8 @@ rm tmp*.tsv
 cat n50.tsv |
     tsv-filter -H --ge "N50:${LEN_N50}" |
     tsv-filter -H --le "C:${N_CONTIG}" |
-    tsv-filter -H --ge "S:${LEN_SUM}" |
-    tr "\t" "," \
-    > n50.pass.csv
+    tsv-filter -H --ge "S:${LEN_SUM}" \
+    > n50.pass.tsv
 
 log_info Done.
 
