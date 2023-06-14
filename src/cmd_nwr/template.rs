@@ -212,6 +212,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut bs_species_of = BTreeMap::new();
 
     let mut mh_species_of = BTreeMap::new();
+    let mut mh_level_of = BTreeMap::new();
 
     let mut count_species_of = BTreeMap::new();
 
@@ -249,6 +250,14 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 let s4 = RE_S4.replace_all(&*s3, "");
                 let species_ = s4.to_string();
 
+                let level = match fields[4] {
+                    "Complete Genome" => "1",
+                    "Chromosome" => "2",
+                    "Scaffold" => "3",
+                    "Contig" => "3",
+                    _ => "5",
+                };
+
                 // ass
                 // formatted species
                 ass_url_of.insert(name.to_string(), url.to_string());
@@ -264,6 +273,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 // mh
                 // formatted species
                 mh_species_of.insert(name.to_string(), species_.to_string());
+                mh_level_of.insert(name.to_string(), level.to_string());
 
                 // count
                 // original species
@@ -309,17 +319,22 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     context.insert("ass_url_of", &ass_url_of);
     context.insert("ass_species_of", &ass_species_of);
+
     context.insert("bs_name_of", &bs_name_of);
     context.insert("bs_species_of", &bs_species_of);
+
     context.insert("mh_species_of", &mh_species_of);
+    context.insert("mh_level_of", &mh_level_of);
     context.insert("mh_sketch", args.get_one::<String>("sketch").unwrap());
     context.insert("mh_ani_ab", args.get_one::<String>("ani-ab").unwrap());
     context.insert("mh_ani_nr", args.get_one::<String>("ani-nr").unwrap());
     context.insert("mh_height", args.get_one::<String>("height").unwrap());
+
     context.insert("count_species_of", &count_species_of);
     context.insert("count_ranks", &ranks);
     context.insert("count_lineages", &lineages);
     context.insert("rank_col_of", &rank_col_of);
+
     context.insert("pro_species_of", &pro_species_of);
 
     let ass_columns = vec![
@@ -694,7 +709,7 @@ fn gen_bs_collect(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// MinHash/species.tsv - name, species
+// MinHash/species.tsv - name, species, level
 //----------------------------
 fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
     let outname = "species.tsv";
@@ -702,6 +717,7 @@ fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
 
     let outdir = context.get("outdir").unwrap().as_str().unwrap();
     let mh_species_of = context.get("mh_species_of").unwrap().as_object().unwrap();
+    let mh_level_of = context.get("mh_level_of").unwrap().as_object().unwrap();
 
     let mut writer = if outdir == "stdout" {
         intspan::writer("stdout")
@@ -711,8 +727,9 @@ fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
 
     for (key, value) in mh_species_of {
         let species = value.as_str().unwrap();
+        let level = mh_level_of.get(key).unwrap().as_str().unwrap();
 
-        writer.write_all(format!("{}\t{}\n", key, species).as_ref())?;
+        writer.write_all(format!("{}\t{}\t{}\n", key, species, level).as_ref())?;
     }
 
     Ok(())

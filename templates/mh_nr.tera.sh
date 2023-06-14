@@ -41,23 +41,45 @@ while read SPECIES; do
         > "${SPECIES}/connected_components.tsv"
 
     echo >&2 "    Scores based on rep.lst, omit.lst, and assembly_level"
-    # score.tsv
+    cat ${SPECIES}/assembly.lst |
+        tsv-join -f ../ASSEMBLY/rep.lst -k 1 -a 1 --write-all "0" |
+        tsv-join -f ../ASSEMBLY/omit.lst -k 1 -a 1 --write-all "0" |
+        tsv-join -f species.tsv -k 1 -a 3 \
+        > ${SPECIES}/scores.tsv
 
     cat "${SPECIES}/connected_components.tsv" |
-        perl -nla -MPath::Tiny -F"\t" -e '
+        SPECIES=${SPECIES} perl -nla -MPath::Tiny -F"\t" -e '
             BEGIN {
-                our %rep = map { ($_, 1) } path( q(../ASSEMBLY/rep.lst) )->lines({chomp => 1});
-                our %omit = map { ($_, 1) } path( q(../ASSEMBLY/omit.lst) )->lines({chomp => 1});
+                our %rep_of = map { ($_, 1) } path( q(../ASSEMBLY/rep.lst) )->lines({chomp => 1});
+                our %omit_of = map { ($_, 1) } path( q(../ASSEMBLY/omit.lst) )->lines({chomp => 1});
+                our %level_of = map { ( split(qq(\t), $_) )[0, 2] } path( q(species.tsv) )->lines({chomp => 1});
             }
 
-            # Representative strains are preferred
-            if ( grep { $rep{$_} } @F ) {
-                @F = grep { ! $rep{$_} } @F
-            }
-            else {
-                shift @F;
-            }
-            printf qq(%s\n), $_ for @F;
+            my @sorted = @F;
+
+            # Level of "Complete Genome"/1 and Chromosome/2 are preferred
+            @sorted =
+                map  { $_->[0] }
+                sort { $a->[1] <=> $b->[1] }
+                map { [$_, $level_of{$_}] }
+                @sorted;
+
+            # With annotations
+            @sorted =
+                map  { $_->[0] }
+                sort { $a->[1] <=> $b->[1] }
+                map { [$_, exists $omit_of{$_} ? 1 : 0 ] }
+                @sorted;
+
+            # Representative strains
+            @sorted =
+                map  { $_->[0] }
+                sort { $b->[1] <=> $a->[1] }
+                map { [$_, exists $rep_of{$_} ? 1 : 0 ] }
+                @sorted;
+
+            shift @sorted; # The first is NR
+            printf qq(%s\n), $_ for @sorted;
             ' \
         > "${SPECIES}/redundant.lst"
 
