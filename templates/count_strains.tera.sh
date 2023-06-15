@@ -17,7 +17,7 @@ cat species.tsv |
     > strains.taxon.tsv
 
 log_info "taxa.tsv"
-cat Count/strains.taxon.tsv |
+cat strains.taxon.tsv |
     tsv-summarize --unique-count 1-6 |
     (echo -e "strain\tspecies\tgenus\tfamily\torder\tclass" && cat) |
     datamash transpose |
