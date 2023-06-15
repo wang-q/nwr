@@ -16,6 +16,14 @@ cat species.tsv |
     nwr append stdin -c 2 -r genus -r family -r order -r class \
     > strains.taxon.tsv
 
+log_info "taxa.tsv"
+cat Count/strains.taxon.tsv |
+    tsv-summarize --unique-count 1-6 |
+    (echo -e "strain\tspecies\tgenus\tfamily\torder\tclass" && cat) |
+    datamash transpose |
+    (echo -e "item\tcount" && cat) \
+    > taxa.tsv
+
 log_info Done.
 
 exit 0
