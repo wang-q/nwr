@@ -48,6 +48,25 @@ cat ~/.nwr/assembly_summary_genbank.txt |
 #    469 ecotype
 #1209065 strain
 
+cat ~/.nwr/assembly_summary_refseq.txt ~/.nwr/assembly_summary_genbank.txt |
+    grep -v "^#" |
+    tsv-select -f 9 | # infraspecific_name
+    perl -nla -F"=" -e 'print $F[1]' |
+    sort |
+    uniq -c |
+    sort -nr |
+    head
+# 492321
+#   1278 clinical isolate of L. monocytogenes
+#   1168 n/a
+#   1064 Neisseria meningitidis
+#    918 MSSA
+#    870 microbial
+#    814 Escherichia coli
+#    788 CT18
+#    587 Extraintestinal pathogenic Escherichia coli
+#    576 MRSA
+
 # String length
 cat ~/.nwr/assembly_summary_refseq.txt |
     sed '1d' |
