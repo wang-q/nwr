@@ -9,6 +9,7 @@ touch check.lst
 
 # Keep only the results in the list
 cat check.lst |
+    sort |
     tsv-uniq |
     tsv-join -f url.tsv -k 1 \
     > tmp.list
