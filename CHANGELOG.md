@@ -4,6 +4,14 @@
 
 * Add more templates to `nwr template`
     * `--mh` for MinHash
+    * `--count` for counting
+    * `--pro` for collecting proteins
+    * `--in` and `--not-in` to including and excluding assemblies in some steps
+
+* Add `nwr kb` to bundle HMM files
+    * `bac120`
+    * `ar53`
+    * `fungi61`
 
 ## 0.6.0 - 2023-06-03
 
