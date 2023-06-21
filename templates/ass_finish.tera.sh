@@ -42,7 +42,7 @@ cat "collect.pass.tsv" |
 log_info "Representative or reference strains"
 cat collect.pass.tsv |
     tsv-filter -H --not-empty "RefSeq_category" |
-    tsv-select -H -f name |
+    tsv-select -f 1 |
     sed '1d' \
     > rep.lst
 

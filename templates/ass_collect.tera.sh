@@ -7,7 +7,7 @@ log_warn collect.sh
 
 touch check.lst
 
-echo -e "name\t{{ ass_columns | join(sep="\t") }}" \
+echo -e "#name\t{{ ass_columns | join(sep="\t") }}" \
     > collect.tsv
 
 cat url.tsv |
