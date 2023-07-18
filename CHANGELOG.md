@@ -2,6 +2,8 @@
 
 ## Unreleased - ReleaseDate
 
+## 0.6.1 - 2023-07-18
+
 * Add more templates to `nwr template`
     * `--mh` for MinHash
     * `--count` for counting
