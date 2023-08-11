@@ -25,6 +25,7 @@ tera = "1.17.1"
 flate2 = "1.0.25"
 itertools = "0.10.5"
 #bio = "1.1.0"
+phylotree = "0.1.1"
 
 intspan = "^0.7.1"
 

@@ -21,6 +21,9 @@ brew install wang-q/tap/nwr
 # local repo
 cargo install --path . --force --offline
 
+# build under WSL 2
+export CARGO_TARGET_DIR=/tmp
+cargo build
 ```
 
 ## SYNOPSIS
@@ -111,6 +114,9 @@ cargo run --bin nwr append -d tests/nwr/ tests/nwr/taxon-valid.tsv -c 2 -r speci
 cargo run --bin nwr ardb -d tests/nwr/
 
 cargo run --bin nwr assembly tests/assembly/Trichoderma.assembly.tsv
+
+echo "(A,B);" | cargo run --bin nwr indent stdin
+cargo run --bin nwr indent tests/newick/hg38.7way.commonNames.nh
 
 ```
 

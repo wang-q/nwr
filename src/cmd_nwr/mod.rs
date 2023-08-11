@@ -3,6 +3,7 @@
 pub mod append;
 pub mod ardb;
 pub mod download;
+pub mod indent;
 pub mod info;
 pub mod kb;
 pub mod lineage;
