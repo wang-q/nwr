@@ -116,7 +116,7 @@ cargo run --bin nwr ardb -d tests/nwr/
 cargo run --bin nwr assembly tests/assembly/Trichoderma.assembly.tsv
 
 echo "(A,B);" | cargo run --bin nwr indent stdin
-cargo run --bin nwr indent tests/newick/hg38.7way.commonNames.nh
+cargo run --bin nwr indent tests/newick/hg38.7way.commonNames.nh --text ".   "
 
 ```
 

@@ -10,6 +10,9 @@ pub fn make_subcommand() -> Command {
         .after_help(
             r###"
 * Set `--text` to something other than whitespaces will result in an invalid Newick file
+    * `--text ".   "`
+
+* Set `--text` to empty ("") will remove indentation
 
 "###,
         )
@@ -25,8 +28,8 @@ pub fn make_subcommand() -> Command {
                 .long("text")
                 .short('t')
                 .num_args(1)
-                .default_value("    ")
-                .help("Use this text instead of the default four spaces"),
+                .default_value("  ")
+                .help("Use this text instead of the default two spaces"),
         )
         .arg(
             Arg::new("outfile")
@@ -47,9 +50,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let infile = args.get_one::<String>("infile").unwrap();
     let tree = read_newick(infile);
 
-    eprintln!("tree = {:#?}", tree);
-    eprintln!("tree = {:#?}", tree.to_newick().unwrap());
-    eprintln!("tree = {:#?}", format_tree(&tree));
+    // eprintln!("tree = {:#?}", tree);
 
     // let ids: Vec<_> = tree.levelorder(&tree.get_root().unwrap())
     //     .unwrap()
@@ -58,6 +59,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     //     .collect();
     //
     // eprintln!("ids = {:#?}", ids);
+
+    let out_string = format_tree(&tree, text);
+    writer.write_all((out_string + "\n").as_ref())?;
 
     Ok(())
 }
@@ -82,28 +86,40 @@ fn read_newick(infile: &str) -> Tree {
     tree
 }
 
-fn format_tree(tree: &Tree) -> String {
+fn format_tree(tree: &Tree, indent: &str) -> String {
     let root = tree.get_root().unwrap();
-    format_subtree(tree, &root) + ";"
+    format_subtree(tree, &root, indent) + ";"
 }
 
-fn format_subtree(tree: &Tree, root: &NodeId) -> String {
-    let root = tree.get(root).unwrap();
-    let children = {
-        let children = &root.children;
+fn format_subtree(tree: &Tree, cur_id: &NodeId, indent: &str) -> String {
+    let cur_node = tree.get(cur_id).unwrap();
+    let formatted = {
+        let children = &cur_node.children;
+        let depth = cur_node.get_depth();
         if children.is_empty() {
-            format_node(root)
+            if indent.is_empty() {
+                format_node(cur_node)
+            } else {
+                let indention = indent.repeat(depth);
+                format!("{}{}", indention, format_node(cur_node))
+            }
         } else {
             let branch_set = children
                 .into_iter()
-                .map(|child| format_subtree(tree, child))
-                .collect::<Vec<_>>()
-                .join(",");
-            format!("({}){}", branch_set, format_node(root))
+                .map(|child| format_subtree(tree, child, indent))
+                .collect::<Vec<_>>();
+
+            if indent.is_empty() {
+                format!("({}){}", branch_set.join(","), format_node(cur_node))
+            } else {
+                let root = tree.get_root().unwrap();
+                let indention = indent.repeat(depth);
+                format!("{}(\n{}\n{}){}", indention, branch_set.join(",\n"), indention, format_node(cur_node))
+            }
         }
     };
 
-    children
+    formatted
 }
 
 fn format_node(node: &Node) -> String {
