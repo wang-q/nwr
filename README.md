@@ -30,19 +30,23 @@ cargo build
 
 ```text
 $ nwr help
-`nwr` is a command line tool for NCBI taxonomy, assembly reports and Newick files
+`nwr` is a command line tool for working with NCBI taxonomy, assembly reports and Newick files
 
 Usage: nwr [COMMAND]
 
 Commands:
   append    Append fields of higher ranks to a TSV file
   ardb      Init the assembly database
-  assembly  Prepare ASSEMBLY materials
+  comment   Add comments to node(s) in a Newick file
   download  Download the latest releases of `taxdump` and assembly reports
+  indent    Indent the Newick file
   info      Information of Taxonomy ID(s) or scientific name(s)
+  kb        Prints docs (knowledge bases)
   lineage   Output the lineage of the term
   member    List members (of certain ranks) under ancestral term(s)
+  order     Order nodes in a Newick file
   restrict  Restrict taxonomy terms to ancestral descendants
+  template  Create dirs, data and scripts for a phylogenomic research
   txdb      Init the taxonomy database
   help      Print this message or the help of the given subcommand(s)
 
@@ -134,7 +138,9 @@ cargo run --bin nwr order --nd tests/newick/hg38.7way.commonNames.nh
 
 echo "((A,B),C);" | cargo run --bin nwr order --ndr stdin
 
-echo "((A,B),C);" | cargo run --bin nwr comment stdin -n A -n C -l A,B --color green -s "&&nwr"
+echo "((A,B),C);" |
+    cargo run --bin nwr comment stdin -n A -n C --color green -s '&&nwr' |
+    cargo run --bin nwr comment stdin -l A,B --dot
 
 
 ```

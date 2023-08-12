@@ -7,7 +7,7 @@ fn main() -> anyhow::Result<()> {
     let app = Command::new("nwr")
         .version(crate_version!())
         .author(crate_authors!())
-        .about("`nwr` is a command line tool for NCBI taxonomy, assembly reports and Newick files")
+        .about("`nwr` is a command line tool for working with NCBI taxonomy, assembly reports and Newick files")
         .propagate_version(true)
         .arg_required_else_help(true)
         .color(ColorChoice::Auto)
