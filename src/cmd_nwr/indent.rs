@@ -10,7 +10,7 @@ pub fn make_subcommand() -> Command {
         .after_help(
             r###"
 * Set `--text` to something other than whitespaces will result in an invalid Newick file
-    * `--text ".   "`
+    * Use `--text ".   "` can produce visual guide lines
 
 * Set `--text` to empty ("") will remove indentation
 
