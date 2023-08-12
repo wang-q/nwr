@@ -71,7 +71,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut tsv_wtr = csv::WriterBuilder::new()
         .delimiter(b'\t')
         .from_writer(writer);
-    tsv_wtr.write_record(&["#tax_id", "sci_name", "rank", "division"])?;
+    tsv_wtr.write_record(["#tax_id", "sci_name", "rank", "division"])?;
 
     let mut rank_set: HashSet<String> = HashSet::new();
     if args.contains_id("rank") {

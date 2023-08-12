@@ -96,9 +96,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     for infile in args.get_many::<String>("file").unwrap() {
         let reader = intspan::reader(infile);
-        for line in reader.lines().filter_map(|r| r.ok()) {
+        for line in reader.lines().map_while(Result::ok) {
             // Always output lines start with "#"
-            if line.starts_with("#") {
+            if line.starts_with('#') {
                 writer.write_fmt(format_args!("{}\n", line))?;
                 continue;
             }

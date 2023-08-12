@@ -194,5 +194,5 @@ fn readable(n: String) -> String {
         c.insert(0, char);
     }
 
-    return c;
+    c
 }
