@@ -75,11 +75,11 @@ fn format_node(node: &Node) -> String {
     if let Some(name) = node.name.clone() {
         repr += &name;
     }
-    if let Some(comment) = node.comment.clone() {
-        repr += &format!("[{}]", &comment);
-    }
     if let Some(parent_edge) = node.parent_edge {
         repr += &format!(":{}", &parent_edge);
+    }
+    if let Some(comment) = node.comment.clone() {
+        repr += &format!("[{}]", &comment);
     }
 
     repr
@@ -196,6 +196,29 @@ pub fn get_names(tree: &Tree) -> Vec<String> {
         .collect::<Vec<String>>();
 
     names
+}
+
+/// Get hash of name-id
+///
+/// ```
+/// use phylotree::tree::Tree;
+///
+/// let newick = "((A,B),C);";
+/// let tree = Tree::from_newick(newick).unwrap();
+/// let id_of = nwr::get_name_id(&tree);
+/// assert_eq!(*id_of.get("A").unwrap(), 2usize);
+/// ```
+pub fn get_name_id(tree: &Tree) -> HashMap<String, usize> {
+    let mut id_of = HashMap::new();
+    for id in tree.preorder(&tree.get_root().unwrap()).unwrap().iter() {
+        let node = tree.get(id).unwrap();
+        let name = node.name.clone();
+        if let Some(x) = name {
+            id_of.insert(x, *id);
+        }
+    }
+
+    id_of
 }
 
 /// Adds key-value comments to a node

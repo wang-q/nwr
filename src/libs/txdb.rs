@@ -1,6 +1,6 @@
 use crate::Node;
 use itertools::Itertools;
-use std::path::{Path};
+use std::path::Path;
 
 /// nwr working path
 ///
