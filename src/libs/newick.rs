@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use phylotree::tree::{Node, NodeId, Tree};
 
 pub fn read_newick(infile: &str) -> Tree {
@@ -20,22 +21,32 @@ pub fn read_newick(infile: &str) -> Tree {
     tree
 }
 
+/// Writes the tree with indentations
+///
+/// ```
+/// use phylotree::tree::Tree;
+///
+/// let newick = "(A,B);";
+/// let tree = Tree::from_newick(newick).unwrap();
+///
+/// assert_eq!(nwr::format_tree(&tree, "  "), "(\n  A,\n  B\n);".to_string());
+/// ```
 pub fn format_tree(tree: &Tree, indent: &str) -> String {
     let root = tree.get_root().unwrap();
     format_subtree(tree, &root, indent) + ";"
 }
 
-fn format_subtree(tree: &Tree, cur_id: &NodeId, indent: &str) -> String {
-    let cur_node = tree.get(cur_id).unwrap();
+fn format_subtree(tree: &Tree, id: &NodeId, indent: &str) -> String {
+    let node = tree.get(id).unwrap();
     let formatted = {
-        let children = &cur_node.children;
-        let depth = cur_node.get_depth();
+        let children = &node.children;
+        let depth = node.get_depth();
         if children.is_empty() {
             if indent.is_empty() {
-                format_node(cur_node)
+                format_node(node)
             } else {
                 let indention = indent.repeat(depth);
-                format!("{}{}", indention, format_node(cur_node))
+                format!("{}{}", indention, format_node(node))
             }
         } else {
             let branch_set = children
@@ -44,7 +55,7 @@ fn format_subtree(tree: &Tree, cur_id: &NodeId, indent: &str) -> String {
                 .collect::<Vec<_>>();
 
             if indent.is_empty() {
-                format!("({}){}", branch_set.join(","), format_node(cur_node))
+                format!("({}){}", branch_set.join(","), format_node(node))
             } else {
                 let root = tree.get_root().unwrap();
                 let indention = indent.repeat(depth);
@@ -53,7 +64,7 @@ fn format_subtree(tree: &Tree, cur_id: &NodeId, indent: &str) -> String {
                     indention,
                     branch_set.join(",\n"),
                     indention,
-                    format_node(cur_node)
+                    format_node(node)
                 )
             }
         }
@@ -75,4 +86,105 @@ fn format_node(node: &Node) -> String {
     }
 
     repr
+}
+
+/// Sort the children of each node by alphanumeric order of labels
+///
+/// ```
+/// use phylotree::tree::Tree;
+///
+/// let newick = "(A,B);";
+/// let mut tree = Tree::from_newick(newick).unwrap();
+/// nwr::order_tree_an(&mut tree, "anr");
+/// assert_eq!(tree.to_newick().unwrap(), "(B,A);".to_string());
+/// ```
+pub fn order_tree_an(tree: &mut Tree, opt: &str) {
+    let root = tree.get_root().unwrap();
+
+    let ids = tree
+        .levelorder(&root)
+        .unwrap()
+        .iter()
+        .map(|id| *id)
+        .collect::<Vec<_>>();
+
+    let mut an_of: HashMap<NodeId, String> = HashMap::new();
+    for id in &ids {
+        let node = tree.get(id).unwrap();
+        let name = &node.name;
+        if name.is_none() {
+            an_of.insert(id.clone(), "".to_string());
+        } else {
+            an_of.insert(id.clone(), name.clone().unwrap());
+        }
+    }
+
+    for id in &ids {
+        let node = tree.get_mut(id).unwrap();
+        let children = &mut node.children;
+        if children.is_empty() {
+            continue;
+        } else {
+            match opt {
+                "an" => {
+                    children.sort_by(|a, b| an_of.get(a).unwrap().cmp(an_of.get(b).unwrap()));
+                }
+                "anr" => {
+                    children.sort_by(|a, b| an_of.get(b).unwrap().cmp(an_of.get(a).unwrap()));
+                }
+                _ => panic!("Invalid opt"),
+            }
+        }
+    }
+}
+
+/// Sort the children of each node by number of descendants
+///
+/// ```
+/// use phylotree::tree::Tree;
+///
+/// let newick = "((A,B),C);";
+/// let mut tree = Tree::from_newick(newick).unwrap();
+/// nwr::order_tree_nd(&mut tree, "nd");
+/// assert_eq!(tree.to_newick().unwrap(), "(C,(A,B));".to_string());
+/// ```
+pub fn order_tree_nd(tree: &mut Tree, opt: &str) {
+    let root = tree.get_root().unwrap();
+
+    let ids = tree
+        .levelorder(&root)
+        .unwrap()
+        .iter()
+        .map(|id| *id)
+        .collect::<Vec<_>>();
+
+    let mut nd_of: HashMap<NodeId, usize> = HashMap::new();
+    for id in &ids {
+        let node = tree.get(id).unwrap();
+        let children = &node.children;
+        if children.is_empty() {
+            nd_of.insert(id.clone(), 0);
+        } else {
+            let nd = tree.get_descendants(id).unwrap();
+            nd_of.insert(id.clone(), nd.len());
+        }
+    }
+
+    for id in &ids {
+        let node = tree.get_mut(id).unwrap();
+        let children = &mut node.children;
+        if children.is_empty() {
+            continue;
+        } else {
+            match opt {
+                "nd" => {
+                    children.sort_by(|a, b| nd_of.get(a).unwrap().cmp(nd_of.get(b).unwrap()));
+                }
+                "ndr" => {
+                    children.sort_by(|a, b| nd_of.get(b).unwrap().cmp(nd_of.get(a).unwrap()));
+                }
+                _ => panic!("Invalid opt"),
+            }
+        }
+    }
 }

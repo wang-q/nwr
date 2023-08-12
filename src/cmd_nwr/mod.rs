@@ -8,6 +8,7 @@ pub mod info;
 pub mod kb;
 pub mod lineage;
 pub mod member;
+pub mod order;
 pub mod restrict;
 pub mod template;
 pub mod txdb;

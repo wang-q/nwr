@@ -115,8 +115,25 @@ cargo run --bin nwr ardb -d tests/nwr/
 
 cargo run --bin nwr assembly tests/assembly/Trichoderma.assembly.tsv
 
+```
+
+### Newick files
+
+```shell
 echo "(A,B);" | cargo run --bin nwr indent stdin
 cargo run --bin nwr indent tests/newick/hg38.7way.commonNames.nh --text ".   "
+
+nw_indent -t ".   " tests/newick/hg38.7way.commonNames.nh
+
+nw_order tests/newick/hg38.7way.commonNames.nh |
+    nw_indent -
+
+newick -ladderize tests/newick/hg38.7way.commonNames.nh
+
+cargo run --bin nwr order --nd tests/newick/hg38.7way.commonNames.nh
+
+echo "((A,B),C);" | cargo run --bin nwr order --ndr stdin
+
 
 ```
 
