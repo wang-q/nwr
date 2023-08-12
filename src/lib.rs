@@ -6,7 +6,7 @@ pub use crate::libs::newick::*;
 pub use crate::libs::taxonomy::*;
 pub use crate::libs::txdb::*;
 
-pub fn find_rank(lineage: &Vec<Node>, rank: String) -> (i64, String) {
+pub fn find_rank(lineage: &[Node], rank: String) -> (i64, String) {
     let mut tax_id: i64 = 0;
     let mut sci_name = "NA".to_string();
 

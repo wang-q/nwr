@@ -111,9 +111,6 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
     }
 
-    let infile = args.get_one::<String>("infile").unwrap();
-    let tree = nwr::read_newick(infile);
-
     let out_string = nwr::format_tree(&tree, "");
     writer.write_all((out_string + "\n").as_ref())?;
 
