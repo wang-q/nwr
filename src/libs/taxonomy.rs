@@ -29,9 +29,7 @@ impl std::fmt::Display for Node {
 
         let sciname = &self.names.get("scientific name").unwrap()[0];
         let l1 = format!("{} - {}\n", sciname, self.rank);
-        let l2 = std::iter::repeat("-")
-            .take(l1.len() - 1)
-            .collect::<String>();
+        let l2 = "-".repeat(l1.len() - 1);
         lines.push_str(&l1);
         lines.push_str(&l2);
         lines.push_str(&format!("\nNCBI Taxonomy ID: {}\n", self.tax_id));
@@ -68,7 +66,7 @@ impl std::fmt::Display for Node {
             lines.push_str(&format!("\nComments: {}", comments));
         }
 
-        write!(f, "{}\n", lines)
+        writeln!(f, "{}", lines)
     }
 }
 

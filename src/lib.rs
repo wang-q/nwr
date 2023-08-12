@@ -10,9 +10,9 @@ pub fn find_rank(lineage: &Vec<Node>, rank: String) -> (i64, String) {
     let mut tax_id: i64 = 0;
     let mut sci_name = "NA".to_string();
 
-    for node in lineage.into_iter() {
+    for node in lineage.iter() {
         if node.rank == rank {
-            sci_name = (&node.names.get("scientific name").unwrap()[0]).to_string();
+            sci_name = node.names.get("scientific name").unwrap()[0].to_string();
             tax_id = node.tax_id;
             break;
         }

@@ -38,38 +38,36 @@ pub fn format_tree(tree: &Tree, indent: &str) -> String {
 
 fn format_subtree(tree: &Tree, id: &NodeId, indent: &str) -> String {
     let node = tree.get(id).unwrap();
-    let formatted = {
-        let children = &node.children;
-        let depth = node.get_depth();
-        if children.is_empty() {
-            if indent.is_empty() {
-                format_node(node)
-            } else {
-                let indention = indent.repeat(depth);
-                format!("{}{}", indention, format_node(node))
-            }
+
+    let children = &node.children;
+    let depth = node.get_depth();
+
+    if children.is_empty() {
+        if indent.is_empty() {
+            format_node(node)
         } else {
-            let branch_set = children
-                .into_iter()
-                .map(|child| format_subtree(tree, child, indent))
-                .collect::<Vec<_>>();
-
-            if indent.is_empty() {
-                format!("({}){}", branch_set.join(","), format_node(node))
-            } else {
-                let indention = indent.repeat(depth);
-                format!(
-                    "{}(\n{}\n{}){}",
-                    indention,
-                    branch_set.join(",\n"),
-                    indention,
-                    format_node(node)
-                )
-            }
+            let indention = indent.repeat(depth);
+            format!("{}{}", indention, format_node(node))
         }
-    };
+    } else {
+        let branch_set = children
+            .iter()
+            .map(|child| format_subtree(tree, child, indent))
+            .collect::<Vec<_>>();
 
-    formatted
+        if indent.is_empty() {
+            format!("({}){}", branch_set.join(","), format_node(node))
+        } else {
+            let indention = indent.repeat(depth);
+            format!(
+                "{}(\n{}\n{}){}",
+                indention,
+                branch_set.join(",\n"),
+                indention,
+                format_node(node)
+            )
+        }
+    }
 }
 
 fn format_node(node: &Node) -> String {
@@ -100,21 +98,16 @@ fn format_node(node: &Node) -> String {
 pub fn order_tree_an(tree: &mut Tree, opt: &str) {
     let root = tree.get_root().unwrap();
 
-    let ids = tree
-        .levelorder(&root)
-        .unwrap()
-        .iter()
-        .map(|id| *id)
-        .collect::<Vec<_>>();
+    let ids = tree.levelorder(&root).unwrap().to_vec();
 
     let mut an_of: HashMap<NodeId, String> = HashMap::new();
     for id in &ids {
         let node = tree.get(id).unwrap();
         let name = &node.name;
         if name.is_none() {
-            an_of.insert(id.clone(), "".to_string());
+            an_of.insert(*id, "".to_string());
         } else {
-            an_of.insert(id.clone(), name.clone().unwrap());
+            an_of.insert(*id, name.clone().unwrap());
         }
     }
 
@@ -150,22 +143,17 @@ pub fn order_tree_an(tree: &mut Tree, opt: &str) {
 pub fn order_tree_nd(tree: &mut Tree, opt: &str) {
     let root = tree.get_root().unwrap();
 
-    let ids = tree
-        .levelorder(&root)
-        .unwrap()
-        .iter()
-        .map(|id| *id)
-        .collect::<Vec<_>>();
+    let ids = tree.levelorder(&root).unwrap().to_vec();
 
     let mut nd_of: HashMap<NodeId, usize> = HashMap::new();
     for id in &ids {
         let node = tree.get(id).unwrap();
         let children = &node.children;
         if children.is_empty() {
-            nd_of.insert(id.clone(), 0);
+            nd_of.insert(*id, 0);
         } else {
             let nd = tree.get_descendants(id).unwrap();
-            nd_of.insert(id.clone(), nd.len());
+            nd_of.insert(*id, nd.len());
         }
     }
 
@@ -204,10 +192,7 @@ pub fn get_names(tree: &Tree) -> Vec<String> {
         .unwrap()
         .iter()
         .map(|id| tree.get(id).unwrap())
-        .filter_map(|node| match node.name {
-            Some(_) => Some(node.name.clone().unwrap()),
-            None => None,
-        })
+        .filter_map(|node| node.name.clone().map(|_| node.name.clone().unwrap()))
         .collect::<Vec<String>>();
 
     names
@@ -248,7 +233,7 @@ pub fn add_comment_kv(node: &mut Node, key: &str, value: &str) {
 /// ```
 pub fn add_comment(node: &mut Node, c: &str) {
     let comment = match &node.comment {
-        None => format!("{}", c),
+        None => c.to_string(),
         Some(x) => format!("{}:{}", x, c),
     };
 

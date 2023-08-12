@@ -1,6 +1,6 @@
 use crate::Node;
 use itertools::Itertools;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 /// nwr working path
 ///
@@ -26,7 +26,7 @@ pub fn nwr_path() -> std::path::PathBuf {
 ///
 /// assert_eq!(conn.path().unwrap().to_str().unwrap(), "tests/nwr/taxonomy.sqlite");
 /// ```
-pub fn connect_txdb(dir: &PathBuf) -> anyhow::Result<rusqlite::Connection> {
+pub fn connect_txdb(dir: &Path) -> anyhow::Result<rusqlite::Connection> {
     let dbfile = dir.join("taxonomy.sqlite");
     let conn = rusqlite::Connection::open(dbfile)?;
 
@@ -60,7 +60,7 @@ pub fn get_tax_id(conn: &rusqlite::Connection, names: Vec<String>) -> anyhow::Re
     )?;
 
     for name in names.iter() {
-        let mut rows = stmt.query(&[name])?;
+        let mut rows = stmt.query([name])?;
 
         if let Some(row) = rows.next().unwrap() {
             tax_ids.push(row.get(0)?);
@@ -108,7 +108,7 @@ pub fn get_node(conn: &rusqlite::Connection, ids: Vec<i64>) -> anyhow::Result<Ve
     )?;
 
     for id in ids.iter() {
-        let mut rows = stmt.query(&[id])?;
+        let mut rows = stmt.query([id])?;
 
         let mut node: Node = Default::default();
         // Here, row.get has no reason to return an error
@@ -304,14 +304,11 @@ pub fn get_all_descendent(conn: &rusqlite::Connection, id: i64) -> anyhow::Resul
 ///
 /// ```
 pub fn term_to_tax_id(conn: &rusqlite::Connection, term: String) -> anyhow::Result<i64> {
-    let term = term.trim().replace("_", " ");
+    let term = term.trim().replace('_', " ");
 
     let id: i64 = match term.parse::<i64>() {
         Ok(n) => n,
-        Err(_) => {
-            let name_id = get_tax_id(conn, vec![term]).unwrap().pop().unwrap();
-            name_id
-        }
+        Err(_) => get_tax_id(conn, vec![term]).unwrap().pop().unwrap(),
     };
 
     Ok(id)
