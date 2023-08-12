@@ -141,7 +141,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             stmts.push(format!(
                 "INSERT INTO division VALUES ({}, '{}');",
                 id,
-                name.replace("'", "''")
+                name.replace('\'', "''")
             ));
         }
 
@@ -185,9 +185,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 INSERT INTO name(tax_id, name, name_class)
                 VALUES ({}, '{}', '{}');
                 ",
-                tax_id.to_string(),
-                name.trim().replace("'", "''"),
-                name_class.trim().replace("'", "''")
+                tax_id,
+                name.trim().replace('\'', "''"),
+                name_class.trim().replace('\'', "''")
             ));
         }
 
@@ -235,11 +235,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
             stmts.push(format!(
                 "INSERT INTO node VALUES ({}, {}, '{}', {}, '{}');",
-                tax_id.to_string(),
-                parent_tax_id.to_string(),
-                rank,
-                division_id.to_string(),
-                comments
+                tax_id, parent_tax_id, rank, division_id, comments
             ));
         }
 

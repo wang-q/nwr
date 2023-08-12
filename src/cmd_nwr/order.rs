@@ -49,7 +49,6 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         Some(x) => x.as_str(),
     };
 
-
     let infile = args.get_one::<String>("infile").unwrap();
     let mut tree = nwr::read_newick(infile);
 
