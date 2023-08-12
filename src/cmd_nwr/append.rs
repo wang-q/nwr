@@ -93,13 +93,12 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     for infile in args.get_many::<String>("infiles").unwrap() {
         let reader = intspan::reader(infile);
 
-        for line in reader.lines().filter_map(|r| r.ok()) {
+        for line in reader.lines().map_while(Result::ok) {
             let mut fields: Vec<String> = line.split('\t').map(|s| s.to_string()).collect();
-            let new_line: String;
 
             // Lines start with "#"
-            if line.starts_with("#") {
-                if ranks.len() == 0 {
+            if line.starts_with('#') {
+                if ranks.is_empty() {
                     fields.push("sci_name".to_string());
                     if is_id {
                         fields.push("tax_id".to_string());
@@ -112,8 +111,6 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                         }
                     }
                 }
-
-                new_line = fields.join("\t");
             }
             // Normal lines
             else {
@@ -121,7 +118,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 let term = fields.get(column - 1).unwrap();
                 let id = nwr::term_to_tax_id(&conn, term.to_string()).unwrap();
 
-                if ranks.len() == 0 {
+                if ranks.is_empty() {
                     let node = nwr::get_node(&conn, vec![id])
                         .unwrap()
                         .get(0)
@@ -150,10 +147,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                         }
                     }
                 }
-
-                new_line = fields.join("\t");
             }
 
+            let new_line: String = fields.join("\t");
             writer.write_fmt(format_args!("{}\n", new_line))?;
         }
     }

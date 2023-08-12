@@ -205,8 +205,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let rdr = BufReader::new(file);
 
     let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
-    for (i, line) in rdr.lines().filter_map(|r| r.ok()).enumerate() {
-        if line.starts_with("#") {
+    for (i, line) in rdr.lines().map_while(Result::ok).enumerate() {
+        if line.starts_with('#') {
             continue;
         }
 
@@ -277,9 +277,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                     '{}', {}, '{}', {}, '{}', {}
             );",
             // 1-7
-            tax_id.to_string(),
-            organism_name.replace("'", "''"),
-            infraspecific_name.replace("'", "''"),
+            tax_id,
+            organism_name.replace('\'', "''"),
+            infraspecific_name.replace('\'', "''"),
             bioproject,
             biosample,
             assembly_accession,
@@ -287,17 +287,17 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             // 8-13
             assembly_level,
             genome_rep,
-            seq_rel_date.replace("/", "-"), // Transform seq_rel_date to SQLite Date format
+            seq_rel_date.replace('/', "-"), // Transform seq_rel_date to SQLite Date format
             asm_name,
             gbrs_paired_asm,
             ftp_path,
             // 13-18
-            species.replace("'", "''"),
-            species_id.to_string(),
-            genus.replace("'", "''"),
-            genus_id.to_string(),
-            family.replace("'", "''"),
-            family_id.to_string(),
+            species.replace('\'', "''"),
+            species_id,
+            genus.replace('\'', "''"),
+            genus_id,
+            family.replace('\'', "''"),
+            family_id,
         );
         stmts.push(stmt);
     }
