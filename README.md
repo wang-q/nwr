@@ -6,7 +6,7 @@
 [![Crates.io](https://img.shields.io/crates/v/nwr.svg)](https://crates.io/crates/nwr)
 [![Lines of code](https://tokei.rs/b1/github/wang-q/nwr?category=code)](https://github.com//wang-q/nwr)
 
-`nwr` is a command line tool for NCBI taxonomy, assembly reports and Newick files, written in Rust.
+`nwr` is a command line tool for working with NCBI taxonomy, assembly reports and Newick files, written in Rust.
 
 ## Install
 
@@ -26,10 +26,9 @@ export CARGO_TARGET_DIR=/tmp
 cargo build
 ```
 
-## SYNOPSIS
+## `nwr help`
 
 ```text
-$ nwr help
 `nwr` is a command line tool for working with NCBI taxonomy, assembly reports and Newick files
 
 Usage: nwr [COMMAND]
