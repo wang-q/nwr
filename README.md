@@ -134,7 +134,7 @@ cargo run --bin nwr order --nd tests/newick/hg38.7way.commonNames.nh
 
 echo "((A,B),C);" | cargo run --bin nwr order --ndr stdin
 
-echo "((A,B),C);" | cargo run --bin nwr comment stdin -n A -n C -l A,B --color green
+echo "((A,B),C);" | cargo run --bin nwr comment stdin -n A -n C -l A,B --color green -s "&&nwr"
 
 
 ```
