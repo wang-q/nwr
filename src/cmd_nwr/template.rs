@@ -221,7 +221,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     if args.contains_id("infiles") {
         for infile in args.get_many::<String>("infiles").unwrap() {
             let reader = intspan::reader(infile);
-            for line in reader.lines().filter_map(|r| r.ok()) {
+            for line in reader.lines().map_while(Result::ok) {
                 if line.starts_with('#') {
                     continue;
                 }
@@ -245,9 +245,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                     static ref RE_S4: Regex = Regex::new(r#"(?xi)^_"#).unwrap();
                 }
                 let s1 = RE_S1.replace_all(species, "_");
-                let s2 = RE_S2.replace_all(&*s1, "_");
-                let s3 = RE_S3.replace_all(&*s2, "");
-                let s4 = RE_S4.replace_all(&*s3, "");
+                let s2 = RE_S2.replace_all(&s1, "_");
+                let s3 = RE_S3.replace_all(&s2, "");
+                let s4 = RE_S4.replace_all(&s3, "");
                 let species_ = s4.to_string();
 
                 let level = match fields[4] {
@@ -447,7 +447,7 @@ fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
         }
         let rsync = RE_URL.replace(url, "ftp.ncbi.nlm.nih.gov::");
 
-        if url == rsync.to_string() {
+        if url == rsync {
             eprintln!("Check the ftp url: [{}] {}", key, url);
         } else {
             writer.write_all(format!("{}\t{}\t{}\n", key, rsync, species).as_ref())?;
@@ -479,7 +479,7 @@ fn gen_ass_rsync(context: &Context) -> anyhow::Result<()> {
     ])
     .unwrap();
 
-    let rendered = tera.render("t", &context).unwrap();
+    let rendered = tera.render("t", context).unwrap();
     writer.write_all(rendered.as_ref())?;
 
     Ok(())
@@ -507,7 +507,7 @@ fn gen_ass_check(context: &Context) -> anyhow::Result<()> {
     ])
     .unwrap();
 
-    let rendered = tera.render("t", &context).unwrap();
+    let rendered = tera.render("t", context).unwrap();
     writer.write_all(rendered.as_ref())?;
 
     Ok(())
@@ -535,7 +535,7 @@ fn gen_ass_n50(context: &Context) -> anyhow::Result<()> {
     ])
     .unwrap();
 
-    let rendered = tera.render("t", &context).unwrap();
+    let rendered = tera.render("t", context).unwrap();
     writer.write_all(rendered.as_ref())?;
 
     Ok(())
@@ -563,7 +563,7 @@ fn gen_ass_collect(context: &Context) -> anyhow::Result<()> {
     ])
     .unwrap();
 
-    let rendered = tera.render("t", &context).unwrap();
+    let rendered = tera.render("t", context).unwrap();
     writer.write_all(rendered.as_ref())?;
 
     Ok(())
@@ -591,7 +591,7 @@ fn gen_ass_finish(context: &Context) -> anyhow::Result<()> {
     ])
     .unwrap();
 
-    let rendered = tera.render("t", &context).unwrap();
+    let rendered = tera.render("t", context).unwrap();
     writer.write_all(rendered.as_ref())?;
 
     Ok(())
@@ -619,7 +619,7 @@ fn gen_ass_reorder(context: &Context) -> anyhow::Result<()> {
     ])
     .unwrap();
 
-    let rendered = tera.render("t", &context).unwrap();
+    let rendered = tera.render("t", context).unwrap();
     writer.write_all(rendered.as_ref())?;
 
     Ok(())
@@ -674,7 +674,7 @@ fn gen_bs_download(context: &Context) -> anyhow::Result<()> {
     ])
     .unwrap();
 
-    let rendered = tera.render("t", &context).unwrap();
+    let rendered = tera.render("t", context).unwrap();
     writer.write_all(rendered.as_ref())?;
 
     Ok(())
@@ -702,7 +702,7 @@ fn gen_bs_collect(context: &Context) -> anyhow::Result<()> {
     ])
     .unwrap();
 
-    let rendered = tera.render("t", &context).unwrap();
+    let rendered = tera.render("t", context).unwrap();
     writer.write_all(rendered.as_ref())?;
 
     Ok(())
@@ -757,7 +757,7 @@ fn gen_mh_compute(context: &Context) -> anyhow::Result<()> {
     ])
     .unwrap();
 
-    let rendered = tera.render("t", &context).unwrap();
+    let rendered = tera.render("t", context).unwrap();
     writer.write_all(rendered.as_ref())?;
 
     Ok(())
@@ -785,7 +785,7 @@ fn gen_mh_species(context: &Context) -> anyhow::Result<()> {
     ])
     .unwrap();
 
-    let rendered = tera.render("t", &context).unwrap();
+    let rendered = tera.render("t", context).unwrap();
     writer.write_all(rendered.as_ref())?;
 
     Ok(())
@@ -813,7 +813,7 @@ fn gen_mh_abnormal(context: &Context) -> anyhow::Result<()> {
     ])
     .unwrap();
 
-    let rendered = tera.render("t", &context).unwrap();
+    let rendered = tera.render("t", context).unwrap();
     writer.write_all(rendered.as_ref())?;
 
     Ok(())
@@ -841,7 +841,7 @@ fn gen_mh_nr(context: &Context) -> anyhow::Result<()> {
     ])
     .unwrap();
 
-    let rendered = tera.render("t", &context).unwrap();
+    let rendered = tera.render("t", context).unwrap();
     writer.write_all(rendered.as_ref())?;
 
     Ok(())
@@ -869,7 +869,7 @@ fn gen_mh_dist(context: &Context) -> anyhow::Result<()> {
     ])
     .unwrap();
 
-    let rendered = tera.render("t", &context).unwrap();
+    let rendered = tera.render("t", context).unwrap();
     writer.write_all(rendered.as_ref())?;
 
     Ok(())
@@ -926,7 +926,7 @@ fn gen_count_strains(context: &Context) -> anyhow::Result<()> {
     ])
     .unwrap();
 
-    let rendered = tera.render("t", &context).unwrap();
+    let rendered = tera.render("t", context).unwrap();
     writer.write_all(rendered.as_ref())?;
 
     Ok(())
@@ -954,7 +954,7 @@ fn gen_count_rank(context: &Context) -> anyhow::Result<()> {
     ])
     .unwrap();
 
-    let rendered = tera.render("t", &context).unwrap();
+    let rendered = tera.render("t", context).unwrap();
     writer.write_all(rendered.as_ref())?;
 
     Ok(())
@@ -982,7 +982,7 @@ fn gen_count_lineage(context: &Context) -> anyhow::Result<()> {
     ])
     .unwrap();
 
-    let rendered = tera.render("t", &context).unwrap();
+    let rendered = tera.render("t", context).unwrap();
     writer.write_all(rendered.as_ref())?;
 
     Ok(())
@@ -1035,7 +1035,7 @@ fn gen_pro_collect(context: &Context) -> anyhow::Result<()> {
     ])
     .unwrap();
 
-    let rendered = tera.render("t", &context).unwrap();
+    let rendered = tera.render("t", context).unwrap();
     writer.write_all(rendered.as_ref())?;
 
     Ok(())
