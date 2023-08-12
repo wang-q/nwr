@@ -47,16 +47,6 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let infile = args.get_one::<String>("infile").unwrap();
     let tree = nwr::read_newick(infile);
 
-    // eprintln!("tree = {:#?}", tree);
-
-    // let ids: Vec<_> = tree.levelorder(&tree.get_root().unwrap())
-    //     .unwrap()
-    //     .iter()
-    //     .map(|id| *id)
-    //     .collect();
-    //
-    // eprintln!("ids = {:#?}", ids);
-
     let out_string = nwr::format_tree(&tree, text);
     writer.write_all((out_string + "\n").as_ref())?;
 

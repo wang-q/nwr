@@ -46,6 +46,5 @@ fn main() -> anyhow::Result<()> {
 }
 
 // TODO: abbr_name.pl
-// TODO: nw_order
 // TODO: nw_reroot
 // TODO: phylo-tree
