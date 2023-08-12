@@ -2,6 +2,7 @@
 
 pub mod append;
 pub mod ardb;
+pub mod comment;
 pub mod download;
 pub mod indent;
 pub mod info;

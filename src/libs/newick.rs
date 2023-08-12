@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use phylotree::tree::{Node, NodeId, Tree};
+use std::collections::HashMap;
 
 pub fn read_newick(infile: &str) -> Tree {
     let mut reader = intspan::reader(infile);
@@ -57,7 +57,6 @@ fn format_subtree(tree: &Tree, id: &NodeId, indent: &str) -> String {
             if indent.is_empty() {
                 format!("({}){}", branch_set.join(","), format_node(node))
             } else {
-                let root = tree.get_root().unwrap();
                 let indention = indent.repeat(depth);
                 format!(
                     "{}(\n{}\n{}){}",
@@ -187,4 +186,71 @@ pub fn order_tree_nd(tree: &mut Tree, opt: &str) {
             }
         }
     }
+}
+
+/// Get node names
+///
+/// ```
+/// use phylotree::tree::Tree;
+///
+/// let newick = "((A,B)D,C);";
+/// let tree = Tree::from_newick(newick).unwrap();
+/// nwr::get_names(&tree);
+/// assert_eq!(nwr::get_names(&tree), vec!["D".to_string(),"A".to_string(),"B".to_string(),"C".to_string(), ]);
+/// ```
+pub fn get_names(tree: &Tree) -> Vec<String> {
+    let names: Vec<_> = tree
+        .preorder(&tree.get_root().unwrap())
+        .unwrap()
+        .iter()
+        .map(|id| tree.get(id).unwrap())
+        .filter_map(|node| match node.name {
+            Some(_) => Some(node.name.clone().unwrap()),
+            None => None,
+        })
+        .collect::<Vec<String>>();
+
+    names
+}
+
+/// Adds key-value comments to a node
+///
+/// ```
+/// use phylotree::tree::Tree;
+///
+/// let newick = "(A,B);";
+/// let mut tree = Tree::from_newick(newick).unwrap();
+/// let mut node = tree.get_by_name_mut("A").unwrap();
+/// nwr::add_comment_kv(&mut node, "color", "red");
+///
+/// assert_eq!(tree.to_newick().unwrap(), "(A[color=red],B);".to_string());
+/// ```
+pub fn add_comment_kv(node: &mut Node, key: &str, value: &str) {
+    let comment = match &node.comment {
+        None => format!("{}={}", key, value),
+        Some(x) => format!("{}:{}={}", x, key, value),
+    };
+
+    node.comment = Some(comment);
+}
+
+/// Adds key-value comments to a node
+///
+/// ```
+/// use phylotree::tree::Tree;
+///
+/// let newick = "(A,B);";
+/// let mut tree = Tree::from_newick(newick).unwrap();
+/// let mut node = tree.get_by_name_mut("A").unwrap();
+/// nwr::add_comment(&mut node, "color=red");
+///
+/// assert_eq!(tree.to_newick().unwrap(), "(A[color=red],B);".to_string());
+/// ```
+pub fn add_comment(node: &mut Node, c: &str) {
+    let comment = match &node.comment {
+        None => format!("{}", c),
+        Some(x) => format!("{}:{}", x, c),
+    };
+
+    node.comment = Some(comment);
 }
