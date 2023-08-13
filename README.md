@@ -125,16 +125,16 @@ cargo run --bin nwr assembly tests/assembly/Trichoderma.assembly.tsv
 
 ```shell
 echo "(A,B);" | cargo run --bin nwr indent stdin
-cargo run --bin nwr indent tests/newick/hg38.7way.commonNames.nh --text ".   "
+cargo run --bin nwr indent tests/newick/hg38.7way.nwk --text ".   "
 
-nw_indent -t ".   " tests/newick/hg38.7way.commonNames.nh
+nw_indent -t ".   " tests/newick/hg38.7way.nwk
 
-nw_order tests/newick/hg38.7way.commonNames.nh |
+nw_order tests/newick/hg38.7way.nwk |
     nw_indent -
 
-newick -ladderize tests/newick/hg38.7way.commonNames.nh
+newick -ladderize tests/newick/hg38.7way.nwk
 
-cargo run --bin nwr order --nd tests/newick/hg38.7way.commonNames.nh
+cargo run --bin nwr order --nd tests/newick/hg38.7way.nwk
 
 echo "((A,B),C);" | cargo run --bin nwr order --ndr stdin
 
@@ -145,9 +145,9 @@ echo "((A,B),C);" |
 latexmk -xelatex doc/template.tex
 latexmk -c doc/template.tex
 
-cargo run --bin nwr tex --bare tests/newick/hg38.7way.commonNames.nh
+cargo run --bin nwr tex --bare tests/newick/hg38.7way.nwk
 
-cargo run --bin nwr tex tests/newick/hg38.7way.commonNames.nh -o output.tex
+cargo run --bin nwr tex tests/newick/hg38.7way.nwk -o output.tex
 latexmk -xelatex output.tex
 latexmk -c output.tex
 
