@@ -142,12 +142,14 @@ echo "((A,B),C);" |
     cargo run --bin nwr comment stdin -n A -n C --color green -s '&&nwr' |
     cargo run --bin nwr comment stdin -l A,B --dot
 
-latexmk -xelatex doc/template.tex
-latexmk -c doc/template.tex
+nw_topology tests/newick/hg38.7way.nwk
+
+#latexmk -xelatex doc/template.tex
+#latexmk -c doc/template.tex
 
 cargo run --bin nwr tex --bare tests/newick/hg38.7way.nwk
 
-cargo run --bin nwr tex tests/newick/hg38.7way.nwk -o output.tex
+cargo run --bin nwr tex --bl tests/newick/hg38.7way.nwk -o output.tex
 latexmk -xelatex output.tex
 latexmk -c output.tex
 

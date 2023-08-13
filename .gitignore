@@ -95,6 +95,7 @@ $RECYCLE.BIN/
 *.vrb
 *(busy)
 *.synctex.gz
+*.xdv
 
 # bibtex tmp
 *.bbl
@@ -112,6 +113,7 @@ $RECYCLE.BIN/
 *.bak*
 indent.log
 
+*.log
 *.pdf
 output.tex
 

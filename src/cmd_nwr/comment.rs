@@ -91,7 +91,7 @@ pub fn make_subcommand() -> Command {
                 .long("bar")
                 .num_args(0..=1)
                 .default_missing_value("black")
-                .help("Place a bar in the parent branch of the node; value as color"),
+                .help("Place a bar in the middle of the parent edge; value as color"),
         )
         .arg(
             Arg::new("outfile")
