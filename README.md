@@ -24,6 +24,7 @@ cargo install --path . --force --offline
 # build under WSL 2
 export CARGO_TARGET_DIR=/tmp
 cargo build
+
 ```
 
 ## `nwr help`

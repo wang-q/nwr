@@ -23,7 +23,34 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::order::make_subcommand())
         .subcommand(cmd_nwr::restrict::make_subcommand())
         .subcommand(cmd_nwr::template::make_subcommand())
-        .subcommand(cmd_nwr::txdb::make_subcommand());
+        .subcommand(cmd_nwr::txdb::make_subcommand())
+        .after_help(
+            r###"
+Subcommand groups:
+
+* Database
+    * download
+    * txdb
+    * ardb
+
+* Taxonomy
+    * info
+    * lineage
+    * member
+    * append
+    * restrict
+
+* Newick
+    * indent
+    * order
+    * comment
+
+* Assembly
+    * template
+    * kb
+
+"###,
+        );
 
     // Check which subcomamnd the user ran...
     match app.get_matches().subcommand() {
