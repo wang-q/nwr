@@ -1,0 +1,71 @@
+\documentclass[tikz, crop, border=5pt]{standalone}
+\usepackage{forest}
+
+\usepackage{fontspec,xltxtra,xunicode}
+
+% English Fonts
+\setmainfont[BoldFont={Fira Sans}]{Fira Sans Light}
+
+% 中文字体
+\usepackage{xeCJK}
+\setCJKmainfont[BoldFont=Source Han Sans SC Medium]{Source Han Sans SC Normal}
+\xeCJKsetup{CJKecglue = {\hskip 0pt plus 0.08\baselineskip}, xCJKecglue = {false}}
+\punctstyle{plain}
+\defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+
+\definecolor{red}{RGB}{188,36,46}
+\definecolor{black}{RGB}{26,25,25}
+\definecolor{grey}{RGB}{129,130,132}
+\definecolor{green}{RGB}{32,128,108}
+\definecolor{purple}{RGB}{160,90,150}
+
+\tikzset{
+    comment/.append  style={label={[font=\small]0:#1}},
+}
+\forestset{
+    /tikz/label position=below left,
+    /tikz/label distance=.1em,
+    dot/.style={tikz+={\fill[fill=#1] (.child anchor) circle[radius=2pt];}},
+    dot/.default=black,
+    bar/.style={tikz+={\draw[color=#1,line width=2pt] let \p1 = (!u.parent anchor), \p2 = (.child anchor) in ($(\x1, \y2 - 0.5em)!0.5!(\x2, \y2)$) -- ($(\x1, \y2 + 0.5em)!0.5!(\x2, \y2)$);}},
+    bar/.default=black,
+}
+
+\begin{document}
+
+\begin{forest}
+    where n children=0{tier=word}{},
+    for tree={
+        s sep=-0.1em, % make siblings closer
+        grow=0, % 0 degrees is to the right
+        reversed, % tree_direction
+        align=left,
+        parent anchor=east,
+        child anchor=west,
+        anchor=west,
+        edge path={
+            \noexpand\path[draw, grey, line width=1pt, \forestoption{edge}]
+                (!u.parent anchor) |- (.child anchor)\forestoption{edge label};
+        },
+        before typesetting nodes={
+            if content={}{shape=coordinate}{}
+        },
+    }
+%BEGIN%
+[, label=Animalia, dot
+    [Ctenophora, comment=192]
+    [, label=NOTE, bar=purple
+        [\color{green}{Porifera}, comment=8579]
+        [, label=\color{green}{Parahoxozoa}, dot=red
+            [Placozoa, comment=1]
+            [, label=Planulozoa, dot=red
+                [Bilateria]
+                [Cnidaria, comment=13138]
+            ]
+        ]
+    ]
+]
+%END%
+\end{forest}
+
+\end{document}

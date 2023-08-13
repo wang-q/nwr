@@ -12,4 +12,5 @@ pub mod member;
 pub mod order;
 pub mod restrict;
 pub mod template;
+pub mod tex;
 pub mod txdb;

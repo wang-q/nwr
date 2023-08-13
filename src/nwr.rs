@@ -23,6 +23,7 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::order::make_subcommand())
         .subcommand(cmd_nwr::restrict::make_subcommand())
         .subcommand(cmd_nwr::template::make_subcommand())
+        .subcommand(cmd_nwr::tex::make_subcommand())
         .subcommand(cmd_nwr::txdb::make_subcommand())
         .after_help(
             r###"
@@ -44,6 +45,7 @@ Subcommand groups:
     * indent
     * order
     * comment
+    * tex
 
 * Assembly
     * template
@@ -66,6 +68,7 @@ Subcommand groups:
         Some(("order", sub_matches)) => cmd_nwr::order::execute(sub_matches),
         Some(("restrict", sub_matches)) => cmd_nwr::restrict::execute(sub_matches),
         Some(("template", sub_matches)) => cmd_nwr::template::execute(sub_matches),
+        Some(("tex", sub_matches)) => cmd_nwr::tex::execute(sub_matches),
         Some(("txdb", sub_matches)) => cmd_nwr::txdb::execute(sub_matches),
         _ => unreachable!(),
     }

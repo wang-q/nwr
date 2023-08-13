@@ -83,14 +83,14 @@ pub fn make_subcommand() -> Command {
             Arg::new("dot")
                 .long("dot")
                 .num_args(0..=1)
-                .default_missing_value("red")
+                .default_missing_value("black")
                 .help("Place a dot in the node; value as color"),
         )
         .arg(
             Arg::new("bar")
                 .long("bar")
                 .num_args(0..=1)
-                .default_missing_value("purple")
+                .default_missing_value("black")
                 .help("Place a bar in the parent branch of the node; value as color"),
         )
         .arg(
