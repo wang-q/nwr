@@ -5,6 +5,7 @@
 * Add `nwr indent`
 * Add `nwr order`
 * Add `nwr comment`
+* Add `nwr tex`
 
 ## 0.6.2 - 2023-07-18
 
