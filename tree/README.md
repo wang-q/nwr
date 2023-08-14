@@ -96,9 +96,9 @@ nwr tex newick/example.comment.nwk --bare
 ```
 
 * Produce pdf
+    * Edit the .tex file as you wish
 
 ```shell
-# Edit the .tex file as you wish
 nwr tex newick/example.comment.nwk -o tex/example.tex
 
 latexmk -xelatex tex/example.tex -outdir=pdf
