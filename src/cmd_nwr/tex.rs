@@ -47,6 +47,12 @@ latexmk -c test.tex
                 .help("With branch lengths"),
         )
         .arg(
+            Arg::new("forest")
+                .long("forest")
+                .action(ArgAction::SetTrue)
+                .help("The infile is a forest file"),
+        )
+        .arg(
             Arg::new("outfile")
                 .short('o')
                 .long("outfile")
@@ -63,25 +69,36 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let is_bl = args.get_flag("bl");
 
     let infile = args.get_one::<String>("infile").unwrap();
-    let tree = nwr::read_newick(infile);
 
-    let height = if is_bl { tree.height().unwrap() } else { 0.0 };
-    // eprintln!("height = {:#?}", height);
+    let out_string = if args.get_flag("forest") {
+        let mut reader = intspan::reader(infile);
+        let mut s = String::new();
+        reader.read_to_string(&mut s).expect("Read error");
 
-    let mut out_string = format_forest(&tree, height);
+        s
+    } else {
+        let tree = nwr::read_newick(infile);
 
-    // a bar of unit length
-    if is_bl {
-        let bar_len = format!("{:.3}", height / 100.0 * 10.0);
-        // a grey 1pt bar
-        out_string += "\\draw[-, grey, line width=1pt]";
-        // bar position
-        out_string += " ($(current bounding box.south east)+(-10mm,-2mm)$)";
-        // 10 mm
-        out_string += " --++ (-10mm,0mm)";
-        // text
-        out_string += &format!(" node[midway, below]{{\\scriptsize{{{}}}}};\n", &bar_len);
-    }
+        let height = if is_bl { tree.height().unwrap() } else { 0.0 };
+        // eprintln!("height = {:#?}", height);
+
+        let mut s = format_forest(&tree, height);
+
+        // a bar of unit length
+        if is_bl {
+            let bar_len = format!("{:.3}", height / 100.0 * 10.0);
+            // a grey 1pt bar
+            s += "\\draw[-, grey, line width=1pt]";
+            // bar position
+            s += " ($(current bounding box.south east)+(-10mm,-2mm)$)";
+            // 10 mm
+            s += " --++ (-10mm,0mm)";
+            // text
+            s += &format!(" node[midway, below]{{\\scriptsize{{{}}}}};\n", &bar_len);
+        }
+
+        s
+    };
 
     if is_bare {
         writer.write_all((out_string + "\n").as_ref())?;
@@ -139,10 +156,8 @@ fn format_node(tree: &Tree, id: &NodeId, height: Edge) -> String {
     let mut repr = String::new();
 
     let mut name = match node.name.clone() {
-        None => {None}
-        Some(x) => {
-            Some(x.replace('_', " "))
-        }
+        None => None,
+        Some(x) => Some(x.replace('_', " ")),
     };
     let mut color: Option<String> = None;
     let mut label: Option<String> = None;

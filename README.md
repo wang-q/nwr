@@ -123,6 +123,8 @@ cargo run --bin nwr assembly tests/assembly/Trichoderma.assembly.tsv
 
 ### Newick files
 
+For more detailed usages, check [this](tree/README.md).
+
 ```shell
 echo "(A,B);" | cargo run --bin nwr indent stdin
 cargo run --bin nwr indent tests/newick/hg38.7way.nwk --text ".   "
@@ -152,6 +154,8 @@ cargo run --bin nwr tex --bare tests/newick/hg38.7way.nwk
 cargo run --bin nwr tex --bl tests/newick/hg38.7way.nwk -o output.tex
 latexmk -xelatex output.tex
 latexmk -c output.tex
+
+cargo run --bin nwr tex --forest --bare tests/newick/test.forest
 
 ```
 
