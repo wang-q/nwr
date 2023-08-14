@@ -105,3 +105,32 @@ latexmk -xelatex tex/example.tex -outdir=pdf
 latexmk -c tex/example.tex -outdir=pdf
 
 ```
+
+### Opisthokonta
+
+Create `Opisthokonta.nwk` manually
+
+```shell
+cat newick/Opisthokonta.nwk |
+    nwr comment stdin -n Fungi -n Metazoa --color red |
+    nwr tex stdin -o tex/Opisthokonta.tex
+
+latexmk -xelatex tex/Opisthokonta.tex -outdir=pdf
+latexmk -c tex/Opisthokonta.tex -outdir=pdf
+
+```
+
+## From a newick file
+
+```shell
+curl -L https://hgdownload.cse.ucsc.edu/goldenpath/hg38/multiz30way/hg38.30way.scientificNames.nh \
+    > newick/hg38.30way.nwk
+
+nwr tex newick/hg38.30way.nwk --bl -o tex/hg38.30way.tex
+
+latexmk -xelatex tex/hg38.30way.tex -outdir=pdf
+latexmk -c tex/hg38.30way.tex -outdir=pdf
+
+```
+
+## Taxonomy
