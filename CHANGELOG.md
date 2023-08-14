@@ -7,6 +7,8 @@
 * Add `nwr comment`
 * Add `nwr tex`
 
+* Add a directory `tree/` to store phylogenetic trees
+
 ## 0.6.2 - 2023-07-18
 
 * Add more templates to `nwr template`

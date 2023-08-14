@@ -80,4 +80,3 @@ Subcommand groups:
 // TODO: abbr_name.pl
 // TODO: nw_reroot
 // TODO: nw_topology
-// TODO: phylo-tree

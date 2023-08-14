@@ -134,3 +134,48 @@ latexmk -c tex/hg38.30way.tex -outdir=pdf
 ```
 
 ## Taxonomy
+
+## Translation
+
+* Create `translation.tsv` manually
+
+* Convert .tsv to sed scripts
+
+```shell
+# sed scripts
+cat translation.tsv |
+    grep -v "^#" |
+    grep "." |
+    perl -nla -F"\t" -e '
+        print q(s/{) . $F[0] . q(}/{) . $F[1] . q(}/g;);
+    ' \
+    > translation.sed
+
+cat translation.tsv |
+    grep -v "^#" |
+    grep "." |
+    perl -nla -F"\t" -e '
+        print q(s/{) . $F[0] . q(}/{) . $F[0] . q( \\\\footnotesize{) . $F[1] . q(}}/g;);
+    ' \
+    > translation.append.sed
+
+```
+
+```shell
+# replaced with translations
+cat tex/example.tex |
+    sed -f translation.sed \
+    > tex/example.trans.tex
+
+latexmk -xelatex tex/example.trans.tex -outdir=pdf
+latexmk -c tex/example.trans.tex -outdir=pdf
+
+# append translations
+cat tex/example.tex |
+    sed -f translation.append.sed \
+    > tex/example.trans.append.tex
+
+latexmk -xelatex tex/example.trans.append.tex -outdir=pdf
+latexmk -c tex/example.trans.append.tex -outdir=pdf
+
+```
