@@ -1,0 +1,13 @@
+(
+  Ctenophora[comment=192],
+  (
+    Porifera[color=green:comment=8579],
+    (
+      Placozoa[comment=1],
+      (
+        Bilateria,
+        Cnidaria[comment=13138]
+      )[label=Planulozoa:dot=red]
+    )[label=Parahoxozoa:color=green:dot=red]
+  )[label=NOTE:bar=purple]
+)Animalia;
