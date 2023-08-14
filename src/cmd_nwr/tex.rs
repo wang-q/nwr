@@ -142,9 +142,7 @@ fn format_node(tree: &Tree, id: &NodeId, height: Edge) -> String {
             repr += ",";
         }
     }
-    // if let Some(parent_edge) = node.parent_edge {
-    //     repr += &format!(":{}", &parent_edge);
-    // }
+
     if let Some(comment) = node.comment.clone() {
         repr += &format!(" comment={{{}}},", &comment);
     }
@@ -165,7 +163,7 @@ fn format_node(tree: &Tree, id: &NodeId, height: Edge) -> String {
         repr += &format!(" l={}mm, l sep=0,", bl);
 
         if node.is_tip() {
-            // add an inviable node to occupy spaces
+            // Add an invisible node to the rightmost to occupy spaces
             repr += " [{~},tier=0,edge={draw=none}],";
         }
     }

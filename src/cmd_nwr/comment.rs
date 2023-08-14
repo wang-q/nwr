@@ -18,7 +18,7 @@ pub fn make_subcommand() -> Command {
 * Set `--string` to add free-form strings
 
 * The following options are used for visualization
-    * `--label`, `--color` and `--comment` take 1 argument
+    * `--color`, `--label` and `--comment` take 1 argument
     * `--dot` and `--bar` take 1 or 0 argument
 
 * Predefined colors for `--color`, `--dot` and `--bar`
@@ -62,16 +62,16 @@ pub fn make_subcommand() -> Command {
                 .help("Free-form strings"),
         )
         .arg(
-            Arg::new("label")
-                .long("label")
-                .num_args(1)
-                .help("Use this label instead of node name"),
-        )
-        .arg(
             Arg::new("color")
                 .long("color")
                 .num_args(1)
                 .help("Color of names"),
+        )
+        .arg(
+            Arg::new("label")
+                .long("label")
+                .num_args(1)
+                .help("Add this label to the south west of the node"),
         )
         .arg(
             Arg::new("comment")
