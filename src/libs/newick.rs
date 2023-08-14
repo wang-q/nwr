@@ -14,7 +14,12 @@ pub fn read_newick(infile: &str) -> Tree {
         .for_each(|id| {
             let node = tree.get_mut(id).unwrap();
             if node.name.is_some() {
-                node.set_name(node.name.clone().unwrap().trim().to_string());
+                let name = node.name.clone().unwrap().trim().to_string();
+                if name.is_empty() {
+                    node.name = None;
+                } else {
+                    node.set_name(node.name.clone().unwrap().trim().to_string());
+                }
             }
         });
 
