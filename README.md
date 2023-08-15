@@ -121,7 +121,7 @@ cargo run --bin nwr assembly tests/assembly/Trichoderma.assembly.tsv
 
 ```
 
-### Newick files
+### Newick files and LaTeX
 
 For more detailed usages, check [this](tree/README.md).
 
