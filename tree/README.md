@@ -6,7 +6,8 @@
 
 ## Why not FigTree/Dendroscope/MEGA?
 
-Full control over the trees: fonts, colors, line widths, annotations, and more.
+Full control over the trees: fonts, colors, line widths, annotations, and more. And, the process can
+be recorded.
 
 Below is the resulting file opened in Adobe Illustrator.
 
@@ -106,6 +107,25 @@ latexmk -c tex/example.tex -outdir=pdf
 
 ```
 
+## From a Newick file
+
+### hg38.30way
+
+```shell
+curl -L https://hgdownload.cse.ucsc.edu/goldenpath/hg38/multiz30way/hg38.30way.scientificNames.nh \
+    > newick/hg38.30way.nwk
+
+cat newick/hg38.30way.nwk |
+    nwr comment stdin --lca Homo_sapiens,Nomascus_leucogenys --label Hominoidea --dot --rec LemonChiffon |
+    nwr comment stdin --lca Macaca_mulatta,Rhinopithecus_roxellana --label Cercopithecidae  --dot --rec TeaRose |
+    nwr comment stdin --lca Callithrix_jacchus,Aotus_nancymaae --label Cebidae --dot --rec Celadon |
+    nwr tex stdin --bl -o tex/hg38.30way.tex
+
+latexmk -xelatex tex/hg38.30way.tex -outdir=pdf
+latexmk -c tex/hg38.30way.tex -outdir=pdf
+
+```
+
 ### Opisthokonta
 
 Create `Opisthokonta.nwk` manually
@@ -122,16 +142,25 @@ latexmk -c tex/Opisthokonta.tex -outdir=pdf
 
 ```
 
-## From a newick file
+## From a `forest` file
+
+### animals
 
 ```shell
-curl -L https://hgdownload.cse.ucsc.edu/goldenpath/hg38/multiz30way/hg38.30way.scientificNames.nh \
-    > newick/hg38.30way.nwk
+# animals-simple
+nwr tex --forest forest/animals-simple.forest -o tex/animals-simple.tex
 
-nwr tex newick/hg38.30way.nwk --bl -o tex/hg38.30way.tex
+latexmk -xelatex tex/animals-simple.tex -outdir=pdf
+latexmk -c tex/animals-simple.tex -outdir=pdf
 
-latexmk -xelatex tex/hg38.30way.tex -outdir=pdf
-latexmk -c tex/hg38.30way.tex -outdir=pdf
+# animals-simple.trans
+cat tex/animals-simple.tex |
+    sed -f translation.sed \
+    > tex/animals-simple.trans.tex
+
+latexmk -xelatex tex/animals-simple.trans.tex -outdir=pdf
+latexmk -c tex/animals-simple.trans.tex -outdir=pdf
+
 
 ```
 
