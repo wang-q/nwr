@@ -161,6 +161,19 @@ cat tex/animals-simple.tex |
 latexmk -xelatex tex/animals-simple.trans.tex -outdir=pdf
 latexmk -c tex/animals-simple.trans.tex -outdir=pdf
 
+```
+
+### chordates
+
+```shell
+nwr tex --forest forest/chordates.forest -o tex/chordates.tex
+
+cat tex/chordates.tex |
+    sed -f translation.sed \
+    > tex/chordates.trans.tex
+
+latexmk -xelatex tex/chordates.trans.tex -outdir=pdf
+latexmk -c tex/chordates.trans.tex -outdir=pdf
 
 ```
 

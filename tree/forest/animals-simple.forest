@@ -1,14 +1,14 @@
 [, label=\color{green}{Animals}, dot
-    [Ctenophora, comment=192]
+    [{Ctenophora}, comment=192]
     [, dot=red
         [\color{green}{Porifera}, comment=8579]
-        [, label=Parahoxozoa, dot=red
-            [Placozoa, comment=1]
-            [, label=Planulozoa, dot=red
+        [, label={Parahoxozoa}, dot=red
+            [{Placozoa}, comment=1]
+            [, label={Planulozoa}, dot=red
                 [\color{green}{Cnidaria}, comment=13138]
                 [, label=\color{green}{Bilateria}, dot
-                    [Xenacoelomorpha, comment=380]
-                    [, label=Nephrozoa, dot=red
+                    [{Xenacoelomorpha}, comment=380]
+                    [, label={Nephrozoa}, dot=red
                         [, label=\color{green}{Deuterostomia}, tier=3, dot=red
                             [\color{green}{Echinodermata}, comment=7330]
                             [, label=\color{green}{Chordata}, tier=2, dot
@@ -20,9 +20,9 @@
                             ]
                         ]
                         [, label=\color{green}{Protostomia}, tier=4, dot
-                            [, label=Spiralia, tier=3, dot
+                            [, label={Spiralia}, tier=3, dot
                                 [
-                                    [, label=Trochozoa, tier=2, dot=red
+                                    [, label={Trochozoa}, tier=2, dot=red
                                         [\color{green}{Annelida}, comment=21707]
                                         [\color{green}{Mollusca}, comment=74374]
                                     ]

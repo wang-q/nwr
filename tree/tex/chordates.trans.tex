@@ -71,40 +71,34 @@
             if content={}{shape=coordinate}{}
         },
     }
-[, label=\color{green}{动物}, dot
-    [{栉水母}, comment=192]
-    [, dot=red
-        [\color{green}{多孔动物}, comment=8579]
-        [, label={Parahoxozoa}, dot=red
-            [{扁盘动物}, comment=1]
-            [, label={Planulozoa}, dot=red
-                [\color{green}{刺胞动物}, comment=13138]
-                [, label=\color{green}{两侧对称动物}, dot
-                    [{异无腔动物}, comment=380]
-                    [, label={Nephrozoa}, dot=red
-                        [, label=\color{green}{后口动物}, tier=3, dot=red
-                            [\color{green}{棘皮动物}, comment=7330]
-                            [, label=\color{green}{脊索动物}, tier=2, dot
-                                [\color{green}{头索动物}, comment=33]
-                                [
-                                    [\color{green}{尾索动物}, comment=3020]
-                                    [\color{green}{有头动物}, comment=64832]
-                                ]
-                            ]
-                        ]
-                        [, label=\color{green}{原口动物}, tier=4, dot
-                            [, label={螺旋卵裂动物}, tier=3, dot
-                                [
-                                    [, label={担轮动物}, tier=2, dot=red
-                                        [\color{green}{环节动物}, comment=21707]
-                                        [\color{green}{软体动物}, comment=74374]
+[
+    [, label=Deuterostome, dot
+        [Echinodermata]
+        [, label=Notochord, bar=purple
+            [Cephalochordata, comment=Chordates]
+            [
+                [Urochodata]
+                [, label=Head, bar=purple
+                    [Myxini, comment=Craniates]
+                    [, label=Vertebral column, bar=purple
+                        [Petromyzontida, comment=Vertebrates]
+                        [, label={Jaws, mineralized skeleton}, bar=purple
+                            [Chondrichthyes, comment=Gnathostomes]
+                            [, label={肺或肺衍生物}, bar=purple
+                                [Actinopterygii, comment=Osteichthyans]
+                                [, label=Lobed fins, bar=purple
+                                    [Actinistia, comment=Sarcopterygii]
+                                    [
+                                        [Dipnoi]
+                                        [, label=Legs, bar=purple
+                                            [Amphibia, comment=Tetrapods]
+                                            [, label=Amniotic egg, bar=purple
+                                                [Reptilia, comment=Amniotes]
+                                                [Mammalia, label=Milk, bar=purple]
+                                            ]
+                                        ]
                                     ]
                                 ]
-                                [\color{green}{扁形动物}, comment=29285]
-                            ]
-                            [, label=\color{green}{蜕皮动物}, dot
-                                [\color{green}{线虫动物}, comment=24773]
-                                [\color{green}{节肢动物}, comment={>1200000}]
                             ]
                         ]
                     ]
