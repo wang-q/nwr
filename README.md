@@ -146,8 +146,8 @@ echo "((A,B),C);" |
 
 nw_topology tests/newick/hg38.7way.nwk
 
-#latexmk -xelatex doc/template.tex
-#latexmk -c doc/template.tex
+latexmk -xelatex doc/template.tex
+latexmk -c doc/template.tex
 
 cargo run --bin nwr tex --bare tests/newick/hg38.7way.nwk
 

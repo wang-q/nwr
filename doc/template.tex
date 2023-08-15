@@ -24,19 +24,18 @@
 \definecolor{green}{RGB}{32,128,108}
 \definecolor{purple}{RGB}{160,90,150}
 \definecolor{blue}{RGB}{0,103,149} % MidnightBlue
-% Upper case colors for backgrounds, lightness > 127
-\definecolor{Apricot}{RGB}{251,185,130} % #FBB982
-\definecolor{CarnationPink}{RGB}{242,130,180} % #F282B4
-\definecolor{CornflowerBlue}{RGB}{65,176,228} % #41B0E4
-\definecolor{Dandelion}{RGB}{253,188,66} % #FDBC42
-\definecolor{Goldenrod}{RGB}{255,223,66} % #FFDF42
-\definecolor{GreenYellow}{RGB}{223,230,116} % #DFE674
-\definecolor{Melon}{RGB}{248,158,123} % #F89E7B
-\definecolor{Salmon}{RGB}{246,146,137} % #F69289
-\definecolor{SpringGreen}{RGB}{198,220,103} % #C6DC67
-\definecolor{Thistle}{RGB}{216,131,183} % #D883B7
-\definecolor{YellowGreen}{RGB}{152,204,112} % #98CC70
-\definecolor{YellowOrange}{RGB}{250,162,26} % #FAA21A
+% Upper case colors for backgrounds
+% https://coolors.co/palette/fbf8cc-fde4cf-ffcfd2-f1c0e8-cfbaf0-a3c4f3-90dbf4-8eecf5-98f5e1-b9fbc0
+\definecolor{LemonChiffon}{RGB}{251, 248, 204}
+\definecolor{ChampagnePink}{RGB}{253, 228, 207}
+\definecolor{TeaRose}{RGB}{255, 207, 210}
+\definecolor{PinkLavender}{RGB}{241, 192, 232}
+\definecolor{Mauve}{RGB}{207, 186, 240}
+\definecolor{JordyBlue}{RGB}{163, 196, 243}
+\definecolor{NonPhotoBlue}{RGB}{144, 219, 244}
+\definecolor{ElectricBlue}{RGB}{142, 236, 245}
+\definecolor{Aquamarine}{RGB}{152, 245, 225}
+\definecolor{Celadon}{RGB}{185, 251, 192}
 
 \tikzset{
     comment/.append  style={label={[font=\small]0:#1}},
@@ -48,7 +47,7 @@
     dot/.default=black,
     bar/.style={tikz+={\draw[color=#1,line width=2pt] let \p1 = (!u.parent anchor), \p2 = (.child anchor) in ($(\x1, \y2 - 0.5em)!0.5!(\x2, \y2)$) -- ($(\x1, \y2 + 0.5em)!0.5!(\x2, \y2)$);}},
     bar/.default=black,
-    rec/.style={tikz+={\scoped[on background layer]{ \node[draw=none, fill=#1, rectangle, inner sep=2pt, fit to=tree,] {};} }},
+    rec/.style={tikz+={\scoped[on background layer]{ \node[draw=none, fill=#1, rectangle, fit to=tree, inner sep=-2pt, ] {};} }},
     rec/.default=Thistle,
 }
 
@@ -57,7 +56,7 @@
 \begin{forest}
     where n children=0{tier=word}{},
     for tree={
-        s sep=-0.1em, % make siblings closer
+        s sep=-4pt, % make siblings closer
         grow=0, % 0 degrees is to the right
         reversed, % tree_direction
         align=left,

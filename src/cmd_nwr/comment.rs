@@ -28,18 +28,16 @@ pub fn make_subcommand() -> Command {
     * {green}{RGB}{32,128,108}
     * {purple}{RGB}{160,90,150}
 * Colors for background rectangles `--rec`
-    * {Apricot}{RGB}{251,185,130} % #FBB982
-    * {CarnationPink}{RGB}{242,130,180} % #F282B4
-    * {CornflowerBlue}{RGB}{65,176,228} % #41B0E4
-    * {Dandelion}{RGB}{253,188,66} % #FDBC42
-    * {Goldenrod}{RGB}{255,223,66} % #FFDF42
-    * {GreenYellow}{RGB}{223,230,116} % #DFE674
-    * {Melon}{RGB}{248,158,123} % #F89E7B
-    * {Salmon}{RGB}{246,146,137} % #F69289
-    * {SpringGreen}{RGB}{198,220,103} % #C6DC67
-    * {Thistle}{RGB}{216,131,183} % #D883B7
-    * {YellowGreen}{RGB}{152,204,112} % #98CC70
-    * {YellowOrange}{RGB}{250,162,26} % #FAA21A
+    * {LemonChiffon}{RGB}{251, 248, 204}
+    * {ChampagnePink}{RGB}{253, 228, 207}
+    * {TeaRose}{RGB}{255, 207, 210}
+    * {PinkLavender}{RGB}{241, 192, 232}
+    * {Mauve}{RGB}{207, 186, 240}
+    * {JordyBlue}{RGB}{163, 196, 243}
+    * {NonPhotoBlue}{RGB}{144, 219, 244}
+    * {ElectricBlue}{RGB}{142, 236, 245}
+    * {Aquamarine}{RGB}{152, 245, 225}
+    * {Celadon}{RGB}{185, 251, 192}
 
 "###,
         )
