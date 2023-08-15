@@ -144,12 +144,17 @@ echo "((A,B),C);" | cargo run --bin nwr order --ndr stdin
 cargo run --bin nwr label tests/newick/hg38.7way.nwk
 nw_labels tests/newick/hg38.7way.nwk
 
-echo "((A,B),C);" | cargo run --bin nwr rename stdin -l A,B -r D
+echo "((A,B),C);" | cargo run --bin nwr rename stdin -n C -r F -l A,B -r D
 
 cargo run --bin nwr stat tests/newick/hg38.7way.nwk
 nw_stats tests/newick/hg38.7way.nwk
 
 nw_topology tests/newick/hg38.7way.nwk
+
+nw_reroot tests/newick/catarrhini_wrong.nwk Cebus |
+    nw_order -c n -
+perl doc/reroot.pl tests/newick/catarrhini_wrong.nwk Cebus |
+    nw_order -c n -
 
 echo "((A,B),C);" |
     cargo run --bin nwr comment stdin -n A -n C --color green -s '&&nwr' |

@@ -91,7 +91,6 @@ Subcommand groups:
 // TODO: nw_ used before
 //   nw_clade subtree
 //   nw_condense
-//   nw_rename
 //   nw_reroot
 //   nw_topology topo
 //   easy:
