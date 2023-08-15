@@ -7,6 +7,7 @@ pub mod download;
 pub mod indent;
 pub mod info;
 pub mod kb;
+pub mod label;
 pub mod lineage;
 pub mod member;
 pub mod order;

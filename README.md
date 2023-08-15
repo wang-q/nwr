@@ -140,11 +140,15 @@ cargo run --bin nwr order --nd tests/newick/hg38.7way.nwk
 
 echo "((A,B),C);" | cargo run --bin nwr order --ndr stdin
 
+cargo run --bin nwr label tests/newick/hg38.7way.nwk
+nw_labels tests/newick/hg38.7way.nwk
+
+nw_topology tests/newick/hg38.7way.nwk
+
+
 echo "((A,B),C);" |
     cargo run --bin nwr comment stdin -n A -n C --color green -s '&&nwr' |
     cargo run --bin nwr comment stdin -l A,B --dot
-
-nw_topology tests/newick/hg38.7way.nwk
 
 latexmk -xelatex doc/template.tex
 latexmk -c doc/template.tex

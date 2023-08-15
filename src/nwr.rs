@@ -18,6 +18,7 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::indent::make_subcommand())
         .subcommand(cmd_nwr::info::make_subcommand())
         .subcommand(cmd_nwr::kb::make_subcommand())
+        .subcommand(cmd_nwr::label::make_subcommand())
         .subcommand(cmd_nwr::lineage::make_subcommand())
         .subcommand(cmd_nwr::member::make_subcommand())
         .subcommand(cmd_nwr::order::make_subcommand())
@@ -44,6 +45,7 @@ Subcommand groups:
 * Newick
     * indent
     * order
+    * label
     * comment
     * tex
 
@@ -63,6 +65,7 @@ Subcommand groups:
         Some(("indent", sub_matches)) => cmd_nwr::indent::execute(sub_matches),
         Some(("info", sub_matches)) => cmd_nwr::info::execute(sub_matches),
         Some(("kb", sub_matches)) => cmd_nwr::kb::execute(sub_matches),
+        Some(("label", sub_matches)) => cmd_nwr::label::execute(sub_matches),
         Some(("lineage", sub_matches)) => cmd_nwr::lineage::execute(sub_matches),
         Some(("member", sub_matches)) => cmd_nwr::member::execute(sub_matches),
         Some(("order", sub_matches)) => cmd_nwr::order::execute(sub_matches),
