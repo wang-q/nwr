@@ -78,5 +78,17 @@ Subcommand groups:
 }
 
 // TODO: abbr_name.pl
-// TODO: nw_reroot
-// TODO: nw_topology
+// TODO: nw_ used before
+//   nw_clade subtree
+//   nw_condense
+//   nw_rename
+//   nw_reroot
+//   nw_topology topo
+//   easy:
+//   nw_labels
+//   nw_stats
+// TODO: nw_
+//   nw_distance
+//   nw_match
+//   nw_prune
+//   nw_trim
