@@ -1,4 +1,5 @@
 \documentclass[tikz, crop, border=5pt]{standalone}
+\usetikzlibrary{positioning,backgrounds,fit}
 \usepackage{forest}
 
 \usepackage{fontspec,xltxtra,xunicode}
@@ -13,11 +14,29 @@
 \punctstyle{plain}
 \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
 
-\definecolor{red}{RGB}{188,36,46}
+% Avoid using xcolor dvipsnames
+% https://en.wikibooks.org/wiki/LaTeX/Colors
+% https://www.color-hex.com/
 \definecolor{black}{RGB}{26,25,25}
 \definecolor{grey}{RGB}{129,130,132}
+\definecolor{red}{RGB}{188,36,46}
+\definecolor{brown}{RGB}{121,37,0}
 \definecolor{green}{RGB}{32,128,108}
 \definecolor{purple}{RGB}{160,90,150}
+\definecolor{blue}{RGB}{0,103,149} % MidnightBlue
+% Upper case colors for backgrounds, lightness > 127
+\definecolor{Apricot}{RGB}{251,185,130} % #FBB982
+\definecolor{CarnationPink}{RGB}{242,130,180} % #F282B4
+\definecolor{CornflowerBlue}{RGB}{65,176,228} % #41B0E4
+\definecolor{Dandelion}{RGB}{253,188,66} % #FDBC42
+\definecolor{Goldenrod}{RGB}{255,223,66} % #FFDF42
+\definecolor{GreenYellow}{RGB}{223,230,116} % #DFE674
+\definecolor{Melon}{RGB}{248,158,123} % #F89E7B
+\definecolor{Salmon}{RGB}{246,146,137} % #F69289
+\definecolor{SpringGreen}{RGB}{198,220,103} % #C6DC67
+\definecolor{Thistle}{RGB}{216,131,183} % #D883B7
+\definecolor{YellowGreen}{RGB}{152,204,112} % #98CC70
+\definecolor{YellowOrange}{RGB}{250,162,26} % #FAA21A
 
 \tikzset{
     comment/.append  style={label={[font=\small]0:#1}},
@@ -29,6 +48,8 @@
     dot/.default=black,
     bar/.style={tikz+={\draw[color=#1,line width=2pt] let \p1 = (!u.parent anchor), \p2 = (.child anchor) in ($(\x1, \y2 - 0.5em)!0.5!(\x2, \y2)$) -- ($(\x1, \y2 + 0.5em)!0.5!(\x2, \y2)$);}},
     bar/.default=black,
+    rec/.style={tikz+={\scoped[on background layer]{ \node[draw=none, fill=#1, rectangle, inner sep=2pt, fit to=tree,] {};} }},
+    rec/.default=Thistle,
 }
 
 \begin{document}
@@ -52,7 +73,7 @@
         },
     }
 [, dot, label={Opisthokonta}, tier=4,
-  [, dot, label={Holomycota}, tier=1,
+  [, dot, rec={YellowGreen}, label={Holomycota}, tier=1,
     [{Nucleariida}, tier=0,]
     [\color{red}{Fungi}, tier=0,]
   ]
@@ -60,7 +81,7 @@
     [{Teretosporea}, tier=0,]
     [, dot, label={Filozoa}, tier=2,
       [{Filasterea}, tier=0,]
-      [, dot, label={Choanozoa}, tier=1,
+      [, dot, rec={YellowOrange}, label={Choanozoa}, tier=1,
         [{Choanoflagellata}, tier=0,]
         [\color{red}{Metazoa}, tier=0,]
       ]

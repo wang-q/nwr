@@ -162,7 +162,7 @@ fn format_node(tree: &Tree, id: &NodeId, height: Edge) -> String {
     let mut color: Option<String> = None;
     let mut label: Option<String> = None;
 
-    // internal node's name will be treated as labels
+    // internal node's name will be treated as labels and place a dot there
     if !node.is_tip() && name.is_some() {
         label = Some(name.clone().unwrap());
         name = None;
@@ -184,6 +184,8 @@ fn format_node(tree: &Tree, id: &NodeId, height: Edge) -> String {
                 repr += &format!(" dot={{{}}},", pt.replace("dot=", ""));
             } else if pt.starts_with("bar=") {
                 repr += &format!(" bar={{{}}},", pt.replace("bar=", ""));
+            } else if pt.starts_with("rec=") {
+                repr += &format!(" rec={{{}}},", pt.replace("rec=", ""));
             } else if pt.starts_with("comment=") {
                 comment += pt.replace("comment=", "").as_str();
             } else {

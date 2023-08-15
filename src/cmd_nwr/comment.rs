@@ -19,7 +19,7 @@ pub fn make_subcommand() -> Command {
 
 * The following options are used for visualization
     * `--color`, `--label` and `--comment` take 1 argument
-    * `--dot` and `--bar` take 1 or 0 argument
+    * `--dot`, `--bar` and `--rec` take 1 or 0 argument
 
 * Predefined colors for `--color`, `--dot` and `--bar`
     * {red}{RGB}{188,36,46}
@@ -27,7 +27,19 @@ pub fn make_subcommand() -> Command {
     * {grey}{RGB}{129,130,132}
     * {green}{RGB}{32,128,108}
     * {purple}{RGB}{160,90,150}
-* Any other valid latex colors can also be used
+* Colors for background rectangles `--rec`
+    * {Apricot}{RGB}{251,185,130} % #FBB982
+    * {CarnationPink}{RGB}{242,130,180} % #F282B4
+    * {CornflowerBlue}{RGB}{65,176,228} % #41B0E4
+    * {Dandelion}{RGB}{253,188,66} % #FDBC42
+    * {Goldenrod}{RGB}{255,223,66} % #FFDF42
+    * {GreenYellow}{RGB}{223,230,116} % #DFE674
+    * {Melon}{RGB}{248,158,123} % #F89E7B
+    * {Salmon}{RGB}{246,146,137} % #F69289
+    * {SpringGreen}{RGB}{198,220,103} % #C6DC67
+    * {Thistle}{RGB}{216,131,183} % #D883B7
+    * {YellowGreen}{RGB}{152,204,112} % #98CC70
+    * {YellowOrange}{RGB}{250,162,26} % #FAA21A
 
 "###,
         )
@@ -94,6 +106,13 @@ pub fn make_subcommand() -> Command {
                 .help("Place a bar in the middle of the parent edge; value as color"),
         )
         .arg(
+            Arg::new("rec")
+                .long("rec")
+                .num_args(0..=1)
+                .default_missing_value("Thistle")
+                .help("Place a rectangle in the background of the subtree; value as color"),
+        )
+        .arg(
             Arg::new("outfile")
                 .short('o')
                 .long("outfile")
@@ -115,6 +134,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     let dot = args.get_one::<String>("dot");
     let bar = args.get_one::<String>("bar");
+    let rec = args.get_one::<String>("rec");
 
     let infile = args.get_one::<String>("infile").unwrap();
     let mut tree = nwr::read_newick(infile);
@@ -178,6 +198,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
         if let Some(x) = bar {
             nwr::add_comment_kv(node, "bar", x);
+        }
+        if let Some(x) = rec {
+            nwr::add_comment_kv(node, "rec", x);
         }
     }
 

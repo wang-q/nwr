@@ -113,6 +113,8 @@ Create `Opisthokonta.nwk` manually
 ```shell
 cat newick/Opisthokonta.nwk |
     nwr comment stdin -n Fungi -n Metazoa --color red |
+    nwr comment stdin -n Holomycota --rec YellowGreen |
+    nwr comment stdin -n Choanozoa --rec YellowOrange |
     nwr tex stdin -o tex/Opisthokonta.tex
 
 latexmk -xelatex tex/Opisthokonta.tex -outdir=pdf
