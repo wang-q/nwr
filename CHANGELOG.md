@@ -4,6 +4,8 @@
 
 * Add `nwr indent`
 * Add `nwr order`
+* Add `nwr label`
+* Add `nwr stat`
 * Add `nwr comment`
 * Add `nwr tex`
 

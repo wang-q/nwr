@@ -156,14 +156,14 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     // ids supplied by --lca
     if args.contains_id("lca") {
         for lca in args.get_many::<String>("lca").unwrap() {
-            let names = lca.split(',').map(|e| e.to_string()).collect::<Vec<_>>();
-            if names.len() != 2 {
+            let parts = lca.split(',').map(|e| e.to_string()).collect::<Vec<_>>();
+            if parts.len() != 2 {
                 continue;
             }
 
-            if names.iter().all(|e| id_of.contains_key(e)) {
-                let id1 = id_of.get(names.first().unwrap()).unwrap();
-                let id2 = id_of.get(names.last().unwrap()).unwrap();
+            if parts.iter().all(|e| id_of.contains_key(e)) {
+                let id1 = id_of.get(parts.first().unwrap()).unwrap();
+                let id2 = id_of.get(parts.last().unwrap()).unwrap();
 
                 let id = tree.get_common_ancestor(id1, id2);
 
