@@ -1,4 +1,4 @@
-# Create cladogram/phylogenetic trees from newick via xelatex/tikz/forest
+# Create cladogram/phylogram from newick via xelatex/tikz/forest
 
 ## A picture is worth a thousand words
 

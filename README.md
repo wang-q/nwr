@@ -6,7 +6,8 @@
 [![Crates.io](https://img.shields.io/crates/v/nwr.svg)](https://crates.io/crates/nwr)
 [![Lines of code](https://tokei.rs/b1/github/wang-q/nwr?category=code)](https://github.com//wang-q/nwr)
 
-`nwr` is a command line tool for working with NCBI taxonomy, assembly reports and Newick files, written in Rust.
+`nwr` is a command line tool for working with **N**CBI taxonomy, Ne**w**ick files and assembly **r**eports,
+written in Rust.
 
 ## Install
 
@@ -143,8 +144,10 @@ echo "((A,B),C);" | cargo run --bin nwr order --ndr stdin
 cargo run --bin nwr label tests/newick/hg38.7way.nwk
 nw_labels tests/newick/hg38.7way.nwk
 
-nw_topology tests/newick/hg38.7way.nwk
+cargo run --bin nwr stat tests/newick/hg38.7way.nwk
+nw_stats tests/newick/hg38.7way.nwk
 
+nw_topology tests/newick/hg38.7way.nwk
 
 echo "((A,B),C);" |
     cargo run --bin nwr comment stdin -n A -n C --color green -s '&&nwr' |

@@ -55,14 +55,12 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         .for_each(|id| {
             let node = tree.get(id).unwrap();
             if let Some(x) = node.name.clone() {
-                if node.is_tip() {
-                    if !skip_leaf {
-                        writer.write_all((x + "\n").as_ref()).unwrap();
-                    }
-                } else {
-                    if !skip_internal {
-                        writer.write_all((x + "\n").as_ref()).unwrap();
-                    }
+                if node.is_tip() && !skip_leaf {
+                    writer.write_fmt(format_args!("{}\n", x)).unwrap();
+                }
+
+                if !node.is_tip() && !skip_internal {
+                    writer.write_fmt(format_args!("{}\n", x)).unwrap();
                 }
             }
         });

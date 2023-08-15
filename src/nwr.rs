@@ -7,7 +7,7 @@ fn main() -> anyhow::Result<()> {
     let app = Command::new("nwr")
         .version(crate_version!())
         .author(crate_authors!())
-        .about("`nwr` is a command line tool for working with NCBI taxonomy, assembly reports and Newick files")
+        .about("`nwr` is a command line tool for working with NCBI taxonomy, Newick files and assembly reports")
         .propagate_version(true)
         .arg_required_else_help(true)
         .color(ColorChoice::Auto)
@@ -23,6 +23,7 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::member::make_subcommand())
         .subcommand(cmd_nwr::order::make_subcommand())
         .subcommand(cmd_nwr::restrict::make_subcommand())
+        .subcommand(cmd_nwr::stat::make_subcommand())
         .subcommand(cmd_nwr::template::make_subcommand())
         .subcommand(cmd_nwr::tex::make_subcommand())
         .subcommand(cmd_nwr::txdb::make_subcommand())
@@ -70,6 +71,7 @@ Subcommand groups:
         Some(("member", sub_matches)) => cmd_nwr::member::execute(sub_matches),
         Some(("order", sub_matches)) => cmd_nwr::order::execute(sub_matches),
         Some(("restrict", sub_matches)) => cmd_nwr::restrict::execute(sub_matches),
+        Some(("stat", sub_matches)) => cmd_nwr::stat::execute(sub_matches),
         Some(("template", sub_matches)) => cmd_nwr::template::execute(sub_matches),
         Some(("tex", sub_matches)) => cmd_nwr::tex::execute(sub_matches),
         Some(("txdb", sub_matches)) => cmd_nwr::txdb::execute(sub_matches),
@@ -88,8 +90,6 @@ Subcommand groups:
 //   nw_reroot
 //   nw_topology topo
 //   easy:
-//   nw_labels
-//   nw_stats
 // TODO: nw_
 //   nw_distance
 //   nw_match
