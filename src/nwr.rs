@@ -93,7 +93,6 @@ Subcommand groups:
 //   nw_condense
 //   nw_reroot
 //   nw_topology topo
-//   easy:
 // TODO: nw_
 //   nw_distance
 //   nw_match
