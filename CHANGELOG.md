@@ -5,8 +5,9 @@
 * Add `nwr indent`
 * Add `nwr order`
 * Add `nwr label`
-* Add `nwr stat`
+* Add `nwr rename`
 * Add `nwr comment`
+* Add `nwr stat`
 * Add `nwr tex`
 
 * Add a directory `tree/` to store phylogenetic trees

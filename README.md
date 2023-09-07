@@ -89,7 +89,7 @@ Subcommand groups:
 
 ```
 
-## EXAMPLES
+## Examples
 
 ### Usage of each command
 
