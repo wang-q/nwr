@@ -31,7 +31,7 @@ cargo build
 ## `nwr help`
 
 ```text
-`nwr` is a command line tool for working with NCBI taxonomy, assembly reports and Newick files
+`nwr` is a command line tool for working with NCBI taxonomy, Newick files and assembly reports
 
 Usage: nwr [COMMAND]
 
@@ -43,17 +43,49 @@ Commands:
   indent    Indent the Newick file
   info      Information of Taxonomy ID(s) or scientific name(s)
   kb        Prints docs (knowledge bases)
+  label     Labels in the Newick file
   lineage   Output the lineage of the term
   member    List members (of certain ranks) under ancestral term(s)
   order     Order nodes in a Newick file
+  rename    Rename node(s) in a Newick file
   restrict  Restrict taxonomy terms to ancestral descendants
+  stat      Statistics about the Newick file
   template  Create dirs, data and scripts for a phylogenomic research
+  tex       Visualize the Newick tree via LaTeX
   txdb      Init the taxonomy database
   help      Print this message or the help of the given subcommand(s)
 
 Options:
   -h, --help     Print help
   -V, --version  Print version
+
+
+Subcommand groups:
+
+* Database
+    * download
+    * txdb
+    * ardb
+
+* Taxonomy
+    * info
+    * lineage
+    * member
+    * append
+    * restrict
+
+* Newick
+    * indent
+    * order
+    * label
+    * rename
+    * comment
+    * stat
+    * tex
+
+* Assembly
+    * template
+    * kb
 
 ```
 
