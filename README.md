@@ -11,7 +11,7 @@ written in Rust.
 
 ## Install
 
-Current release: 0.6.2
+Current release: 0.6.3
 
 ```shell
 cargo install nwr
