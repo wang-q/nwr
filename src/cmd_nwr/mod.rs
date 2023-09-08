@@ -18,4 +18,5 @@ pub mod stat;
 pub mod subtree;
 pub mod template;
 pub mod tex;
+pub mod topo;
 pub mod txdb;

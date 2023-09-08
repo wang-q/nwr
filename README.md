@@ -154,8 +154,7 @@ nwr stat tests/newick/hg38.7way.nwk
 
 nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -m
 
-nw_topology tests/newick/hg38.7way.nwk
-nw_topology tests/newick/catarrhini.nwk
+cargo run --bin nwr topo tests/newick/catarrhini.nwk
 
 nw_reroot tests/newick/catarrhini_wrong.nwk Cebus |
     nw_order -c n -

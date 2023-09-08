@@ -29,6 +29,7 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::stat::make_subcommand())
         .subcommand(cmd_nwr::template::make_subcommand())
         .subcommand(cmd_nwr::tex::make_subcommand())
+        .subcommand(cmd_nwr::topo::make_subcommand())
         .subcommand(cmd_nwr::txdb::make_subcommand())
         .after_help(
             r###"
@@ -53,9 +54,10 @@ Subcommand groups:
     * label
     * rename
     * stat
+    * subtree
+    * topo
     * comment
     * tex
-    * subtree
 
 * Assembly
     * template
@@ -84,6 +86,7 @@ Subcommand groups:
         Some(("stat", sub_matches)) => cmd_nwr::stat::execute(sub_matches),
         Some(("template", sub_matches)) => cmd_nwr::template::execute(sub_matches),
         Some(("tex", sub_matches)) => cmd_nwr::tex::execute(sub_matches),
+        Some(("topo", sub_matches)) => cmd_nwr::topo::execute(sub_matches),
         Some(("txdb", sub_matches)) => cmd_nwr::txdb::execute(sub_matches),
         _ => unreachable!(),
     }
@@ -97,7 +100,6 @@ Subcommand groups:
 // TODO: nw_ used before
 //   nw_condense
 //   nw_reroot
-//   nw_topology topo
 //   nw_distance
 // TODO: nw_
 //   nw_match

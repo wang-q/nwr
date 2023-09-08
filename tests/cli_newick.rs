@@ -172,6 +172,44 @@ fn command_subtree() -> anyhow::Result<()> {
 }
 
 #[test]
+fn command_topo() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("topo")
+        .arg("tests/newick/catarrhini.nwk")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert!(stdout.contains("((((Gorilla,(Pan,Homo)"));
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("topo")
+        .arg("tests/newick/catarrhini.nwk")
+        .arg("-IL")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert!(stdout.contains("((((,(,)),),),(((,),),(,)));"));
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("topo")
+        .arg("tests/newick/catarrhini.nwk")
+        .arg("-IL")
+        .arg("--bl")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert!(stdout.contains("((((:16,(:10,:10)"));
+
+    Ok(())
+}
+
+#[test]
 fn command_comment() -> anyhow::Result<()> {
     let cmd_color = Command::cargo_bin("nwr")
         .unwrap()
