@@ -188,6 +188,10 @@ echo "((A,B),C);" |
     nwr comment stdin -n A -n C --color green |
     nwr comment stdin -l A,B --dot
 
+cargo run --bin nwr common "Escherichia coli" 4932 Drosophila_melanogaster 9606 "Mus musculus" |
+    nwr indent stdin |
+    nwr tex --bare stdin
+
 latexmk -xelatex doc/template.tex
 latexmk -c doc/template.tex
 

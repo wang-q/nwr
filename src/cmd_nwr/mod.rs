@@ -3,6 +3,7 @@
 pub mod append;
 pub mod ardb;
 pub mod comment;
+pub mod common;
 pub mod download;
 pub mod indent;
 pub mod info;
@@ -18,4 +19,3 @@ pub mod subtree;
 pub mod template;
 pub mod tex;
 pub mod txdb;
-pub mod common;

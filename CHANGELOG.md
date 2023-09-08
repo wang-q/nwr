@@ -3,6 +3,7 @@
 ## Unreleased - ReleaseDate
 
 * Add `nwr subtree`
+* Add `nwr common`
 
 ## 0.6.3 - 2023-09-07
 

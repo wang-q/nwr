@@ -124,7 +124,8 @@ pub fn get_taxon(conn: &rusqlite::Connection, ids: Vec<i64>) -> anyhow::Result<V
                 taxon.comments = Some(comments);
             }
 
-            taxon.names
+            taxon
+                .names
                 .entry(row.get(4)?)
                 .or_insert_with(|| vec![row.get(5).unwrap()]);
         } else {
@@ -132,7 +133,8 @@ pub fn get_taxon(conn: &rusqlite::Connection, ids: Vec<i64>) -> anyhow::Result<V
         }
 
         while let Some(row) = rows.next().unwrap() {
-            taxon.names
+            taxon
+                .names
                 .entry(row.get(4).unwrap())
                 .and_modify(|n| n.push(row.get(5).unwrap()))
                 .or_insert_with(|| vec![row.get(5).unwrap()]);
