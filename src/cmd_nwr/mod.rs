@@ -18,3 +18,4 @@ pub mod subtree;
 pub mod template;
 pub mod tex;
 pub mod txdb;
+pub mod common;

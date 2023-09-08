@@ -14,6 +14,7 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::append::make_subcommand())
         .subcommand(cmd_nwr::ardb::make_subcommand())
         .subcommand(cmd_nwr::comment::make_subcommand())
+        .subcommand(cmd_nwr::common::make_subcommand())
         .subcommand(cmd_nwr::download::make_subcommand())
         .subcommand(cmd_nwr::indent::make_subcommand())
         .subcommand(cmd_nwr::info::make_subcommand())
@@ -44,6 +45,7 @@ Subcommand groups:
     * member
     * append
     * restrict
+    * common
 
 * Newick
     * indent
@@ -66,6 +68,7 @@ Subcommand groups:
     match app.get_matches().subcommand() {
         Some(("append", sub_matches)) => cmd_nwr::append::execute(sub_matches),
         Some(("ardb", sub_matches)) => cmd_nwr::ardb::execute(sub_matches),
+        Some(("common", sub_matches)) => cmd_nwr::common::execute(sub_matches),
         Some(("comment", sub_matches)) => cmd_nwr::comment::execute(sub_matches),
         Some(("download", sub_matches)) => cmd_nwr::download::execute(sub_matches),
         Some(("indent", sub_matches)) => cmd_nwr::indent::execute(sub_matches),

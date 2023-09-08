@@ -177,6 +177,7 @@ cargo run --bin nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus
 nw_clade tests/newick/hg38.7way.nwk Human Rhesus
 
 nw_topology tests/newick/hg38.7way.nwk
+nw_topology tests/newick/catarrhini.nwk
 
 nw_reroot tests/newick/catarrhini_wrong.nwk Cebus |
     nw_order -c n -
