@@ -49,7 +49,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     let mut ids = vec![];
     for term in args.get_many::<String>("terms").unwrap() {
-        let id = nwr::term_to_tax_id(&conn, term.to_string()).unwrap();
+        let id = nwr::term_to_tax_id(&conn, term).unwrap();
         ids.push(id);
     }
 

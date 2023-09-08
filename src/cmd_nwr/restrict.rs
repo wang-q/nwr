@@ -85,7 +85,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     let mut id_set = IntSpan::new();
     for term in args.get_many::<String>("terms").unwrap() {
-        let id = nwr::term_to_tax_id(&conn, term.to_string()).unwrap();
+        let id = nwr::term_to_tax_id(&conn, term).unwrap();
         let descendents: Vec<i32> = nwr::get_all_descendent(&conn, id)
             .unwrap()
             .iter()
@@ -106,7 +106,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             // Check the given field
             let fields: Vec<&str> = line.split('\t').collect();
             let term = fields.get(column - 1).unwrap();
-            let id = nwr::term_to_tax_id(&conn, term.to_string()).unwrap();
+            let id = nwr::term_to_tax_id(&conn, term).unwrap();
 
             if is_exclude ^ id_set.contains(id as i32) {
                 writer.write_fmt(format_args!("{}\n", line))?;

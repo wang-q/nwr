@@ -48,7 +48,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let conn = nwr::connect_txdb(&nwrdir).unwrap();
 
     let term = args.get_one::<String>("term").unwrap();
-    let id = nwr::term_to_tax_id(&conn, term.to_string()).unwrap();
+    let id = nwr::term_to_tax_id(&conn, term).unwrap();
 
     let lineage = nwr::get_lineage(&conn, id).unwrap();
 

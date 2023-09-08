@@ -116,7 +116,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             else {
                 // Check the given field
                 let term = fields.get(column - 1).unwrap();
-                let id = nwr::term_to_tax_id(&conn, term.to_string()).unwrap();
+                let id = nwr::term_to_tax_id(&conn, term).unwrap();
 
                 if ranks.is_empty() {
                     let node = nwr::get_node(&conn, vec![id])

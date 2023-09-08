@@ -290,20 +290,20 @@ pub fn get_all_descendent(conn: &rusqlite::Connection, id: i64) -> anyhow::Resul
 /// let path = std::path::PathBuf::from("tests/nwr/");
 /// let conn = nwr::connect_txdb(&path).unwrap();
 ///
-/// let id = nwr::term_to_tax_id(&conn, "10239".to_string()).unwrap();
+/// let id = nwr::term_to_tax_id(&conn, "10239").unwrap();
 /// assert_eq!(id, 10239);
 ///
-/// let id = nwr::term_to_tax_id(&conn, "Viruses".to_string()).unwrap();
+/// let id = nwr::term_to_tax_id(&conn, "Viruses").unwrap();
 /// assert_eq!(id, 10239);
 ///
-/// let id = nwr::term_to_tax_id(&conn, "Lactobacillus phage mv4".to_string()).unwrap();
+/// let id = nwr::term_to_tax_id(&conn, "Lactobacillus phage mv4").unwrap();
 /// assert_eq!(id, 12392);
 ///
-/// let id = nwr::term_to_tax_id(&conn, "Lactobacillus_phage_mv4".to_string()).unwrap();
+/// let id = nwr::term_to_tax_id(&conn, "Lactobacillus_phage_mv4").unwrap();
 /// assert_eq!(id, 12392);
 ///
 /// ```
-pub fn term_to_tax_id(conn: &rusqlite::Connection, term: String) -> anyhow::Result<i64> {
+pub fn term_to_tax_id(conn: &rusqlite::Connection, term: &str) -> anyhow::Result<i64> {
     let term = term.trim().replace('_', " ");
 
     let id: i64 = match term.parse::<i64>() {
