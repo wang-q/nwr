@@ -82,8 +82,8 @@ fn add_taxon(tree: &mut phylotree::tree::Tree, taxon: &Taxon, parent: Option<usi
     let mut node = phylotree::tree::Node::new();
     let name = taxon.names.get("scientific name").unwrap()[0].clone();
     node.set_name(name);
-    nwr::add_comment(&mut node, taxon.tax_id.to_string().as_str());
-    nwr::add_comment(&mut node, &taxon.rank);
+    nwr::add_comment_kv(&mut node, "taxid", taxon.tax_id.to_string().as_str());
+    nwr::add_comment_kv(&mut node, "rank", &taxon.rank);
 
     if parent.is_some() {
         tree.add_child(node, parent.unwrap(), None).unwrap()

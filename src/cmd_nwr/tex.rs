@@ -187,7 +187,20 @@ fn format_node(tree: &Tree, id: &NodeId, height: Edge) -> String {
             } else if pt.starts_with("rec=") {
                 repr += &format!(" rec={{{}}},", pt.replace("rec=", ""));
             } else if pt.starts_with("comment=") {
+                if !comment.is_empty() {
+                    comment += " ";
+                }
                 comment += pt.replace("comment=", "").as_str();
+            } else if pt.starts_with("taxid=") {
+                if !comment.is_empty() {
+                    comment += " ";
+                }
+                comment += pt.replace("taxid=", "").as_str();
+            } else if pt.starts_with("rank=") {
+                if !comment.is_empty() {
+                    comment += " ";
+                }
+                comment += pt.replace("rank=", "").as_str();
             } else {
                 if !comment.is_empty() {
                     comment += " ";

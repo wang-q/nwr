@@ -116,6 +116,8 @@ nwr append tests/nwr/taxon.tsv -c 2 -r species -r family --id
 nwr ardb
 nwr ardb --genbank
 
+nwr common "Escherichia coli" 4932 Drosophila_melanogaster 9606 "Mus musculus"
+
 ```
 
 ### Development
@@ -133,6 +135,8 @@ cargo run --release --bin nwr download
 cargo run --bin nwr txdb -d tests/nwr/
 
 cargo run --bin nwr info -d tests/nwr/ --tsv Viruses "Actinophage JHJ-1" "Bacillus phage bg1"
+
+cargo run --bin nwr common -d tests/nwr/ "Actinophage JHJ-1" "Bacillus phage bg1"
 
 ```
 
@@ -154,7 +158,7 @@ nwr stat tests/newick/hg38.7way.nwk
 
 nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -m
 
-cargo run --bin nwr topo tests/newick/catarrhini.nwk
+nwr topo tests/newick/catarrhini.nwk
 
 nw_reroot tests/newick/catarrhini_wrong.nwk Cebus |
     nw_order -c n -
@@ -164,10 +168,6 @@ perl doc/reroot.pl tests/newick/catarrhini_wrong.nwk Cebus |
 echo "((A,B),C);" |
     nwr comment stdin -n A -n C --color green |
     nwr comment stdin -l A,B --dot
-
-cargo run --bin nwr common "Escherichia coli" 4932 Drosophila_melanogaster 9606 "Mus musculus" |
-    nwr indent stdin |
-    nwr tex --bare stdin
 
 latexmk -xelatex doc/template.tex
 latexmk -c doc/template.tex
@@ -179,6 +179,9 @@ latexmk -xelatex output.tex
 latexmk -c output.tex
 
 nwr tex --forest --bare tests/newick/test.forest
+
+nwr common "Escherichia coli" 4932 Drosophila_melanogaster 9606 "Mus musculus" |
+    nwr tex --bare stdin
 
 ```
 
