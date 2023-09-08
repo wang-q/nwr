@@ -142,6 +142,76 @@ latexmk -c tex/Opisthokonta.tex -outdir=pdf
 
 ```
 
+## From taxonomy
+
+### Algae
+
+```shell
+cd ~/Scripts/nwr/tree/
+
+nwr common \
+    "Cyanobacteria" \
+    "Euglenida" \
+    "Kinetoplastea" \
+    "Dinophyceae" \
+    "Apicomplexa" \
+    "Ciliophora" \
+    "Haptophyta" \
+    "Cryptophyceae" \
+    "Chrysophyceae" \
+    "Bacillariophyta" \
+    "Rhodophyta" \
+    "Chlorophyta" \
+    "Phaeophyceae" |
+    sed 's/cellular organisms//g' |
+    sed 's/\broot\b//g' |
+    nwr tex stdin -o tex/Algae.tex
+
+latexmk -xelatex tex/Algae.tex -outdir=pdf
+latexmk -c tex/Algae.tex -outdir=pdf
+
+```
+
+### Plants
+
+```shell
+cd ~/Scripts/nwr/tree/
+
+nwr common \
+    "Anthocerotophyta" \
+    "Bryophyta" \
+    "Marchantiophyta" \
+    \
+    "Tracheophyta" \
+    \
+    "Lycopodiopsida" \
+    "Euphyllophyta" \
+    "Polypodiopsida" \
+    \
+    "Acrogymnospermae" \
+    "Cycadopsida" \
+    "Ginkgoopsida" \
+    "Gnetopsida" \
+    "Pinopsida" \
+    \
+    "Spermatophyta" \
+    "Amborellales" \
+    "Nymphaeales" \
+    "Austrobaileyales" \
+    "Mesangiospermae" \
+    "Magnoliidae" \
+    "Liliopsida" \
+    "eudicotyledons " \
+    "asterids" \
+    "rosids" |
+    sed 's/\broot\b//g' |
+    nwr tex stdin -o tex/Plants.tex
+
+latexmk -xelatex tex/Plants.tex -outdir=pdf
+latexmk -c tex/Plants.tex -outdir=pdf
+
+```
+
 ## From a `forest` file
 
 ### animals

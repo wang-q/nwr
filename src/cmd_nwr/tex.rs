@@ -189,11 +189,14 @@ fn format_node(tree: &Tree, id: &NodeId, height: Edge) -> String {
             } else if pt.starts_with("comment=") {
                 comment += pt.replace("comment=", "").as_str();
             } else {
+                if !comment.is_empty() {
+                    comment += " ";
+                }
                 comment += pt;
             }
         }
 
-        if !comment.is_empty() {
+        if !comment.is_empty() && node.is_tip() {
             repr += &format!(" comment={{{}}},", &comment);
         }
     }
