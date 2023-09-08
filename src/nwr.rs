@@ -24,6 +24,7 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::order::make_subcommand())
         .subcommand(cmd_nwr::rename::make_subcommand())
         .subcommand(cmd_nwr::restrict::make_subcommand())
+        .subcommand(cmd_nwr::subtree::make_subcommand())
         .subcommand(cmd_nwr::stat::make_subcommand())
         .subcommand(cmd_nwr::template::make_subcommand())
         .subcommand(cmd_nwr::tex::make_subcommand())
@@ -52,6 +53,7 @@ Subcommand groups:
     * comment
     * stat
     * tex
+    * subtree
 
 * Assembly
     * template
@@ -75,6 +77,7 @@ Subcommand groups:
         Some(("order", sub_matches)) => cmd_nwr::order::execute(sub_matches),
         Some(("rename", sub_matches)) => cmd_nwr::rename::execute(sub_matches),
         Some(("restrict", sub_matches)) => cmd_nwr::restrict::execute(sub_matches),
+        Some(("subtree", sub_matches)) => cmd_nwr::subtree::execute(sub_matches),
         Some(("stat", sub_matches)) => cmd_nwr::stat::execute(sub_matches),
         Some(("template", sub_matches)) => cmd_nwr::template::execute(sub_matches),
         Some(("tex", sub_matches)) => cmd_nwr::tex::execute(sub_matches),
@@ -89,12 +92,11 @@ Subcommand groups:
 // TODO: abbr_name.pl
 // TODO: nwr replace
 // TODO: nw_ used before
-//   nw_clade subtree
 //   nw_condense
 //   nw_reroot
 //   nw_topology topo
-// TODO: nw_
 //   nw_distance
+// TODO: nw_
 //   nw_match
 //   nw_prune
 //   nw_trim

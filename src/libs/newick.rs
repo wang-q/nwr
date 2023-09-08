@@ -41,7 +41,7 @@ pub fn format_tree(tree: &Tree, indent: &str) -> String {
     format_subtree(tree, &root, indent) + ";"
 }
 
-fn format_subtree(tree: &Tree, id: &NodeId, indent: &str) -> String {
+pub fn format_subtree(tree: &Tree, id: &NodeId, indent: &str) -> String {
     let node = tree.get(id).unwrap();
 
     let children = &node.children;

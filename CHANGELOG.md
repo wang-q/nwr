@@ -2,6 +2,8 @@
 
 ## Unreleased - ReleaseDate
 
+* Add `nwr subtree`
+
 ## 0.6.3 - 2023-09-07
 
 * Add `nwr indent`

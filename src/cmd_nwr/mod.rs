@@ -14,6 +14,7 @@ pub mod order;
 pub mod rename;
 pub mod restrict;
 pub mod stat;
+pub mod subtree;
 pub mod template;
 pub mod tex;
 pub mod txdb;
