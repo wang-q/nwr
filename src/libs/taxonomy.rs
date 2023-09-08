@@ -8,23 +8,10 @@ pub struct Taxon {
     pub division: String,
     pub names: HashMap<String, Vec<String>>, // many synonym or common names
     pub comments: Option<String>,
-    pub format_string: Option<String>,
 }
 
 impl std::fmt::Display for Taxon {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        if let Some(format_string) = &self.format_string {
-            // Format the Node according to its format string.
-            return write!(
-                f,
-                "{}",
-                format_string
-                    .replace("%taxid", &self.tax_id.to_string())
-                    .replace("%name", &self.names.get("scientific name").unwrap()[0])
-                    .replace("%rank", &self.rank)
-            );
-        }
-
         let mut lines = String::new();
 
         let sciname = &self.names.get("scientific name").unwrap()[0];

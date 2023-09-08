@@ -149,6 +149,29 @@ fn command_stat() -> anyhow::Result<()> {
 }
 
 #[test]
+fn command_subtree() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("subtree")
+        .arg("tests/newick/hg38.7way.nwk")
+        .arg("-n")
+        .arg("Human")
+        .arg("-n")
+        .arg("Rhesus")
+        .arg("-r")
+        .arg("^ch")
+        .arg("-m")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert_eq!(stdout.lines().count(), 1);
+    assert!(stdout.contains("((Human:0.007,Chimp:0.00684):0.027,Rhesus:0.037601):0.11;"));
+
+    Ok(())
+}
+
+#[test]
 fn command_comment() -> anyhow::Result<()> {
     let cmd_color = Command::cargo_bin("nwr")
         .unwrap()

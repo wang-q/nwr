@@ -151,12 +151,8 @@ nwr label tests/newick/hg38.7way.nwk
 nwr rename tests/newick/abc.nwk -n C -r F -l A,B -r D
 
 nwr stat tests/newick/hg38.7way.nwk
-nw_stats tests/newick/hg38.7way.nwk
 
-cargo run --bin nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -m
-
-cargo run --bin nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus
-nw_clade tests/newick/hg38.7way.nwk Human Rhesus
+nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -m
 
 nw_topology tests/newick/hg38.7way.nwk
 nw_topology tests/newick/catarrhini.nwk
