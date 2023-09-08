@@ -1,0 +1,40 @@
+[
+    [, label=Oleaceae, dot, tier=2
+        [, label={Fontanesieae x=13}, bar=purple, tier=1
+            [Fontanesia]
+        ]
+        [, label={Forsythieae x=14}, bar=purple, tier=1
+            [Abeliophyllum]
+            [Forsythia]
+        ]
+        [, label={Oleeae x=23}, bar=purple, tier=1
+            [Cartrema]
+            [Chionanthus]
+            [Comoranthus]
+            [Forestiera]
+            [Fraxinus]
+            [Haenianthus]
+            [Hesperelaea]
+            [Ligustrum]
+            [Nestegis]
+            [Noronhia]
+            [Notelaea]
+            [Olea]
+            [Osmanthus]
+            [Phillyrea]
+            [Picconia]
+            [Priogymnanthus]
+            [Schrebera]
+            [Syringa, comment={23/22/24}]
+        ]
+        [, label={Myxopyreae}, bar=purple, tier=1
+            [Dimetra]
+            [Myxopyrum, comment={11}]
+            [Nyctanthes, comment={22/23}]
+        ]
+        [, label={Jasmineae x=13}, bar=purple, tier=1
+            [Jasminum]
+            [Menodora]
+        ]
+    ]
+]
