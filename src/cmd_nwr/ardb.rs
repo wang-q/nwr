@@ -1,7 +1,7 @@
 use clap::*;
 use lazy_static::lazy_static;
 use log::{debug, info};
-use nwr::Node;
+use nwr::Taxon;
 use regex::Regex;
 use simplelog::*;
 use std::collections::HashMap;
@@ -252,11 +252,11 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         let lineage = match nwr::get_lineage(&tx_conn, tax_id) {
             Err(err) => {
                 debug!("Errors on get_lineage({}): {}", tax_id, err);
-                let mut node: Node = Default::default();
-                node.tax_id = 0;
-                node.rank = "no rank".to_string();
-                node.names = HashMap::from([("".to_string(), vec!["NA".to_string()])]);
-                vec![node]
+                let mut taxon: Taxon = Default::default();
+                taxon.tax_id = 0;
+                taxon.rank = "no rank".to_string();
+                taxon.names = HashMap::from([("".to_string(), vec!["NA".to_string()])]);
+                vec![taxon]
             }
             Ok(x) => x,
         };

@@ -53,7 +53,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         ids.push(id);
     }
 
-    let nodes = nwr::get_node(&conn, ids).unwrap();
+    let nodes = nwr::get_taxon(&conn, ids).unwrap();
 
     if args.get_flag("tsv") {
         let mut wtr = csv::WriterBuilder::new()

@@ -1,4 +1,4 @@
-use crate::Node;
+use crate::Taxon;
 use itertools::Itertools;
 use std::path::Path;
 
@@ -79,16 +79,16 @@ pub fn get_tax_id(conn: &rusqlite::Connection, names: Vec<String>) -> anyhow::Re
 /// let conn = nwr::connect_txdb(&path).unwrap();
 ///
 /// let ids = vec![12340, 12347];
-/// let nodes = nwr::get_node(&conn, ids).unwrap();
+/// let taxa = nwr::get_taxon(&conn, ids).unwrap();
 ///
-/// assert_eq!(nodes.get(0).unwrap().tax_id, 12340);
-/// assert_eq!(nodes.get(0).unwrap().parent_tax_id, 12333);
-/// assert_eq!(nodes.get(0).unwrap().rank, "species");
-/// assert_eq!(nodes.get(0).unwrap().division, "Phages");
-/// assert_eq!(nodes.get(1).unwrap().tax_id, 12347);
+/// assert_eq!(taxa.get(0).unwrap().tax_id, 12340);
+/// assert_eq!(taxa.get(0).unwrap().parent_tax_id, 12333);
+/// assert_eq!(taxa.get(0).unwrap().rank, "species");
+/// assert_eq!(taxa.get(0).unwrap().division, "Phages");
+/// assert_eq!(taxa.get(1).unwrap().tax_id, 12347);
 /// ```
-pub fn get_node(conn: &rusqlite::Connection, ids: Vec<i64>) -> anyhow::Result<Vec<Node>> {
-    let mut nodes = vec![];
+pub fn get_taxon(conn: &rusqlite::Connection, ids: Vec<i64>) -> anyhow::Result<Vec<Taxon>> {
+    let mut taxa = vec![];
 
     let mut stmt = conn.prepare(
         "
@@ -110,21 +110,21 @@ pub fn get_node(conn: &rusqlite::Connection, ids: Vec<i64>) -> anyhow::Result<Ve
     for id in ids.iter() {
         let mut rows = stmt.query([id])?;
 
-        let mut node: Node = Default::default();
+        let mut taxon: Taxon = Default::default();
         // Here, row.get has no reason to return an error
         // so row.get_unwrap should be safe
         if let Some(row) = rows.next().unwrap() {
-            node.tax_id = row.get(0)?;
-            node.parent_tax_id = row.get(1)?;
-            node.rank = row.get(2)?;
-            node.division = row.get(3)?;
+            taxon.tax_id = row.get(0)?;
+            taxon.parent_tax_id = row.get(1)?;
+            taxon.rank = row.get(2)?;
+            taxon.division = row.get(3)?;
 
             let comments: String = row.get(6)?;
             if !comments.is_empty() {
-                node.comments = Some(comments);
+                taxon.comments = Some(comments);
             }
 
-            node.names
+            taxon.names
                 .entry(row.get(4)?)
                 .or_insert_with(|| vec![row.get(5).unwrap()]);
         } else {
@@ -132,16 +132,16 @@ pub fn get_node(conn: &rusqlite::Connection, ids: Vec<i64>) -> anyhow::Result<Ve
         }
 
         while let Some(row) = rows.next().unwrap() {
-            node.names
+            taxon.names
                 .entry(row.get(4).unwrap())
                 .and_modify(|n| n.push(row.get(5).unwrap()))
                 .or_insert_with(|| vec![row.get(5).unwrap()]);
         }
 
-        nodes.push(node);
+        taxa.push(taxon);
     }
 
-    Ok(nodes)
+    Ok(taxa)
 }
 
 /// Retrieve the ancestor
@@ -154,7 +154,7 @@ pub fn get_node(conn: &rusqlite::Connection, ids: Vec<i64>) -> anyhow::Result<Ve
 ///
 /// assert_eq!(ancestor.tax_id, 12333);
 /// ```
-pub fn get_ancestor(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Node> {
+pub fn get_ancestor(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Taxon> {
     let mut stmt = conn.prepare(
         "
         SELECT parent_tax_id
@@ -164,7 +164,7 @@ pub fn get_ancestor(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Node
     )?;
     let parent_id = stmt.query_row([id], |row| row.get(0))?;
 
-    let ancestor = get_node(conn, vec![parent_id])?.pop().unwrap();
+    let ancestor = get_taxon(conn, vec![parent_id])?.pop().unwrap();
 
     Ok(ancestor)
 }
@@ -181,7 +181,7 @@ pub fn get_ancestor(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Node
 /// assert_eq!(lineage.last().unwrap().tax_id, 12340);
 /// assert_eq!(lineage.len(), 4);
 /// ```
-pub fn get_lineage(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<Node>> {
+pub fn get_lineage(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<Taxon>> {
     let mut id = id;
     let mut ids = vec![id];
 
@@ -206,7 +206,7 @@ pub fn get_lineage(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<N
     }
 
     let ids: Vec<_> = ids.into_iter().unique().collect();
-    let mut lineage = get_node(conn, ids)?;
+    let mut lineage = get_taxon(conn, ids)?;
     lineage.reverse();
 
     Ok(lineage)
@@ -225,7 +225,7 @@ pub fn get_lineage(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<N
 /// assert_eq!(descendents.get(0).unwrap().rank, "no rank");
 /// assert_eq!(descendents.len(), 34);
 /// ```
-pub fn get_descendent(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<Node>> {
+pub fn get_descendent(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<Taxon>> {
     let mut ids: Vec<i64> = vec![];
 
     let mut stmt = conn.prepare(
@@ -241,7 +241,7 @@ pub fn get_descendent(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Ve
         ids.push(row.get(0).unwrap());
     }
 
-    let nodes = get_node(conn, ids)?;
+    let nodes = get_taxon(conn, ids)?;
     Ok(nodes)
 }
 

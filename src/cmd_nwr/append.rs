@@ -119,7 +119,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 let id = nwr::term_to_tax_id(&conn, term).unwrap();
 
                 if ranks.is_empty() {
-                    let node = nwr::get_node(&conn, vec![id])
+                    let node = nwr::get_taxon(&conn, vec![id])
                         .unwrap()
                         .get(0)
                         .unwrap()
