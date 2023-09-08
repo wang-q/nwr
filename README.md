@@ -159,24 +159,14 @@ cargo run --bin nwr assembly tests/assembly/Trichoderma.assembly.tsv
 For more detailed usages, check [this](tree/README.md).
 
 ```shell
-echo "(A,B);" | cargo run --bin nwr indent stdin
-cargo run --bin nwr indent tests/newick/hg38.7way.nwk --text ".   "
+nwr indent tests/newick/hg38.7way.nwk --text ".   "
 
-nw_indent -t ".   " tests/newick/hg38.7way.nwk
+echo "((A,B),C);" | nwr order --ndr stdin
+nwr order --nd tests/newick/hg38.7way.nwk
 
-nw_order tests/newick/hg38.7way.nwk |
-    nw_indent -
+nwr label tests/newick/hg38.7way.nwk
 
-newick -ladderize tests/newick/hg38.7way.nwk
-
-cargo run --bin nwr order --nd tests/newick/hg38.7way.nwk
-
-echo "((A,B),C);" | cargo run --bin nwr order --ndr stdin
-
-cargo run --bin nwr label tests/newick/hg38.7way.nwk
-nw_labels tests/newick/hg38.7way.nwk
-
-echo "((A,B),C);" | cargo run --bin nwr rename stdin -n C -r F -l A,B -r D
+nwr rename tests/newick/abc.nwk -n C -r F -l A,B -r D
 
 cargo run --bin nwr stat tests/newick/hg38.7way.nwk
 nw_stats tests/newick/hg38.7way.nwk
