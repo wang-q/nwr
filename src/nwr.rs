@@ -50,8 +50,8 @@ Subcommand groups:
     * order
     * label
     * rename
-    * comment
     * stat
+    * comment
     * tex
     * subtree
 

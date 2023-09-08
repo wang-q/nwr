@@ -168,7 +168,7 @@ nwr label tests/newick/hg38.7way.nwk
 
 nwr rename tests/newick/abc.nwk -n C -r F -l A,B -r D
 
-cargo run --bin nwr stat tests/newick/hg38.7way.nwk
+nwr stat tests/newick/hg38.7way.nwk
 nw_stats tests/newick/hg38.7way.nwk
 
 cargo run --bin nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -m
@@ -184,8 +184,8 @@ perl doc/reroot.pl tests/newick/catarrhini_wrong.nwk Cebus |
     nw_order -c n -
 
 echo "((A,B),C);" |
-    cargo run --bin nwr comment stdin -n A -n C --color green -s '&&nwr' |
-    cargo run --bin nwr comment stdin -l A,B --dot
+    nwr comment stdin -n A -n C --color green -s '&&nwr' |
+    nwr comment stdin -l A,B --dot
 
 latexmk -xelatex doc/template.tex
 latexmk -c doc/template.tex
