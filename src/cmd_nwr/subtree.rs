@@ -127,8 +127,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
 
         if is_monophyly {
-            let name_of: HashMap<usize, String> = id_of.iter()
-                .map(|(k, v)| (v.clone(), k.clone())).collect();
+            let name_of: HashMap<usize, String> =
+                id_of.iter().map(|(k, v)| (v.clone(), k.clone())).collect();
 
             let mut descendants = HashSet::new();
             for id in &tree.get_subtree(&sub_root).unwrap() {

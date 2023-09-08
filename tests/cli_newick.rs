@@ -150,7 +150,8 @@ fn command_stat() -> anyhow::Result<()> {
 
 #[test]
 fn command_comment() -> anyhow::Result<()> {
-    let cmd_color = Command::cargo_bin("nwr").unwrap()
+    let cmd_color = Command::cargo_bin("nwr")
+        .unwrap()
         .arg("comment")
         .arg("tests/newick/abc.nwk")
         .arg("-n")
@@ -162,7 +163,8 @@ fn command_comment() -> anyhow::Result<()> {
         .stdout(Stdio::piped())
         .spawn()
         .unwrap();
-    let cmd_dot = Command::cargo_bin("nwr").unwrap()
+    let cmd_dot = Command::cargo_bin("nwr")
+        .unwrap()
         .arg("comment")
         .arg("stdin")
         .arg("-l")
@@ -176,7 +178,10 @@ fn command_comment() -> anyhow::Result<()> {
     let output = cmd_dot.wait_with_output().unwrap();
     let stdout = String::from_utf8(output.stdout).unwrap();
 
-    assert_eq!(stdout.lines().next().unwrap(), "((A[color=green],B)[dot=black],C[color=green]);");
+    assert_eq!(
+        stdout.lines().next().unwrap(),
+        "((A[color=green],B)[dot=black],C[color=green]);"
+    );
 
     Ok(())
 }
