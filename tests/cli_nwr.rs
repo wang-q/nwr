@@ -64,6 +64,20 @@ fn command_info() -> anyhow::Result<()> {
     assert_eq!(stdout.lines().count(), 3);
     assert!(stdout.contains("10239\tViruses"), "first record");
 
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("info")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("Viruses")
+        .arg("Bacillus phage bg1")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert_eq!(stdout.lines().count(), 13);
+    assert!(stdout.contains("ID: 10239"), "first record");
+
     Ok(())
 }
 
