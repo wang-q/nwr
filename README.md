@@ -155,14 +155,14 @@ nwr label tests/newick/hg38.7way.nwk
 
 nwr stat tests/newick/hg38.7way.nwk
 
-cargo run --bin nwr distance -m root -I tests/newick/catarrhini.nwk
-cargo run --bin nwr distance -m parent -I tests/newick/catarrhini.nwk
-cargo run --bin nwr distance -m pairwise -I tests/newick/catarrhini.nwk
-cargo run --bin nwr distance -m lca -I tests/newick/catarrhini.nwk
+nwr distance -m root -I tests/newick/catarrhini.nwk
+nwr distance -m parent -I tests/newick/catarrhini.nwk
+nwr distance -m pairwise -I tests/newick/catarrhini.nwk
+nwr distance -m lca -I tests/newick/catarrhini.nwk
 
-cargo run --bin nwr distance -m phylip tests/newick/catarrhini.nwk
+nwr distance -m phylip tests/newick/catarrhini.nwk
 
-cargo run --bin nwr distance -m root -L tests/newick/catarrhini_topo.nwk
+nwr distance -m root -L tests/newick/catarrhini_topo.nwk
 
 nwr indent tests/newick/hg38.7way.nwk --text ".   "
 
