@@ -4,6 +4,7 @@ pub mod append;
 pub mod ardb;
 pub mod comment;
 pub mod common;
+pub mod distance;
 pub mod download;
 pub mod indent;
 pub mod info;

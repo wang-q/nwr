@@ -1,4 +1,5 @@
 extern crate clap;
+
 use clap::*;
 
 mod cmd_nwr;
@@ -15,6 +16,7 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::ardb::make_subcommand())
         .subcommand(cmd_nwr::comment::make_subcommand())
         .subcommand(cmd_nwr::common::make_subcommand())
+        .subcommand(cmd_nwr::distance::make_subcommand())
         .subcommand(cmd_nwr::download::make_subcommand())
         .subcommand(cmd_nwr::indent::make_subcommand())
         .subcommand(cmd_nwr::info::make_subcommand())
@@ -49,15 +51,19 @@ Subcommand groups:
     * common
 
 * Newick
-    * indent
-    * order
-    * label
-    * rename
-    * stat
-    * subtree
-    * topo
-    * comment
-    * tex
+    * Information
+        * label
+        * stat
+        * distance
+    * Manipulation
+        * indent
+        * order
+        * rename
+        * subtree
+        * topo
+    * Visualization
+        * comment
+        * tex
 
 * Assembly
     * template
@@ -72,6 +78,7 @@ Subcommand groups:
         Some(("ardb", sub_matches)) => cmd_nwr::ardb::execute(sub_matches),
         Some(("common", sub_matches)) => cmd_nwr::common::execute(sub_matches),
         Some(("comment", sub_matches)) => cmd_nwr::comment::execute(sub_matches),
+        Some(("distance", sub_matches)) => cmd_nwr::distance::execute(sub_matches),
         Some(("download", sub_matches)) => cmd_nwr::download::execute(sub_matches),
         Some(("indent", sub_matches)) => cmd_nwr::indent::execute(sub_matches),
         Some(("info", sub_matches)) => cmd_nwr::info::execute(sub_matches),
@@ -100,7 +107,6 @@ Subcommand groups:
 // TODO: nw_ used before
 //   nw_condense
 //   nw_reroot
-//   nw_distance
 // TODO: nw_
 //   nw_match
 //   nw_prune

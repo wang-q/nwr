@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use itertools::Itertools;
+use std::collections::HashMap;
 use std::path::Path;
 
 #[derive(Debug, Clone, Default)]
@@ -58,7 +58,6 @@ impl std::fmt::Display for Taxon {
         writeln!(f, "{}", lines)
     }
 }
-
 
 /// nwr working path
 ///

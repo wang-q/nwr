@@ -2,6 +2,8 @@
 
 ## Unreleased - ReleaseDate
 
+* Add `nwr distance`
+
 ## 0.6.4 - 2023-09-09
 
 * Add `nwr common`
