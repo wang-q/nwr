@@ -39,6 +39,7 @@ Commands:
   append    Append fields of higher ranks to a TSV file
   ardb      Init the assembly database
   comment   Add comments to node(s) in a Newick file
+  common    Output the common tree of terms
   download  Download the latest releases of `taxdump` and assembly reports
   indent    Indent the Newick file
   info      Information of Taxonomy ID(s) or scientific name(s)
@@ -49,9 +50,11 @@ Commands:
   order     Order nodes in a Newick file
   rename    Rename node(s) in a Newick file
   restrict  Restrict taxonomy terms to ancestral descendants
+  subtree   Extract a subtree
   stat      Statistics about the Newick file
   template  Create dirs, data and scripts for a phylogenomic research
   tex       Visualize the Newick tree via LaTeX
+  topo      Topological information of the Newick file
   txdb      Init the taxonomy database
   help      Print this message or the help of the given subcommand(s)
 
@@ -73,14 +76,17 @@ Subcommand groups:
     * member
     * append
     * restrict
+    * common
 
 * Newick
     * indent
     * order
     * label
     * rename
-    * comment
     * stat
+    * subtree
+    * topo
+    * comment
     * tex
 
 * Assembly
