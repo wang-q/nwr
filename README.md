@@ -160,6 +160,8 @@ nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -m
 
 nwr topo tests/newick/catarrhini.nwk
 
+nw_prune tests/newick/catarrhini.nwk Homo Gorilla Pan
+
 nw_reroot tests/newick/catarrhini_wrong.nwk Cebus |
     nw_order -c n -
 perl doc/reroot.pl tests/newick/catarrhini_wrong.nwk Cebus |

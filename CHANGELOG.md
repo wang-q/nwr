@@ -55,8 +55,7 @@
 * Update the CI workflows
     * Remove travis and appveyor
     * Use a container with GLIBC 2.17 according to
-      this [blog](https://kobzol.github.io/rust/ci/2021/05/07/building-rust-binaries-in-ci-that-work-with-older-glibc.html)
-      post
+      this [blog post](https://kobzol.github.io/rust/ci/2021/05/07/building-rust-binaries-in-ci-that-work-with-older-glibc.html)
 * Remove old scripts
 
 ## 0.5.5 - 2022-03-04
