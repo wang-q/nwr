@@ -4,6 +4,8 @@
 
 * Add `nwr distance`
 
+* Adjust `template.tex` and update trees
+
 ## 0.6.4 - 2023-09-09
 
 * Add `nwr common`

@@ -41,6 +41,7 @@ Commands:
   ardb      Init the assembly database
   comment   Add comments to node(s) in a Newick file
   common    Output the common tree of terms
+  distance  Output a TSV/phylip file with distances between all named nodes
   download  Download the latest releases of `taxdump` and assembly reports
   indent    Indent the Newick file
   info      Information of Taxonomy ID(s) or scientific name(s)
@@ -80,20 +81,23 @@ Subcommand groups:
     * common
 
 * Newick
-    * indent
-    * order
-    * label
-    * rename
-    * stat
-    * subtree
-    * topo
-    * comment
-    * tex
+    * Information
+        * label
+        * stat
+        * distance
+    * Manipulation
+        * indent
+        * order
+        * rename
+        * subtree
+        * topo
+    * Visualization
+        * comment
+        * tex
 
 * Assembly
     * template
     * kb
-
 ```
 
 ## Examples
