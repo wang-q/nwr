@@ -1,5 +1,5 @@
 use phylotree::tree::{Node, NodeId, Tree};
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 
 pub fn read_newick(infile: &str) -> Tree {
     let mut reader = intspan::reader(infile);
@@ -213,8 +213,8 @@ pub fn get_names(tree: &Tree) -> Vec<String> {
 /// let id_of = nwr::get_name_id(&tree);
 /// assert_eq!(*id_of.get("A").unwrap(), 2usize);
 /// ```
-pub fn get_name_id(tree: &Tree) -> HashMap<String, usize> {
-    let mut id_of = HashMap::new();
+pub fn get_name_id(tree: &Tree) -> BTreeMap<String, usize> {
+    let mut id_of = BTreeMap::new();
     for id in tree.preorder(&tree.get_root().unwrap()).unwrap().iter() {
         let node = tree.get(id).unwrap();
         let name = node.name.clone();

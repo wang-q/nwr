@@ -1,5 +1,5 @@
 use clap::*;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 
 // Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
@@ -108,10 +108,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut tree = nwr::read_newick(infile);
 
     // ids with names
-    let id_of: HashMap<_, _> = nwr::get_name_id(&tree);
+    let id_of: BTreeMap<_, _> = nwr::get_name_id(&tree);
 
     // all IDs to be modified
-    let mut rename_of: HashMap<_, _> = HashMap::new();
+    let mut rename_of: BTreeMap<_, _> = BTreeMap::new();
 
     // ids supplied by --node
     for (i, name) in names.iter().enumerate() {

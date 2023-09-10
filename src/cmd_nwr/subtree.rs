@@ -1,6 +1,6 @@
 use clap::*;
 use regex::RegexBuilder;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet};
 
 // Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
@@ -73,10 +73,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let tree = nwr::read_newick(infile);
 
     // ids with names
-    let id_of: HashMap<_, _> = nwr::get_name_id(&tree);
+    let id_of: BTreeMap<_, _> = nwr::get_name_id(&tree);
 
     // all IDs to be modified
-    let mut ids = HashSet::new();
+    let mut ids = BTreeSet::new();
 
     // ids supplied by --node
     if args.contains_id("node") {
@@ -90,7 +90,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     // ids supplied by --file
     if args.contains_id("file") {
-        let file = args.get_one::<String>("node").unwrap();
+        let file = args.get_one::<String>("file").unwrap();
         for name in intspan::read_first_column(file).iter() {
             if id_of.contains_key(name) {
                 let id = id_of.get(name).unwrap();
@@ -116,8 +116,6 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
     }
 
-    // eprintln!("ids = {:#?}", ids);
-
     if !ids.is_empty() {
         let mut nodes: Vec<usize> = ids.iter().cloned().collect();
         let mut sub_root = nodes.pop().unwrap();
@@ -127,10 +125,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
 
         if is_monophyly {
-            let name_of: HashMap<usize, String> =
+            let name_of: BTreeMap<usize, String> =
                 id_of.iter().map(|(k, v)| (v.clone(), k.clone())).collect();
 
-            let mut descendants = HashSet::new();
+            let mut descendants = BTreeSet::new();
             for id in &tree.get_subtree(&sub_root).unwrap() {
                 if name_of.contains_key(id) {
                     if tree.get(id).unwrap().is_tip() {
