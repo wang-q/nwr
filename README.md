@@ -5,7 +5,7 @@
 [![Codecov](https://img.shields.io/codecov/c/github/wang-q/nwr/master.svg)](https://codecov.io/github/wang-q/nwr?branch=master)
 [![Crates.io](https://img.shields.io/crates/v/nwr.svg)](https://crates.io/crates/nwr)
 ![](https://img.shields.io/crates/d/nwr?label=downloads%20%28crates.io%29)
-[![Lines of code](https://tokei.rs/b1/github/wang-q/nwr?category=code)](https://github.com//wang-q/nwr)
+[![Lines of code](https://www.aschey.tech/tokei/github/wang-q/nwr)](https://github.com//wang-q/nwr)
 
 `nwr` is a command line tool for working with **N**CBI taxonomy, Ne**w**ick files and assembly
 **r**eports, written in Rust.
@@ -180,6 +180,7 @@ nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -m
 
 nwr topo tests/newick/catarrhini.nwk
 
+# compgen -c nw_
 nw_prune tests/newick/catarrhini.nwk Homo Gorilla Pan
 
 nw_reroot tests/newick/catarrhini_wrong.nwk Cebus |
