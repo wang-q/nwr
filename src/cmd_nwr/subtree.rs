@@ -1,5 +1,4 @@
 use clap::*;
-use regex::RegexBuilder;
 use std::collections::{BTreeMap, BTreeSet};
 
 // Create clap subcommand arguments
@@ -14,7 +13,7 @@ Output a subtree (clade) rooted at the lowest common ancestor of all nodes passe
 * `--monophyly` means the subtree should only contains the nodes passed in
     * It will check terminal nodes (with names) against the ones provided
     * If you provide a named internal node, its descendants will not automatically be included
-    * Nodes with the same name can cause problems
+    * Nodes with the same name CAN cause problems
 "###,
         )
         .arg(
@@ -75,46 +74,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     // ids with names
     let id_of: BTreeMap<_, _> = nwr::get_name_id(&tree);
 
-    // all IDs to be modified
-    let mut ids = BTreeSet::new();
-
-    // ids supplied by --node
-    if args.contains_id("node") {
-        for name in args.get_many::<String>("node").unwrap() {
-            if id_of.contains_key(name) {
-                let id = id_of.get(name).unwrap();
-                ids.insert(*id);
-            }
-        }
-    }
-
-    // ids supplied by --file
-    if args.contains_id("file") {
-        let file = args.get_one::<String>("file").unwrap();
-        for name in intspan::read_first_column(file).iter() {
-            if id_of.contains_key(name) {
-                let id = id_of.get(name).unwrap();
-                ids.insert(*id);
-            }
-        }
-    }
-
-    // ids matched with --regex
-    if args.contains_id("regex") {
-        for regex in args.get_many::<String>("regex").unwrap() {
-            let re = RegexBuilder::new(regex)
-                .case_insensitive(true)
-                .unicode(false)
-                .build()
-                .unwrap();
-            for name in id_of.keys() {
-                if re.is_match(name) {
-                    let id = id_of.get(name).unwrap();
-                    ids.insert(*id);
-                }
-            }
-        }
-    }
+    // All IDs to be processed
+    let ids = nwr::match_names(&id_of, args);
 
     if !ids.is_empty() {
         let mut nodes: Vec<usize> = ids.iter().cloned().collect();

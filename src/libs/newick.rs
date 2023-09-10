@@ -1,5 +1,6 @@
 use phylotree::tree::{Node, NodeId, Tree};
-use std::collections::{BTreeMap, HashMap};
+use regex::RegexBuilder;
+use std::collections::{BTreeMap, BTreeSet, HashMap};
 
 pub fn read_newick(infile: &str) -> Tree {
     let mut reader = intspan::reader(infile);
@@ -266,4 +267,49 @@ pub fn add_comment(node: &mut Node, c: &str) {
     };
 
     node.comment = Some(comment);
+}
+
+pub fn match_names(id_of: &BTreeMap<String, usize>, args: &clap::ArgMatches) -> BTreeSet<usize> {
+    // all matched IDs
+    let mut ids = BTreeSet::new();
+
+    // ids supplied by --node
+    if args.contains_id("node") {
+        for name in args.get_many::<String>("node").unwrap() {
+            if id_of.contains_key(name) {
+                let id = id_of.get(name).unwrap();
+                ids.insert(*id);
+            }
+        }
+    }
+
+    // ids supplied by --file
+    if args.contains_id("file") {
+        let file = args.get_one::<String>("file").unwrap();
+        for name in intspan::read_first_column(file).iter() {
+            if id_of.contains_key(name) {
+                let id = id_of.get(name).unwrap();
+                ids.insert(*id);
+            }
+        }
+    }
+
+    // ids matched with --regex
+    if args.contains_id("regex") {
+        for regex in args.get_many::<String>("regex").unwrap() {
+            let re = RegexBuilder::new(regex)
+                .case_insensitive(true)
+                .unicode(false)
+                .build()
+                .unwrap();
+            for name in id_of.keys() {
+                if re.is_match(name) {
+                    let id = id_of.get(name).unwrap();
+                    ids.insert(*id);
+                }
+            }
+        }
+    }
+
+    ids
 }
