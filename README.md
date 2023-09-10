@@ -186,14 +186,12 @@ echo "((A,B),C);" |
     nwr comment stdin -n A -n C --color green |
     nwr comment stdin -l A,B --dot
 
-latexmk -xelatex doc/template.tex
-latexmk -c doc/template.tex
+tectonic doc/template.tex
 
-nwr tex --bare tests/newick/hg38.7way.nwk
+nwr tex tests/newick/catarrhini.nwk -o output.tex
+tectonic output.tex
 
-nwr tex --bl tests/newick/hg38.7way.nwk -o output.tex
-latexmk -xelatex output.tex
-latexmk -c output.tex
+nwr tex --bl tests/newick/hg38.7way.nwk
 
 nwr tex --forest --bare tests/newick/test.forest
 
