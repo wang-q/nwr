@@ -51,11 +51,11 @@ nwr indent --text '.   ' newick/example.nwk
 
 ```shell
 cat newick/example.nwk |
-    nwr comment stdin --node Ctenophora --comment 192 `# Add comments` |
+    nwr comment stdin --node Ctenophora --comment 192  |
     nwr comment stdin --node Porifera --color green --comment 8579 |
     nwr comment stdin --node Placozoa --comment 1 |
     nwr comment stdin --node Cnidaria --comment 13138 |
-    nwr comment stdin --lca Bilateria,Cnidaria --label Planulozoa --dot red `# Add an internal node` |
+    nwr comment stdin --lca Bilateria,Cnidaria --label Planulozoa --dot red --rec LemonChiffon |
     nwr comment stdin --lca Bilateria,Placozoa --label Parahoxozoa --color green --dot red |
     nwr comment stdin --lca Bilateria,Porifera --label NOTE --bar purple |
     nwr indent stdin |
@@ -86,7 +86,7 @@ nwr tex newick/example.comment.nwk --bare
 #    [\color{green}{Porifera}, comment={8579}, tier=0,]
 #    [, dot={red}, label=\color{green}{Parahoxozoa}, tier=2,
 #      [{Placozoa}, comment={1}, tier=0,]
-#      [, dot={red}, label={Planulozoa}, tier=1,
+#      [, dot={red}, rec={LemonChiffon}, label={Planulozoa}, tier=1,
 #        [{Bilateria}, tier=0,]
 #        [{Cnidaria}, comment={13138}, tier=0,]
 #      ]
@@ -100,10 +100,9 @@ nwr tex newick/example.comment.nwk --bare
     * Edit the .tex file as you wish
 
 ```shell
-nwr tex newick/example.comment.nwk -o tex/example.tex
+nwr tex newick/example.comment.nwk -s -o tex/example.tex
 
-latexmk -xelatex tex/example.tex -outdir=pdf
-latexmk -c tex/example.tex -outdir=pdf
+tectonic tex/example.tex --outdir pdf
 
 ```
 
@@ -119,10 +118,9 @@ cat newick/hg38.30way.nwk |
     nwr comment stdin --lca Homo_sapiens,Nomascus_leucogenys --label Hominoidea --dot --rec LemonChiffon |
     nwr comment stdin --lca Macaca_mulatta,Rhinopithecus_roxellana --label Cercopithecidae  --dot --rec TeaRose |
     nwr comment stdin --lca Callithrix_jacchus,Aotus_nancymaae --label Cebidae --dot --rec Celadon |
-    nwr tex stdin --bl -o tex/hg38.30way.tex
+    nwr tex stdin --bl -s -o tex/hg38.30way.tex
 
-latexmk -xelatex tex/hg38.30way.tex -outdir=pdf
-latexmk -c tex/hg38.30way.tex -outdir=pdf
+tectonic tex/hg38.30way.tex --outdir pdf
 
 ```
 
@@ -135,10 +133,9 @@ cat newick/Opisthokonta.nwk |
     nwr comment stdin -n Fungi -n Metazoa --color red |
     nwr comment stdin -n Holomycota --rec TeaRose |
     nwr comment stdin -n Choanozoa --rec ElectricBlue |
-    nwr tex stdin -o tex/Opisthokonta.tex
+    nwr tex stdin -s -o tex/Opisthokonta.tex
 
-latexmk -xelatex tex/Opisthokonta.tex -outdir=pdf
-latexmk -c tex/Opisthokonta.tex -outdir=pdf
+tectonic tex/Opisthokonta.tex --outdir pdf
 
 ```
 
@@ -165,10 +162,9 @@ nwr common \
     "Phaeophyceae" |
     sed 's/cellular organisms//g' |
     sed 's/\broot\b//g' |
-    nwr tex stdin -o tex/Algae.tex
+    nwr tex stdin -s -o tex/Algae.tex
 
-latexmk -xelatex tex/Algae.tex -outdir=pdf
-latexmk -c tex/Algae.tex -outdir=pdf
+tectonic tex/Algae.tex --outdir pdf
 
 ```
 
@@ -205,10 +201,9 @@ nwr common \
     "asterids" \
     "rosids" |
     sed 's/\broot\b//g' |
-    nwr tex stdin -o tex/Plants.tex
+    nwr tex stdin -s -o tex/Plants.tex
 
-latexmk -xelatex tex/Plants.tex -outdir=pdf
-latexmk -c tex/Plants.tex -outdir=pdf
+tectonic tex/Plants.tex --outdir pdf
 
 ```
 
@@ -218,32 +213,29 @@ latexmk -c tex/Plants.tex -outdir=pdf
 
 ```shell
 # animals-simple
-nwr tex --forest forest/animals-simple.forest -o tex/animals-simple.tex
+nwr tex forest/animals-simple.forest --forest -s -o tex/animals-simple.tex
 
-latexmk -xelatex tex/animals-simple.tex -outdir=pdf
-latexmk -c tex/animals-simple.tex -outdir=pdf
+tectonic tex/animals-simple.tex --outdir pdf
 
 # animals-simple.trans
 cat tex/animals-simple.tex |
     sed -f translation.sed \
     > tex/animals-simple.trans.tex
 
-latexmk -xelatex tex/animals-simple.trans.tex -outdir=pdf
-latexmk -c tex/animals-simple.trans.tex -outdir=pdf
+tectonic tex/animals-simple.trans.tex --outdir pdf
 
 ```
 
 ### chordates
 
 ```shell
-nwr tex --forest forest/chordates.forest -o tex/chordates.tex
+nwr tex forest/chordates.forest --forest -s -o tex/chordates.tex
 
 cat tex/chordates.tex |
     sed -f translation.sed \
     > tex/chordates.trans.tex
 
-latexmk -xelatex tex/chordates.trans.tex -outdir=pdf
-latexmk -c tex/chordates.trans.tex -outdir=pdf
+tectonic tex/chordates.trans.tex --outdir pdf
 
 ```
 
@@ -281,15 +273,13 @@ cat tex/example.tex |
     sed -f translation.sed \
     > tex/example.trans.tex
 
-latexmk -xelatex tex/example.trans.tex -outdir=pdf
-latexmk -c tex/example.trans.tex -outdir=pdf
+tectonic tex/example.trans.tex --outdir pdf
 
 # append translations
 cat tex/example.tex |
     sed -f translation.append.sed \
     > tex/example.trans.append.tex
 
-latexmk -xelatex tex/example.trans.append.tex -outdir=pdf
-latexmk -c tex/example.trans.append.tex -outdir=pdf
+tectonic tex/example.trans.append.tex --outdir pdf
 
 ```

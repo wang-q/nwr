@@ -4,6 +4,7 @@
 
 \usepackage{fontspec,xltxtra,xunicode}
 
+%STYLE_BEGIN%
 % English Fonts
 \setmainfont[BoldFont={Fira Sans}]{Fira Sans Light}
 
@@ -13,6 +14,7 @@
 \xeCJKsetup{CJKecglue = {\hskip 0pt plus 0.08\baselineskip}, xCJKecglue = {false}}
 \punctstyle{plain}
 \defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+%STYLE_END%
 
 % Avoid using xcolor dvipsnames
 % https://en.wikibooks.org/wiki/LaTeX/Colors
@@ -71,41 +73,34 @@
             if content={}{shape=coordinate}{}
         },
     }
-[, tier=8,
-  [, dot, label={Embryophyta}, tier=7,
-    [{Anthocerotophyta}, comment={13809 clade}, tier=0,]
-    [{Bryophyta}, comment={3208 clade}, tier=0,]
-    [{Marchantiophyta}, comment={3195 clade}, tier=0,]
-    [, dot, label={Tracheophyta}, tier=6,
-      [{Lycopodiopsida}, comment={1521260 class}, tier=0,]
-      [, dot, label={Euphyllophyta}, tier=5,
-        [{Polypodiopsida}, comment={241806 class}, tier=0,]
-        [, dot, label={Spermatophyta}, tier=4,
-          [, dot, label={Acrogymnospermae}, tier=1,
-            [{Cycadopsida}, comment={3296 class}, tier=0,]
-            [{Ginkgoopsida}, comment={29811 class}, tier=0,]
-            [{Gnetopsida}, comment={3372 class}, tier=0,]
-            [{Pinopsida}, comment={58019 class}, tier=0,]
-          ]
-          [, dot, label={Magnoliopsida}, tier=3,
-            [{Amborellales}, comment={261009 order}, tier=0,]
-            [{Nymphaeales}, comment={261007 order}, tier=0,]
-            [{Austrobaileyales}, comment={82956 order}, tier=0,]
-            [, dot, label={Mesangiospermae}, tier=2,
-              [{Magnoliidae}, comment={232347 clade}, tier=0,]
-              [{Liliopsida}, comment={4447 clade}, tier=0,]
-              [, dot, label={Pentapetalae}, tier=1,
-                [{asterids}, comment={71274 clade}, tier=0,]
-                [{rosids}, comment={71275 clade}, tier=0,]
-              ]
-            ]
-          ]
+[, tier=5,
+  [, tier=4,
+    [, dot, label={Eukaryota}, tier=3,
+      [, dot, label={Sar}, tier=2,
+        [, dot, label={Alveolata}, tier=1,
+          [{Dinophyceae}, comment={2864 class}, tier=0,]
+          [{Apicomplexa}, comment={5794 phylum}, tier=0,]
+          [{Ciliophora}, comment={5878 phylum}, tier=0,]
+        ]
+        [, dot, label={Ochrophyta}, tier=1,
+          [{Chrysophyceae}, comment={2825 class}, tier=0,]
+          [{Bacillariophyta}, comment={2836 phylum}, tier=0,]
+          [{Phaeophyceae}, comment={2870 class}, tier=0,]
         ]
       ]
+      [{Cryptophyceae}, comment={3027 class}, tier=0,]
+      [{Rhodophyta}, comment={2763 phylum}, tier=0,]
+      [, dot, label={Euglenozoa}, tier=1,
+        [{Euglenida}, comment={3035 class}, tier=0,]
+        [{Kinetoplastea}, comment={5653 class}, tier=0,]
+      ]
+      [{Haptophyta}, comment={2830 phylum}, tier=0,]
+      [{Chlorophyta}, comment={3041 phylum}, tier=0,]
     ]
+    [{Cyanobacteriota}, comment={1117 phylum}, tier=0,]
   ]
 ]
-%END%
+%FOREST_END%
 \end{forest}
 
 \end{document}

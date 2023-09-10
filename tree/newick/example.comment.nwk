@@ -7,7 +7,7 @@
       (
         Bilateria,
         Cnidaria[comment=13138]
-      )[label=Planulozoa:dot=red]
+      )[label=Planulozoa:dot=red:rec=LemonChiffon]
     )[label=Parahoxozoa:color=green:dot=red]
   )[label=NOTE:bar=purple]
 )Animalia;
