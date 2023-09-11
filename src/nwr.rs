@@ -53,13 +53,13 @@ Subcommand groups:
 * Newick
     * Information
         * label
-        * subtree
         * stat
         * distance
     * Manipulation
         * order
         * rename
         * topo
+        * subtree
     * Visualization
         * indent
         * comment

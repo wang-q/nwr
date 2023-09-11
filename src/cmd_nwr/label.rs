@@ -1,6 +1,4 @@
 use clap::*;
-use intspan::IntSpan;
-use phylotree::tree::Node;
 use std::collections::BTreeSet;
 
 // Create clap subcommand arguments
@@ -136,8 +134,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     //----------------------------
     // Operating
     //----------------------------
-
-    // All IDs matching names
+    // All IDs matching positions
     let ids_pos = nwr::match_positions(&tree, args);
 
     // All IDs matching names
@@ -154,46 +151,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         ids_pos.intersection(&ids_name).cloned().collect()
     };
 
-    // lineage
+    // lineage restrict
     if args.contains_id("term") {
-        let nwrdir = if args.contains_id("dir") {
-            std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf()
-        } else {
-            nwr::nwr_path()
-        };
-        let conn = nwr::connect_txdb(&nwrdir).unwrap();
-
-        let mut tax_id_set = IntSpan::new();
-        for term in args.get_many::<String>("term").unwrap() {
-            let id = nwr::term_to_tax_id(&conn, term).unwrap();
-            let descendents: Vec<i32> = nwr::get_all_descendent(&conn, id)
-                .unwrap()
-                .iter()
-                .map(|n| *n as i32)
-                .collect();
-            tax_id_set.add_vec(descendents.as_ref());
-        }
-
-        let mut ids_restrict = BTreeSet::new();
-
-        let mode = args.get_one::<String>("mode").unwrap();
-        let nodes: Vec<Node> =
-            ids.iter().map(|e| tree.get(e).unwrap().clone()).collect();
-        for node in nodes.iter() {
-            let term = match mode.as_str() {
-                "label" => node.name.clone(),
-                "taxid" => nwr::get_comment_k(node, "T"),
-                "species" => nwr::get_comment_k(node, "S"),
-                _ => unreachable!(),
-            };
-
-            if term.is_some() {
-                let tax_id = nwr::term_to_tax_id(&conn, &term.unwrap()).unwrap();
-                if tax_id_set.contains(tax_id as i32) {
-                    ids_restrict.insert(node.id);
-                }
-            }
-        }
+        let ids_restrict = nwr::match_restrict(&tree, args);
 
         ids = ids.intersection(&ids_restrict).cloned().collect()
     }

@@ -1,3 +1,4 @@
+use intspan::IntSpan;
 use phylotree::tree::{Node, NodeId, Tree};
 use regex::RegexBuilder;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
@@ -413,6 +414,58 @@ pub fn match_positions(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> 
                 ids.insert(*id);
             }
         });
+
+    ids
+}
+
+// Named IDs that belong to ancestors
+pub fn match_restrict(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> {
+    // IDs with names
+    let id_of: BTreeMap<_, _> = get_name_id(tree);
+
+    // all matched IDs
+    let mut ids = BTreeSet::new();
+
+    if args.contains_id("term") {
+        let nwrdir = if args.contains_id("dir") {
+            std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf()
+        } else {
+            crate::nwr_path()
+        };
+        let conn = crate::connect_txdb(&nwrdir).unwrap();
+
+        let mut tax_id_set = IntSpan::new();
+        for term in args.get_many::<String>("term").unwrap() {
+            let id = crate::term_to_tax_id(&conn, term).unwrap();
+            let descendents: Vec<i32> = crate::get_all_descendent(&conn, id)
+                .unwrap()
+                .iter()
+                .map(|n| *n as i32)
+                .collect();
+            tax_id_set.add_vec(descendents.as_ref());
+        }
+
+        let mode = args.get_one::<String>("mode").unwrap();
+        let nodes: Vec<Node> = id_of
+            .iter()
+            .map(|(_, v)| tree.get(v).unwrap().clone())
+            .collect();
+        for node in nodes.iter() {
+            let term = match mode.as_str() {
+                "label" => node.name.clone(),
+                "taxid" => crate::get_comment_k(node, "T"),
+                "species" => crate::get_comment_k(node, "S"),
+                _ => unreachable!(),
+            };
+
+            if term.is_some() {
+                let tax_id = crate::term_to_tax_id(&conn, &term.unwrap()).unwrap();
+                if tax_id_set.contains(tax_id as i32) {
+                    ids.insert(node.id);
+                }
+            }
+        }
+    }
 
     ids
 }

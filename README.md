@@ -164,15 +164,13 @@ nwr label tests/newick/hg38.7way.nwk
 # The intersection between the nodes in the tree and the provided
 nwr label tests/newick/hg38.7way.nwk -r "^ch" -n Mouse -n foo
 
-# Is Gorilla the sibling of Hominini?
 cargo run --bin nwr label tests/newick/catarrhini.nwk -n Homo -n Pan -n Gorilla -M
 
-cargo run --bin nwr label tests/newick/catarrhini.nwk -n Homininae -n Pongo -D -M
+# Is Pongo the sibling of Homininae?
+cargo run --bin nwr label tests/newick/catarrhini.nwk -n Homininae -n Pongo -DM
 
-cargo run --bin nwr label tests/newick/catarrhini.nwk -t Hominidae
-
-# The behavior is very similar to `nwr label`, but outputs a subtree instead of labels.
-nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -m
+# All leaves belong to Hominidae
+cargo run --bin nwr label tests/newick/catarrhini.nwk -t Hominidae -I
 
 nwr stat tests/newick/hg38.7way.nwk
 
@@ -197,6 +195,9 @@ nwr order --nd tests/newick/hg38.7way.nwk
 nwr rename tests/newick/abc.nwk -n C -r F -l A,B -r D
 
 nwr topo tests/newick/catarrhini.nwk
+
+# The behavior is very similar to `nwr label`, but outputs a subtree instead of labels.
+nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -m
 
 # compgen -c nw_
 nw_prune tests/newick/catarrhini.nwk Homo Gorilla Pan
