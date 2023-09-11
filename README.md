@@ -155,9 +155,21 @@ cargo run --bin nwr common -d tests/nwr/ "Actinophage JHJ-1" "Bacillus phage bg1
 
 For more detailed usages, check [this](tree/README.md).
 
+#### Get information from the tree
+
 ```shell
+# List all names
 nwr label tests/newick/hg38.7way.nwk
-nwr label tests/newick/hg38.7way.nwk -r "^ch" -n Mouse
+
+# The intersection between the nodes in the tree and the provided
+nwr label tests/newick/hg38.7way.nwk -r "^ch" -n Mouse -n foo
+
+# Is Gorilla the sibling of Hominini?
+nwr label tests/newick/catarrhini.nwk -n Homo -n Pan -n Gorilla -m
+nwr label tests/newick/catarrhini.nwk -n Hominini -n Gorilla -d -m
+
+# The behavior is very similar to `nwr label`, but outputs a subtree instead of labels.
+nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -m
 
 nwr stat tests/newick/hg38.7way.nwk
 
@@ -168,16 +180,19 @@ nwr distance -m lca -I tests/newick/catarrhini.nwk
 
 nwr distance -m root -L tests/newick/catarrhini_topo.nwk
 
+# Phylip distance matrix
 nwr distance -m phylip tests/newick/catarrhini.nwk
 
+```
+
+
+```shell
 nwr indent tests/newick/hg38.7way.nwk --text ".   "
 
 echo "((A,B),C);" | nwr order --ndr stdin
 nwr order --nd tests/newick/hg38.7way.nwk
 
 nwr rename tests/newick/abc.nwk -n C -r F -l A,B -r D
-
-nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -m
 
 nwr topo tests/newick/catarrhini.nwk
 

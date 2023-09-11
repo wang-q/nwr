@@ -1,4 +1,5 @@
 use clap::*;
+use std::collections::BTreeSet;
 
 // Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
@@ -8,8 +9,15 @@ pub fn make_subcommand() -> Command {
             r###"
 This tool selectively outputs the names of the nodes in the tree
 
-* The intersection between the nodes in the tree and the provided
-* Nodes matching the regular expression(s)
+* Match positions
+    * `-I`, `-L`
+* Match names
+    * The intersection between the nodes in the tree and the provided
+    * Nodes matching the regular expression(s)
+    * Prints all named nodes if none of `-n`, `-f` and `-r` are set.
+* Match comments
+* Match monophyly
+    * Activate `-I`
 
 "###,
         )
@@ -57,6 +65,20 @@ This tool selectively outputs the names of the nodes in the tree
                 .help("Nodes match the regular expression"),
         )
         .arg(
+            Arg::new("descendants")
+                .long("descendants")
+                .short('d')
+                .action(ArgAction::SetTrue)
+                .help("Include all descendants of internal nodes"),
+        )
+        .arg(
+            Arg::new("monophyly")
+                .long("monophyly")
+                .short('m')
+                .action(ArgAction::SetTrue)
+                .help("Only print the labels when they form a monophyletic subtree"),
+        )
+        .arg(
             Arg::new("outfile")
                 .short('o')
                 .long("outfile")
@@ -73,6 +95,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let infile = args.get_one::<String>("infile").unwrap();
     let tree = nwr::read_newick(infile);
 
+    let is_monophyly = args.get_flag("monophyly");
+
     // All IDs matching names
     let ids_pos = nwr::match_positions(&tree, args);
 
@@ -80,11 +104,20 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let ids_name = nwr::match_names(&tree, args);
 
     // Default is printing all named nodes
-    let ids: Vec<usize> = if ids_name.is_empty() {
+    let is_all = !(args.contains_id("node")
+        || args.contains_id("file")
+        || args.contains_id("regex"));
+
+    let ids: BTreeSet<usize> = if is_all {
         ids_pos.into_iter().collect()
     } else {
         ids_pos.intersection(&ids_name).cloned().collect()
     };
+
+    // Print nothing is check_monophyly failed
+    if is_monophyly && !nwr::check_monophyly(&tree, &ids) {
+        return Ok(());
+    }
 
     for id in ids.iter() {
         let node = tree.get(id).unwrap();

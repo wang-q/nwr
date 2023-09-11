@@ -1,5 +1,6 @@
 use assert_cmd::prelude::*; // Add methods on commands
-use std::process::{Command, Stdio}; // Run programs
+use std::process::{Command, Stdio};
+use clap::arg; // Run programs
 
 #[test]
 fn command_label() -> anyhow::Result<()> {
@@ -36,6 +37,59 @@ fn command_label() -> anyhow::Result<()> {
     let stdout = String::from_utf8(output.stdout).unwrap();
 
     assert_eq!(stdout.lines().count(), 1);
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("label")
+        .arg("tests/newick/catarrhini.nwk")
+        .arg("-n")
+        .arg("Hominini")
+        .arg("-n")
+        .arg("Gorilla")
+        .arg("-dm")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert_eq!(stdout.lines().count(), 3);
+
+    Ok(())
+}
+
+#[test]
+fn command_subtree() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("subtree")
+        .arg("tests/newick/hg38.7way.nwk")
+        .arg("-n")
+        .arg("Human")
+        .arg("-n")
+        .arg("Rhesus")
+        .arg("-m")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert_eq!(stdout.lines().count(), 0);
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("subtree")
+        .arg("tests/newick/hg38.7way.nwk")
+        .arg("-n")
+        .arg("Human")
+        .arg("-n")
+        .arg("Rhesus")
+        .arg("-r")
+        .arg("^ch")
+        .arg("-m")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert_eq!(stdout.lines().count(), 1);
+    assert!(stdout.contains("((Human:0.007,Chimp:0.00684):0.027,Rhesus:0.037601):0.11;"));
 
     Ok(())
 }
@@ -253,29 +307,6 @@ fn command_rename() -> anyhow::Result<()> {
 
     assert_eq!(stdout.lines().count(), 1);
     assert!(stdout.contains("((A,B)D,F);"));
-
-    Ok(())
-}
-
-#[test]
-fn command_subtree() -> anyhow::Result<()> {
-    let mut cmd = Command::cargo_bin("nwr")?;
-    let output = cmd
-        .arg("subtree")
-        .arg("tests/newick/hg38.7way.nwk")
-        .arg("-n")
-        .arg("Human")
-        .arg("-n")
-        .arg("Rhesus")
-        .arg("-r")
-        .arg("^ch")
-        .arg("-m")
-        .output()
-        .unwrap();
-    let stdout = String::from_utf8(output.stdout).unwrap();
-
-    assert_eq!(stdout.lines().count(), 1);
-    assert!(stdout.contains("((Human:0.007,Chimp:0.00684):0.027,Rhesus:0.037601):0.11;"));
 
     Ok(())
 }
