@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 // Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
     Command::new("rename")
-        .about("Rename node(s) in a Newick file")
+        .about("Rename named/unnamed nodes in a Newick file")
         .after_help(
             r###"
 * For nodes with names, set `--node` to the name

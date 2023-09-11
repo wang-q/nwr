@@ -14,6 +14,7 @@ pub mod lineage;
 pub mod member;
 pub mod order;
 pub mod rename;
+pub mod replace;
 pub mod restrict;
 pub mod stat;
 pub mod subtree;

@@ -3,6 +3,7 @@
 ## Unreleased - ReleaseDate
 
 * Add `nwr distance`
+* Add `nwr replace`
 
 * Enhance `nwr label` and `nwr subtree`
     * Internal nodes' descendants will automatically be included

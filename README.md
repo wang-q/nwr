@@ -194,6 +194,9 @@ nwr order --nd tests/newick/hg38.7way.nwk
 
 nwr rename tests/newick/abc.nwk -n C -r F -l A,B -r D
 
+cargo run --bin nwr replace tests/newick/abc.nwk tests/newick/abc.replace.tsv
+cargo run --bin nwr replace tests/newick/abc.nwk tests/newick/abc3.replace.tsv
+
 nwr topo tests/newick/catarrhini.nwk
 
 # The behavior is very similar to `nwr label`, but outputs a subtree instead of labels.

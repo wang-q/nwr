@@ -311,6 +311,47 @@ fn command_rename() -> anyhow::Result<()> {
 }
 
 #[test]
+fn command_replace() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("replace")
+        .arg("tests/newick/abc.nwk")
+        .arg("tests/newick/abc.replace.tsv")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert_eq!(stdout.lines().count(), 1);
+    assert!(stdout.contains("((Homo,Pan),Gorilla);"));
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("replace")
+        .arg("tests/newick/abc.nwk")
+        .arg("tests/newick/abc.replace.tsv")
+        .arg("--mode")
+        .arg("species")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert!(stdout.contains("((A[S=Homo],B[S=Pan]),C[S=Gorilla]);"));
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("replace")
+        .arg("tests/newick/abc.nwk")
+        .arg("tests/newick/abc3.replace.tsv")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert!(stdout.contains("((Homo[color=red],Pan[color=red]),Gorilla[color=red]);"));
+
+    Ok(())
+}
+
+#[test]
 fn command_topo() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd

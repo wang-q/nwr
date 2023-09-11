@@ -26,6 +26,7 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::member::make_subcommand())
         .subcommand(cmd_nwr::order::make_subcommand())
         .subcommand(cmd_nwr::rename::make_subcommand())
+        .subcommand(cmd_nwr::replace::make_subcommand())
         .subcommand(cmd_nwr::restrict::make_subcommand())
         .subcommand(cmd_nwr::subtree::make_subcommand())
         .subcommand(cmd_nwr::stat::make_subcommand())
@@ -58,6 +59,7 @@ Subcommand groups:
     * Manipulation
         * order
         * rename
+        * replace
         * topo
         * subtree
     * Visualization
@@ -88,6 +90,7 @@ Subcommand groups:
         Some(("member", sub_matches)) => cmd_nwr::member::execute(sub_matches),
         Some(("order", sub_matches)) => cmd_nwr::order::execute(sub_matches),
         Some(("rename", sub_matches)) => cmd_nwr::rename::execute(sub_matches),
+        Some(("replace", sub_matches)) => cmd_nwr::replace::execute(sub_matches),
         Some(("restrict", sub_matches)) => cmd_nwr::restrict::execute(sub_matches),
         Some(("subtree", sub_matches)) => cmd_nwr::subtree::execute(sub_matches),
         Some(("stat", sub_matches)) => cmd_nwr::stat::execute(sub_matches),
@@ -103,11 +106,10 @@ Subcommand groups:
 }
 
 // TODO: abbr_name.pl
-// TODO: nwr replace
 // TODO: nw_ used before
 //   nw_condense
 //   nw_reroot
-// TODO: nw_
+// TODO:
 //   nw_match
 //   nw_prune
 //   nw_trim
