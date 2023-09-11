@@ -192,10 +192,7 @@ fn format_node(tree: &Tree, id: &NodeId, height: Edge) -> String {
 
     let mut repr = String::new();
 
-    let mut name = match node.name.clone() {
-        None => None,
-        Some(x) => Some(x.replace('_', " ")),
-    };
+    let mut name = node.name.clone().map(|x| x.replace('_', " "));
     let mut color: Option<String> = None;
     let mut label: Option<String> = None;
 

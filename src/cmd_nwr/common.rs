@@ -57,12 +57,12 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         let lineage = nwr::get_lineage(&conn, tax_id).unwrap();
 
         for taxon in lineage.iter() {
-            let cur_tax_id = taxon.tax_id.clone();
+            let cur_tax_id = taxon.tax_id;
             if !id_of.contains_key(&cur_tax_id) {
                 let node_id = if cur_tax_id == 1 {
                     add_taxon(&mut tree, taxon, None)
                 } else {
-                    let parent_tax_id = taxon.parent_tax_id.clone();
+                    let parent_tax_id = taxon.parent_tax_id;
                     let parent_id = id_of.get(&parent_tax_id).unwrap();
                     add_taxon(&mut tree, taxon, Some(*parent_id))
                 };

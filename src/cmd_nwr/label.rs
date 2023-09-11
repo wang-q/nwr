@@ -80,7 +80,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let ids_name = nwr::match_names(&tree, args);
 
     // Default is printing all named nodes
-    let ids : Vec<usize> = if ids_name.is_empty() {
+    let ids: Vec<usize> = if ids_name.is_empty() {
         ids_pos.into_iter().collect()
     } else {
         ids_pos.intersection(&ids_name).cloned().collect()
