@@ -107,7 +107,6 @@ Subcommand groups:
 
 // TODO: abbr_name.pl
 // TODO: nw_ used before
-//   nw_condense
 //   nw_reroot
 // TODO:
 //   nw_match

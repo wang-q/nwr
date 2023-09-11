@@ -50,7 +50,8 @@ Commands:
   lineage   Output the lineage of the term
   member    List members (of certain ranks) under ancestral term(s)
   order     Order nodes in a Newick file
-  rename    Rename node(s) in a Newick file
+  rename    Rename named/unnamed nodes in a Newick file
+  replace   Replace node names/comments in a Newick file
   restrict  Restrict taxonomy terms to ancestral descendants
   subtree   Extract a subtree
   stat      Statistics about the Newick file
@@ -83,13 +84,14 @@ Subcommand groups:
 * Newick
     * Information
         * label
-        * subtree
         * stat
         * distance
     * Manipulation
         * order
         * rename
+        * replace
         * topo
+        * subtree
     * Visualization
         * indent
         * comment
@@ -98,6 +100,7 @@ Subcommand groups:
 * Assembly
     * template
     * kb
+
 ```
 
 ## Examples
@@ -163,17 +166,15 @@ nwr label tests/newick/hg38.7way.nwk
 
 # The intersection between the nodes in the tree and the provided
 nwr label tests/newick/hg38.7way.nwk -r "^ch" -n Mouse -n foo
-
-cargo run --bin nwr label tests/newick/catarrhini.nwk -n Homo -n Pan -n Gorilla -M
-
+nwr label tests/newick/catarrhini.nwk -n Homo -n Pan -n Gorilla -M
 # Is Pongo the sibling of Homininae?
-cargo run --bin nwr label tests/newick/catarrhini.nwk -n Homininae -n Pongo -DM
-
+nwr label tests/newick/catarrhini.nwk -n Homininae -n Pongo -DM
 # All leaves belong to Hominidae
-cargo run --bin nwr label tests/newick/catarrhini.nwk -t Hominidae -I
+nwr label tests/newick/catarrhini.nwk -t Hominidae -I
 
 nwr stat tests/newick/hg38.7way.nwk
 
+# Various distances
 nwr distance -m root -I tests/newick/catarrhini.nwk
 nwr distance -m parent -I tests/newick/catarrhini.nwk
 nwr distance -m pairwise -I tests/newick/catarrhini.nwk
@@ -194,13 +195,16 @@ nwr order --nd tests/newick/hg38.7way.nwk
 
 nwr rename tests/newick/abc.nwk -n C -r F -l A,B -r D
 
-cargo run --bin nwr replace tests/newick/abc.nwk tests/newick/abc.replace.tsv
-cargo run --bin nwr replace tests/newick/abc.nwk tests/newick/abc3.replace.tsv
+nwr replace tests/newick/abc.nwk tests/newick/abc.replace.tsv
+nwr replace tests/newick/abc.nwk tests/newick/abc3.replace.tsv
 
 nwr topo tests/newick/catarrhini.nwk
 
-# The behavior is very similar to `nwr label`, but outputs a subtree instead of labels.
-nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -m
+# The behavior is very similar to `nwr label`, but outputs a subtree instead of labels
+cargo run --bin nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -M
+
+# Condense the subtree to a node
+cargo run --bin nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -M -c Primates
 
 # compgen -c nw_
 nw_prune tests/newick/catarrhini.nwk Homo Gorilla Pan

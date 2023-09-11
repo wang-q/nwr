@@ -6,8 +6,9 @@
 * Add `nwr replace`
 
 * Enhance `nwr label` and `nwr subtree`
-    * Internal nodes' descendants will automatically be included
     * Various filtering methods
+    * `--descendants` - Internal nodes' descendants will automatically be included
+    * `--condense` - Condense the subtree with the name provided
 
 * Adjust `template.tex` and update trees
 

@@ -13,13 +13,17 @@ This tool selectively outputs the names of the nodes in the tree
     * `-I`, `-L`
 * Match names
     * The intersection between the nodes in the tree and the provided
-    * Nodes matching the regular expression(s)
+    * Nodes matching the case insensitive regular expression(s)
     * Prints all named nodes if none of `-n`, `-f` and `-r` are set.
 * Match lineage
     * Like `nwr restrict`, print descendants of the provided terms
       in the form of a Taxonomy ID or scientific name
     * `--mode` - Taxonomy terms in label, taxid (:T=), or species (:S=)
 * Match monophyly
+    * `--monophyly` means the subtree should only contains the nodes passed in
+    * It will check terminal nodes (with names) against the ones provided
+    * With `-D`, a named internal node's descendants will automatically be included
+    * Nodes with the same name CAN cause problems
     * Activate `-I`
 
 "###,
