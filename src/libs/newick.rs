@@ -323,12 +323,33 @@ pub fn match_names(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> {
         }
     }
 
+    // Include all descendants of internal nodes
+    let is_descendants = if args.contains_id("descendants") {
+        args.get_flag("descendants")
+    } else {
+        false
+    };
+
+    if is_descendants {
+        let nodes: Vec<Node> =
+            ids.iter().map(|e| tree.get(e).unwrap().clone()).collect();
+        for node in &nodes {
+            if !node.is_tip() {
+                for id in &tree.get_subtree(&node.id).unwrap() {
+                    if tree.get(id).unwrap().name.is_some() {
+                        ids.insert(*id);
+                    }
+                }
+            }
+        }
+    }
+
     ids
 }
 
 // IDs that match the position rules
 pub fn match_positions(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> {
-    let skip_internal = if args.contains_id("Internal") {
+    let mut skip_internal = if args.contains_id("Internal") {
         args.get_flag("Internal")
     } else {
         false
@@ -338,6 +359,16 @@ pub fn match_positions(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> 
     } else {
         false
     };
+
+    let is_monophyly = if args.contains_id("monophyly") {
+        args.get_flag("monophyly")
+    } else {
+        false
+    };
+
+    if is_monophyly {
+        skip_internal = true;
+    }
 
     // all matched IDs
     let mut ids = BTreeSet::new();
@@ -356,4 +387,26 @@ pub fn match_positions(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> 
         });
 
     ids
+}
+
+pub fn check_monophyly(tree: &Tree, ids: &BTreeSet<usize>) -> bool {
+    let mut nodes: Vec<usize> = ids.iter().cloned().collect();
+    if nodes.is_empty() {
+        return false
+    }
+
+    let mut sub_root = nodes.pop().unwrap();
+
+    for id in &nodes {
+        sub_root = tree.get_common_ancestor(&sub_root, id).unwrap();
+    }
+
+    let mut descendants = BTreeSet::new();
+    for id in &tree.get_subtree(&sub_root).unwrap() {
+        if tree.get(id).unwrap().is_tip() {
+            descendants.insert(*id);
+        }
+    }
+
+    descendants.eq(ids)
 }

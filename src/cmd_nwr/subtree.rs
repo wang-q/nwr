@@ -12,7 +12,7 @@ Output a subtree (clade) rooted at the lowest common ancestor of all nodes passe
 * `--regex` is case insensitive
 * `--monophyly` means the subtree should only contains the nodes passed in
     * It will check terminal nodes (with names) against the ones provided
-    * If you provide a named internal node, its descendants will not automatically be included
+    * If you provide a named internal node, its descendants will automatically be included
     * Nodes with the same name CAN cause problems
 "###,
         )
@@ -44,6 +44,13 @@ Output a subtree (clade) rooted at the lowest common ancestor of all nodes passe
                 .num_args(1)
                 .action(ArgAction::Append)
                 .help("Nodes match the regular expression"),
+        )
+        .arg(
+            Arg::new("descendants")
+                .long("descendants")
+                .short('d')
+                .action(ArgAction::SetTrue)
+                .help("Include all descendants of internal nodes"),
         )
         .arg(
             Arg::new("monophyly")
