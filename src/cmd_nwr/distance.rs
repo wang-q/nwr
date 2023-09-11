@@ -35,7 +35,6 @@ Modes and output formats for calculating distances
         .arg(
             Arg::new("mode")
                 .long("mode")
-                .short('m')
                 .action(ArgAction::Set)
                 .value_parser([
                     builder::PossibleValue::new("root"),

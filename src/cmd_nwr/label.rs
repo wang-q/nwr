@@ -95,7 +95,6 @@ This tool selectively outputs the names of the nodes in the tree
         .arg(
             Arg::new("mode")
                 .long("mode")
-                .short('m')
                 .action(ArgAction::Set)
                 .value_parser([
                     builder::PossibleValue::new("label"),
