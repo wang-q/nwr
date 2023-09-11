@@ -8,7 +8,7 @@ pub fn make_subcommand() -> Command {
     Command::new("distance")
         .about("Output a TSV/phylip file with distances between all named nodes")
         .after_help(
-            r###"
+            r#"
 Modes and output formats for calculating distances
 
 * root - from each node to the root
@@ -23,7 +23,7 @@ Modes and output formats for calculating distances
 * phylip - a phylip matrix
     * `-I` and `-L` are both ignored
 
-"###,
+"#,
         )
         .arg(
             Arg::new("infile")

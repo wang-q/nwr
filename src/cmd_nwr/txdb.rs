@@ -8,7 +8,7 @@ pub fn make_subcommand() -> Command {
     Command::new("txdb")
         .about("Init the taxonomy database")
         .after_help(
-            r###"
+            r#"
 ~/.nwr/taxonomy.sqlite
 
 * The database built from `taxdump.tar.gz`
@@ -48,7 +48,7 @@ pub fn make_subcommand() -> Command {
         REFERENCES division (id)
     )
 
-"###,
+"#,
         )
         .arg(
             Arg::new("dir")

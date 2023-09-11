@@ -6,7 +6,7 @@ pub fn make_subcommand() -> Command {
     Command::new("tex")
         .about("Visualize the Newick tree via LaTeX")
         .after_help(
-            r###"
+            r#"
 * Styles are stored in the comments of each node
 
 * Drawing a cladogram by default
@@ -34,7 +34,7 @@ tectonic test.tex
 latexmk -xelatex test.tex
 latexmk -c test.tex
 ```
-"###,
+"#,
         )
         .arg(
             Arg::new("infile")
@@ -131,7 +131,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
 
         if !is_style {
-            let default_font = r#"
+            let default_font = r"
 \setmainfont{texgyrepagella}[
     Extension = .otf,
     UprightFont = *-regular,
@@ -139,7 +139,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     ItalicFont = *-italic,
     BoldItalicFont = *-bolditalic,
 ]
-"#;
+";
 
             // Section style
             let begin = template.find("%STYLE_BEGIN").unwrap();

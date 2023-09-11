@@ -13,7 +13,7 @@ pub fn make_subcommand() -> Command {
     Command::new("ardb")
         .about("Init the assembly database")
         .after_help(
-            r###"
+            r#"
 This command init the assembly database, which includes metadata for assemblies on the NCBI genomes FTP site.
 
 ~/.nwr/ar_refseq.sqlite
@@ -117,7 +117,7 @@ This command init the assembly database, which includes metadata for assemblies 
 
 * Requires SQLite version 3.34 or above.
 
-"###,
+"#,
         )
         .arg(
             Arg::new("dir")

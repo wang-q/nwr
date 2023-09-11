@@ -7,7 +7,7 @@ pub fn make_subcommand() -> Command {
     Command::new("append")
         .about("Append fields of higher ranks to a TSV file")
         .after_help(
-            r###"
+            r##"
 * If `--rank` is empty, the scientific name will be appended.
 
 * Valid ranks
@@ -18,7 +18,7 @@ pub fn make_subcommand() -> Command {
 
 * Lines starting with "#" will be treated as headers and have ranks attached to them.
 
-"###,
+"##,
         )
         .arg(
             Arg::new("infiles")

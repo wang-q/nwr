@@ -5,13 +5,13 @@ pub fn make_subcommand() -> Command {
     Command::new("indent")
         .about("Indent the Newick file")
         .after_help(
-            r###"
+            r#"
 * Set `--text` to something other than whitespaces will result in an invalid Newick file
     * Use `--text ".   "` can produce visual guide lines
 
 * Set `--text` to empty ("") will remove indentation
 
-"###,
+"#,
         )
         .arg(
             Arg::new("infile")
