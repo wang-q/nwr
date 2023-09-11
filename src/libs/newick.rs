@@ -269,7 +269,11 @@ pub fn add_comment(node: &mut Node, c: &str) {
     node.comment = Some(comment);
 }
 
-pub fn match_names(id_of: &BTreeMap<String, usize>, args: &clap::ArgMatches) -> BTreeSet<usize> {
+// Named IDs that match the name rules
+pub fn match_names(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> {
+    // IDs with names
+    let id_of: BTreeMap<_, _> = get_name_id(tree);
+
     // all matched IDs
     let mut ids = BTreeSet::new();
 

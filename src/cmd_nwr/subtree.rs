@@ -74,8 +74,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     // ids with names
     let id_of: BTreeMap<_, _> = nwr::get_name_id(&tree);
 
-    // All IDs to be processed
-    let ids = nwr::match_names(&id_of, args);
+    // All IDs matched
+    let ids = nwr::match_names(&tree, args);
 
     if !ids.is_empty() {
         let mut nodes: Vec<usize> = ids.iter().cloned().collect();
