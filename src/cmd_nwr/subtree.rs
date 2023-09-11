@@ -98,10 +98,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
             let mut descendants = BTreeSet::new();
             for id in &tree.get_subtree(&sub_root).unwrap() {
-                if name_of.contains_key(id) {
-                    if tree.get(id).unwrap().is_tip() {
-                        descendants.insert(*id);
-                    }
+                if name_of.contains_key(id) && tree.get(id).unwrap().is_tip() {
+                    descendants.insert(*id);
                 }
             }
 

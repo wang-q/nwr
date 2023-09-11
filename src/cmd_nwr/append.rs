@@ -11,8 +11,8 @@ pub fn make_subcommand() -> Command {
 * If `--rank` is empty, the scientific name will be appended.
 
 * Valid ranks
-  * species genus family order class phylum kingdom
-  * Use other ranks, such as clade or no rank, at your own risk.
+    * species genus family order class phylum kingdom
+    * Use other ranks, such as clade or no rank, at your own risk.
 
 * If the desired rank does not present, `NA` will be appended.
 
