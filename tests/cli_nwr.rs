@@ -212,7 +212,7 @@ fn command_common() -> anyhow::Result<()> {
     let stdout = String::from_utf8(output.stdout).unwrap();
 
     assert_eq!(stdout.lines().count(), 1);
-    assert!(stdout.contains("((Actinophage JHJ-1[taxid=12347:rank=species],Bacillus phage bg1[taxid=483783:rank=species])unclassified bacterial viruses[taxid=12333:rank=no rank])root[taxid=1:rank=no rank];"));
+    assert!(stdout.contains("((Actinophage JHJ-1[T=12347:rank=species],Bacillus phage bg1[T=483783:rank=species])unclassified bacterial viruses[T=12333:rank=no rank])root[T=1:rank=no rank];"));
 
     Ok(())
 }

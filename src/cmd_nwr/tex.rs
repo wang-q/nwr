@@ -228,11 +228,11 @@ fn format_node(tree: &Tree, id: &NodeId, height: Edge) -> String {
                     comment += " ";
                 }
                 comment += pt.replace("comment=", "").as_str();
-            } else if pt.starts_with("taxid=") {
+            } else if pt.starts_with("T=") {
                 if !comment.is_empty() {
                     comment += " ";
                 }
-                comment += pt.replace("taxid=", "").as_str();
+                comment += pt.replace("T=", "").as_str();
             } else if pt.starts_with("rank=") {
                 if !comment.is_empty() {
                     comment += " ";
