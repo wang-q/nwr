@@ -382,7 +382,8 @@ fn command_tex() -> anyhow::Result<()> {
 
     assert!(stdout.lines().count() > 90);
     assert!(stdout.contains("\n  [, l=40mm, l sep=0,\n"));
-    assert!(stdout.contains("\n  [{Opossum}, l=53mm, l sep=0, [{~},tier=0,edge={draw=none}],]\n"));
+    assert!(stdout
+        .contains("\n  [{Opossum}, l=53mm, l sep=0, [{~},tier=0,edge={draw=none}],]\n"));
 
     Ok(())
 }

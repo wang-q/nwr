@@ -125,10 +125,14 @@ pub fn order_tree_an(tree: &mut Tree, opt: &str) {
         } else {
             match opt {
                 "an" => {
-                    children.sort_by(|a, b| an_of.get(a).unwrap().cmp(an_of.get(b).unwrap()));
+                    children.sort_by(|a, b| {
+                        an_of.get(a).unwrap().cmp(an_of.get(b).unwrap())
+                    });
                 }
                 "anr" => {
-                    children.sort_by(|a, b| an_of.get(b).unwrap().cmp(an_of.get(a).unwrap()));
+                    children.sort_by(|a, b| {
+                        an_of.get(b).unwrap().cmp(an_of.get(a).unwrap())
+                    });
                 }
                 _ => panic!("Invalid opt"),
             }
@@ -171,10 +175,14 @@ pub fn order_tree_nd(tree: &mut Tree, opt: &str) {
         } else {
             match opt {
                 "nd" => {
-                    children.sort_by(|a, b| nd_of.get(a).unwrap().cmp(nd_of.get(b).unwrap()));
+                    children.sort_by(|a, b| {
+                        nd_of.get(a).unwrap().cmp(nd_of.get(b).unwrap())
+                    });
                 }
                 "ndr" => {
-                    children.sort_by(|a, b| nd_of.get(b).unwrap().cmp(nd_of.get(a).unwrap()));
+                    children.sort_by(|a, b| {
+                        nd_of.get(b).unwrap().cmp(nd_of.get(a).unwrap())
+                    });
                 }
                 _ => panic!("Invalid opt"),
             }

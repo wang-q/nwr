@@ -104,7 +104,10 @@ pub fn connect_txdb(dir: &Path) -> anyhow::Result<rusqlite::Connection> {
 ///
 /// assert_eq!(tax_ids, vec![12340, 12347]);
 /// ```
-pub fn get_tax_id(conn: &rusqlite::Connection, names: Vec<String>) -> anyhow::Result<Vec<i64>> {
+pub fn get_tax_id(
+    conn: &rusqlite::Connection,
+    names: Vec<String>,
+) -> anyhow::Result<Vec<i64>> {
     let mut tax_ids = vec![];
 
     let mut stmt = conn.prepare(
@@ -144,7 +147,10 @@ pub fn get_tax_id(conn: &rusqlite::Connection, names: Vec<String>) -> anyhow::Re
 /// assert_eq!(taxa.get(0).unwrap().division, "Phages");
 /// assert_eq!(taxa.get(1).unwrap().tax_id, 12347);
 /// ```
-pub fn get_taxon(conn: &rusqlite::Connection, ids: Vec<i64>) -> anyhow::Result<Vec<Taxon>> {
+pub fn get_taxon(
+    conn: &rusqlite::Connection,
+    ids: Vec<i64>,
+) -> anyhow::Result<Vec<Taxon>> {
     let mut taxa = vec![];
 
     let mut stmt = conn.prepare(
@@ -284,7 +290,10 @@ pub fn get_lineage(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<T
 /// assert_eq!(descendents.get(0).unwrap().rank, "no rank");
 /// assert_eq!(descendents.len(), 34);
 /// ```
-pub fn get_descendent(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<Taxon>> {
+pub fn get_descendent(
+    conn: &rusqlite::Connection,
+    id: i64,
+) -> anyhow::Result<Vec<Taxon>> {
     let mut ids: Vec<i64> = vec![];
 
     let mut stmt = conn.prepare(
@@ -317,7 +326,10 @@ pub fn get_descendent(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Ve
 /// assert_eq!(*descendents.get(0).unwrap(), 375032);
 /// assert_eq!(descendents.len(), 35);
 /// ```
-pub fn get_all_descendent(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<i64>> {
+pub fn get_all_descendent(
+    conn: &rusqlite::Connection,
+    id: i64,
+) -> anyhow::Result<Vec<i64>> {
     let mut ids: Vec<i64> = vec![];
     let mut temp_ids = vec![id];
 

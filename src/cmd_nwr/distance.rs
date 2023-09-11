@@ -117,7 +117,11 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn dist_root(tree: &Tree, id_of: &BTreeMap<String, NodeId>, writer: &mut Box<dyn Write>) {
+fn dist_root(
+    tree: &Tree,
+    id_of: &BTreeMap<String, NodeId>,
+    writer: &mut Box<dyn Write>,
+) {
     let root = tree.get_root().unwrap();
     for (k, v) in id_of.iter() {
         let dist = {
@@ -131,7 +135,11 @@ fn dist_root(tree: &Tree, id_of: &BTreeMap<String, NodeId>, writer: &mut Box<dyn
     }
 }
 
-fn dist_parent(tree: Tree, id_of: &BTreeMap<String, NodeId>, writer: &mut Box<dyn Write>) {
+fn dist_parent(
+    tree: Tree,
+    id_of: &BTreeMap<String, NodeId>,
+    writer: &mut Box<dyn Write>,
+) {
     for (k, v) in id_of.iter() {
         let parent = tree.get(v).unwrap().parent;
         if parent.is_none() {
@@ -150,7 +158,11 @@ fn dist_parent(tree: Tree, id_of: &BTreeMap<String, NodeId>, writer: &mut Box<dy
     }
 }
 
-fn dist_pairwise(tree: Tree, id_of: &BTreeMap<String, NodeId>, writer: &mut Box<dyn Write>) {
+fn dist_pairwise(
+    tree: Tree,
+    id_of: &BTreeMap<String, NodeId>,
+    writer: &mut Box<dyn Write>,
+) {
     for (k1, v1) in id_of.iter() {
         for (k2, v2) in id_of.iter() {
             let dist = {

@@ -78,7 +78,11 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn add_taxon(tree: &mut phylotree::tree::Tree, taxon: &Taxon, parent: Option<usize>) -> usize {
+fn add_taxon(
+    tree: &mut phylotree::tree::Tree,
+    taxon: &Taxon,
+    parent: Option<usize>,
+) -> usize {
     let mut node = phylotree::tree::Node::new();
     let name = taxon.names.get("scientific name").unwrap()[0].clone(); // :S=
     node.set_name(name);

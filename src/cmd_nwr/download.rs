@@ -109,7 +109,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         io::copy(&mut file, &mut hasher)?;
         let digest = format!("{:x}", hasher.compute());
 
-        let mut ncbi_digest = std::fs::read_to_string(nwrdir.join("taxdump.tar.gz.md5"))?;
+        let mut ncbi_digest =
+            std::fs::read_to_string(nwrdir.join("taxdump.tar.gz.md5"))?;
         ncbi_digest.truncate(32);
 
         if digest != ncbi_digest {
@@ -136,7 +137,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         "==> Downloading from {} ...",
         args.get_one::<String>("host").unwrap()
     );
-    if std::path::Path::new(&ar_refseq).exists() && std::path::Path::new(&ar_genbank).exists() {
+    if std::path::Path::new(&ar_refseq).exists()
+        && std::path::Path::new(&ar_genbank).exists()
+    {
         info!(
             "Skipping, {} & {} exist",
             ar_refseq.to_string_lossy(),

@@ -108,7 +108,9 @@ pub fn make_subcommand() -> Command {
                 .long("rec")
                 .num_args(0..=1)
                 .default_missing_value("LemonChiffon")
-                .help("Place a rectangle in the background of the subtree; value as color"),
+                .help(
+                    "Place a rectangle in the background of the subtree; value as color",
+                ),
         )
         .arg(
             Arg::new("outfile")

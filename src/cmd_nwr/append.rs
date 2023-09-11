@@ -94,7 +94,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         let reader = intspan::reader(infile);
 
         for line in reader.lines().map_while(Result::ok) {
-            let mut fields: Vec<String> = line.split('\t').map(|s| s.to_string()).collect();
+            let mut fields: Vec<String> =
+                line.split('\t').map(|s| s.to_string()).collect();
 
             // Lines start with "#"
             if line.starts_with('#') {
@@ -140,7 +141,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                     };
 
                     for rank in ranks.iter() {
-                        let (tax_id, sci_name) = nwr::find_rank(&lineage, rank.to_string());
+                        let (tax_id, sci_name) =
+                            nwr::find_rank(&lineage, rank.to_string());
                         fields.push(sci_name.to_string());
                         if is_id {
                             fields.push(format!("{}", tax_id));
