@@ -243,14 +243,14 @@ pub fn get_name_id(tree: &Tree) -> BTreeMap<String, usize> {
 /// let newick = "(A,B);";
 /// let mut tree = Tree::from_newick(newick).unwrap();
 /// let mut node = tree.get_by_name_mut("A").unwrap();
-/// nwr::add_comment_kv(&mut node, "color", "red");
+/// nwr::add_comment(&mut node, "color=red");
 ///
 /// assert_eq!(tree.to_newick().unwrap(), "(A[color=red],B);".to_string());
 /// ```
-pub fn add_comment_kv(node: &mut Node, key: &str, value: &str) {
+pub fn add_comment(node: &mut Node, c: &str) {
     let comment = match &node.comment {
-        None => format!("{}={}", key, value),
-        Some(x) => format!("{}:{}={}", x, key, value),
+        None => c.to_string(),
+        Some(x) => format!("{}:{}", x, c),
     };
 
     node.comment = Some(comment);
@@ -264,17 +264,45 @@ pub fn add_comment_kv(node: &mut Node, key: &str, value: &str) {
 /// let newick = "(A,B);";
 /// let mut tree = Tree::from_newick(newick).unwrap();
 /// let mut node = tree.get_by_name_mut("A").unwrap();
-/// nwr::add_comment(&mut node, "color=red");
+/// nwr::add_comment_kv(&mut node, "color", "red");
 ///
 /// assert_eq!(tree.to_newick().unwrap(), "(A[color=red],B);".to_string());
 /// ```
-pub fn add_comment(node: &mut Node, c: &str) {
+pub fn add_comment_kv(node: &mut Node, key: &str, value: &str) {
     let comment = match &node.comment {
-        None => c.to_string(),
-        Some(x) => format!("{}:{}", x, c),
+        None => format!("{}={}", key, value),
+        Some(x) => format!("{}:{}={}", x, key, value),
     };
 
     node.comment = Some(comment);
+}
+
+/// Retrieves value from comments of a node
+///
+/// ```
+/// use phylotree::tree::Tree;
+///
+/// let newick = "(A[T=9606:S=Homo sapiens],B);";
+/// let mut tree = Tree::from_newick(newick).unwrap();
+/// let mut node = tree.get_by_name_mut("A").unwrap();
+/// let sciname = nwr::get_comment_k(&node, "S");
+///
+/// assert_eq!(sciname.unwrap(), "Homo sapiens".to_string());
+/// ```
+pub fn get_comment_k(node: &Node, key: &str) -> Option<String> {
+    let mut value: Option<String> = None;
+    if let Some(comment) = node.comment.clone() {
+        let parts: Vec<&str> = comment.split(':').collect();
+
+        for pt in parts {
+            let key = format!("{}=", key);
+            if pt.starts_with(&key) {
+                value = Some(pt.replace(&key, "").to_string());
+            }
+        }
+    }
+
+    value
 }
 
 // Named IDs that match the name rules
@@ -392,7 +420,7 @@ pub fn match_positions(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> 
 pub fn check_monophyly(tree: &Tree, ids: &BTreeSet<usize>) -> bool {
     let mut nodes: Vec<usize> = ids.iter().cloned().collect();
     if nodes.is_empty() {
-        return false
+        return false;
     }
 
     let mut sub_root = nodes.pop().unwrap();

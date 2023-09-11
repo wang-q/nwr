@@ -1,4 +1,6 @@
 use clap::*;
+use intspan::IntSpan;
+use phylotree::tree::Node;
 use std::collections::BTreeSet;
 
 // Create clap subcommand arguments
@@ -15,7 +17,10 @@ This tool selectively outputs the names of the nodes in the tree
     * The intersection between the nodes in the tree and the provided
     * Nodes matching the regular expression(s)
     * Prints all named nodes if none of `-n`, `-f` and `-r` are set.
-* Match comments
+* Match lineage
+    * Like `nwr restrict`, print descendants of the provided terms
+      in the form of a Taxonomy ID or scientific name
+    * `--mode` - Taxonomy terms in label, taxid (:T=), or species (:S=)
 * Match monophyly
     * Activate `-I`
 
@@ -67,14 +72,43 @@ This tool selectively outputs the names of the nodes in the tree
         .arg(
             Arg::new("descendants")
                 .long("descendants")
-                .short('d')
+                .short('D')
                 .action(ArgAction::SetTrue)
                 .help("Include all descendants of internal nodes"),
         )
         .arg(
+            Arg::new("term")
+                .long("term")
+                .short('t')
+                .num_args(1)
+                .action(ArgAction::Append)
+                .help("The ancestor(s)"),
+        )
+        .arg(
+            Arg::new("dir")
+                .long("dir")
+                .short('d')
+                .num_args(1)
+                .value_name("DIR")
+                .help("Change working directory"),
+        )
+        .arg(
+            Arg::new("mode")
+                .long("mode")
+                .short('m')
+                .action(ArgAction::Set)
+                .value_parser([
+                    builder::PossibleValue::new("label"),
+                    builder::PossibleValue::new("taxid"),
+                    builder::PossibleValue::new("species"),
+                ])
+                .default_value("label")
+                .help("Where we can find taxonomy terms"),
+        )
+        .arg(
             Arg::new("monophyly")
                 .long("monophyly")
-                .short('m')
+                .short('M')
                 .action(ArgAction::SetTrue)
                 .help("Only print the labels when they form a monophyletic subtree"),
         )
@@ -90,12 +124,19 @@ This tool selectively outputs the names of the nodes in the tree
 
 // command implementation
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
+    //----------------------------
+    // Args
+    //----------------------------
     let mut writer = intspan::writer(args.get_one::<String>("outfile").unwrap());
 
     let infile = args.get_one::<String>("infile").unwrap();
     let tree = nwr::read_newick(infile);
 
     let is_monophyly = args.get_flag("monophyly");
+
+    //----------------------------
+    // Operating
+    //----------------------------
 
     // All IDs matching names
     let ids_pos = nwr::match_positions(&tree, args);
@@ -108,17 +149,64 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         || args.contains_id("file")
         || args.contains_id("regex"));
 
-    let ids: BTreeSet<usize> = if is_all {
+    let mut ids: BTreeSet<usize> = if is_all {
         ids_pos.into_iter().collect()
     } else {
         ids_pos.intersection(&ids_name).cloned().collect()
     };
 
-    // Print nothing is check_monophyly failed
+    // lineage
+    if args.contains_id("term") {
+        let nwrdir = if args.contains_id("dir") {
+            std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf()
+        } else {
+            nwr::nwr_path()
+        };
+        let conn = nwr::connect_txdb(&nwrdir).unwrap();
+
+        let mut tax_id_set = IntSpan::new();
+        for term in args.get_many::<String>("term").unwrap() {
+            let id = nwr::term_to_tax_id(&conn, term).unwrap();
+            let descendents: Vec<i32> = nwr::get_all_descendent(&conn, id)
+                .unwrap()
+                .iter()
+                .map(|n| *n as i32)
+                .collect();
+            tax_id_set.add_vec(descendents.as_ref());
+        }
+
+        let mut ids_restrict = BTreeSet::new();
+
+        let mode = args.get_one::<String>("mode").unwrap();
+        let nodes: Vec<Node> =
+            ids.iter().map(|e| tree.get(e).unwrap().clone()).collect();
+        for node in nodes.iter() {
+            let term = match mode.as_str() {
+                "label" => node.name.clone(),
+                "taxid" => nwr::get_comment_k(node, "T"),
+                "species" => nwr::get_comment_k(node, "S"),
+                _ => unreachable!(),
+            };
+
+            if term.is_some() {
+                let tax_id = nwr::term_to_tax_id(&conn, &term.unwrap()).unwrap();
+                if tax_id_set.contains(tax_id as i32) {
+                    ids_restrict.insert(node.id);
+                }
+            }
+        }
+
+        ids = ids.intersection(&ids_restrict).cloned().collect()
+    }
+
+    // Print nothing if check_monophyly() failed
     if is_monophyly && !nwr::check_monophyly(&tree, &ids) {
         return Ok(());
     }
 
+    //----------------------------
+    // Output
+    //----------------------------
     for id in ids.iter() {
         let node = tree.get(id).unwrap();
         if let Some(x) = node.name.clone() {

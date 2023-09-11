@@ -1,6 +1,5 @@
 use assert_cmd::prelude::*; // Add methods on commands
-use std::process::{Command, Stdio};
-use clap::arg; // Run programs
+use std::process::{Command, Stdio}; // Run programs
 
 #[test]
 fn command_label() -> anyhow::Result<()> {
@@ -43,15 +42,15 @@ fn command_label() -> anyhow::Result<()> {
         .arg("label")
         .arg("tests/newick/catarrhini.nwk")
         .arg("-n")
-        .arg("Hominini")
+        .arg("Homininae")
         .arg("-n")
-        .arg("Gorilla")
-        .arg("-dm")
+        .arg("Pongo")
+        .arg("-DM")
         .output()
         .unwrap();
     let stdout = String::from_utf8(output.stdout).unwrap();
 
-    assert_eq!(stdout.lines().count(), 3);
+    assert_eq!(stdout.lines().count(), 4);
 
     Ok(())
 }
@@ -181,7 +180,7 @@ fn command_distance() -> anyhow::Result<()> {
         .unwrap();
     let stdout = String::from_utf8(output.stdout).unwrap();
 
-    assert_eq!(stdout.lines().count(), 6);
+    assert_eq!(stdout.lines().count(), 5);
     assert!(stdout.contains("Homininae\t3"));
 
     Ok(())

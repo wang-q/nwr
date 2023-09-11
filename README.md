@@ -165,8 +165,11 @@ nwr label tests/newick/hg38.7way.nwk
 nwr label tests/newick/hg38.7way.nwk -r "^ch" -n Mouse -n foo
 
 # Is Gorilla the sibling of Hominini?
-nwr label tests/newick/catarrhini.nwk -n Homo -n Pan -n Gorilla -m
-nwr label tests/newick/catarrhini.nwk -n Hominini -n Gorilla -d -m
+cargo run --bin nwr label tests/newick/catarrhini.nwk -n Homo -n Pan -n Gorilla -M
+
+cargo run --bin nwr label tests/newick/catarrhini.nwk -n Homininae -n Pongo -D -M
+
+cargo run --bin nwr label tests/newick/catarrhini.nwk -t Hominidae
 
 # The behavior is very similar to `nwr label`, but outputs a subtree instead of labels.
 nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -m

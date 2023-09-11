@@ -4,6 +4,10 @@
 
 * Add `nwr distance`
 
+* Enhance `nwr label` and `nwr subtree`
+    * Internal nodes' descendants will automatically be included
+    * Various filtering methods
+
 * Adjust `template.tex` and update trees
 
 ## 0.6.4 - 2023-09-09
