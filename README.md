@@ -7,8 +7,8 @@
 ![](https://img.shields.io/crates/d/nwr?label=downloads%20%28crates.io%29)
 [![Lines of code](https://www.aschey.tech/tokei/github/wang-q/nwr)](https://github.com//wang-q/nwr)
 
-`nwr` is a command line tool for working with **N**CBI taxonomy, Ne**w**ick files and assembly
-**r**eports, written in Rust.
+`nwr` is a command line tool for working with **N**CBI taxonomy, Ne**W**ick files and assembly
+**R**eports, written in Rust.
 
 ## Install
 
@@ -157,6 +157,7 @@ For more detailed usages, check [this](tree/README.md).
 
 ```shell
 nwr label tests/newick/hg38.7way.nwk
+nwr label tests/newick/hg38.7way.nwk -r "^ch" -n Mouse
 
 nwr stat tests/newick/hg38.7way.nwk
 
@@ -165,9 +166,9 @@ nwr distance -m parent -I tests/newick/catarrhini.nwk
 nwr distance -m pairwise -I tests/newick/catarrhini.nwk
 nwr distance -m lca -I tests/newick/catarrhini.nwk
 
-nwr distance -m phylip tests/newick/catarrhini.nwk
-
 nwr distance -m root -L tests/newick/catarrhini_topo.nwk
+
+nwr distance -m phylip tests/newick/catarrhini.nwk
 
 nwr indent tests/newick/hg38.7way.nwk --text ".   "
 

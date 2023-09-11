@@ -317,3 +317,35 @@ pub fn match_names(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> {
 
     ids
 }
+
+// IDs that match the position rules
+pub fn match_positions(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> {
+    let skip_internal = if args.contains_id("Internal") {
+        args.get_flag("Internal")
+    } else {
+        false
+    };
+    let skip_leaf = if args.contains_id("Leaf") {
+        args.get_flag("Leaf")
+    } else {
+        false
+    };
+
+    // all matched IDs
+    let mut ids = BTreeSet::new();
+
+    tree.inorder(&tree.get_root().unwrap())
+        .unwrap()
+        .iter()
+        .for_each(|id| {
+            let node = tree.get(id).unwrap();
+            if node.is_tip() && !skip_leaf {
+                ids.insert(*id);
+            }
+            if !node.is_tip() && !skip_internal {
+                ids.insert(*id);
+            }
+        });
+
+    ids
+}

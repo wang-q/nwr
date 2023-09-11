@@ -25,6 +25,18 @@ fn command_label() -> anyhow::Result<()> {
 
     assert_eq!(stdout.lines().count(), 0);
 
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("label")
+        .arg("tests/newick/hg38.7way.nwk")
+        .arg("-r")
+        .arg("^ch")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert_eq!(stdout.lines().count(), 1);
+
     Ok(())
 }
 
