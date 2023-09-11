@@ -57,11 +57,11 @@ Subcommand groups:
         * stat
         * distance
     * Manipulation
-        * indent
         * order
         * rename
         * topo
     * Visualization
+        * indent
         * comment
         * tex
 

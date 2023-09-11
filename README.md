@@ -83,15 +83,15 @@ Subcommand groups:
 * Newick
     * Information
         * label
+        * subtree
         * stat
         * distance
     * Manipulation
-        * indent
         * order
         * rename
-        * subtree
         * topo
     * Visualization
+        * indent
         * comment
         * tex
 
@@ -188,10 +188,9 @@ nwr distance -m phylip tests/newick/catarrhini.nwk
 
 ```
 
+#### Manipulation of the tree
 
 ```shell
-nwr indent tests/newick/hg38.7way.nwk --text ".   "
-
 echo "((A,B),C);" | nwr order --ndr stdin
 nwr order --nd tests/newick/hg38.7way.nwk
 
@@ -206,6 +205,13 @@ nw_reroot tests/newick/catarrhini_wrong.nwk Cebus |
     nw_order -c n -
 perl doc/reroot.pl tests/newick/catarrhini_wrong.nwk Cebus |
     nw_order -c n -
+
+```
+
+#### Visualization of the tree
+
+```shell
+nwr indent tests/newick/hg38.7way.nwk --text ".   "
 
 echo "((A,B),C);" |
     nwr comment stdin -n A -n C --color green |
