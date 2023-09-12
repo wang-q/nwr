@@ -2,6 +2,8 @@
 
 ## Unreleased - ReleaseDate
 
+## 0.6.5 - 2023-09-12
+
 * Add `nwr distance`
 * Add `nwr replace`
 * Add `nwr prune`

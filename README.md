@@ -12,7 +12,7 @@
 
 ## Install
 
-Current release: 0.6.4
+Current release: 0.6.5
 
 ```shell
 cargo install nwr
