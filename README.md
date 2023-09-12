@@ -50,8 +50,10 @@ Commands:
   lineage   Output the lineage of the term
   member    List members (of certain ranks) under ancestral term(s)
   order     Order nodes in a Newick file
+  prune     Remove nodes from the Newick file
   rename    Rename named/unnamed nodes in a Newick file
   replace   Replace node names/comments in a Newick file
+  reroot    Place the root in the middle of the desired node and its parent
   restrict  Restrict taxonomy terms to ancestral descendants
   subtree   Extract a subtree
   stat      Statistics about the Newick file
@@ -92,6 +94,8 @@ Subcommand groups:
         * replace
         * topo
         * subtree
+        * prune
+        * reroot
     * Visualization
         * indent
         * comment
