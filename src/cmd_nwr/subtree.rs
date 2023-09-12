@@ -1,6 +1,6 @@
 use clap::*;
-use std::collections::{BTreeMap, BTreeSet};
 use phylotree::tree::Node;
+use std::collections::{BTreeMap, BTreeSet};
 
 // Create clap subcommand arguments
 pub fn make_subcommand() -> Command {

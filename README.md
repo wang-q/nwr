@@ -201,14 +201,14 @@ nwr replace tests/newick/abc.nwk tests/newick/abc3.replace.tsv
 nwr topo tests/newick/catarrhini.nwk
 
 # The behavior is very similar to `nwr label`, but outputs a subtree instead of labels
-cargo run --bin nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -M
+nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -M
 
 # Condense the subtree to a node
-cargo run --bin nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -M -c Primates
+nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -M -c Primates
+
+cargo run --bin nwr prune tests/newick/catarrhini.nwk -n Homo -n Pan
 
 # compgen -c nw_
-nw_prune tests/newick/catarrhini.nwk Homo Gorilla Pan
-
 nw_reroot tests/newick/catarrhini_wrong.nwk Cebus |
     nw_order -c n -
 perl doc/reroot.pl tests/newick/catarrhini_wrong.nwk Cebus |

@@ -4,10 +4,12 @@
 
 * Add `nwr distance`
 * Add `nwr replace`
+* Add `nwr prune`
 
-* Enhance `nwr label` and `nwr subtree`
+* Enhance `nwr label`
     * Various filtering methods
     * `--descendants` - Internal nodes' descendants will automatically be included
+* Enhance `nwr subtree`
     * `--condense` - Condense the subtree with the name provided
 
 * Adjust `template.tex` and update trees

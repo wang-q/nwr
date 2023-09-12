@@ -390,6 +390,27 @@ fn command_subtree() -> anyhow::Result<()> {
 }
 
 #[test]
+fn command_prune() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("prune")
+        .arg("tests/newick/catarrhini.nwk")
+        .arg("-n")
+        .arg("Homo")
+        .arg("-n")
+        .arg("Pan")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert!(!stdout.contains("Homo:10"));
+    assert!(!stdout.contains("Gorilla:16"));
+    assert!(stdout.contains("Gorilla:31"));
+
+    Ok(())
+}
+
+#[test]
 fn command_indent() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
