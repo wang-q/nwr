@@ -306,6 +306,42 @@ pub fn get_comment_k(node: &Node, key: &str) -> Option<String> {
     value
 }
 
+/// Insert a node in the middle of the desired node and its parent
+///
+/// ```
+/// use phylotree::tree::Tree;
+///
+/// let newick = "((A,B),C);";
+/// let mut tree = Tree::from_newick(newick).unwrap();
+/// let id = tree.get_by_name("B").unwrap().id;
+///
+/// nwr::insert_parent(&mut tree, &id);
+///
+/// assert_eq!(tree.to_newick().unwrap(), "((A,(B)),C);".to_string());
+///
+/// let newick = "((A:1,B:1):1,C:1);";
+/// let mut tree = Tree::from_newick(newick).unwrap();
+/// let id = tree.get_by_name("B").unwrap().id;
+///
+/// nwr::insert_parent(&mut tree, &id);
+///
+/// assert_eq!(tree.to_newick().unwrap(), "((A:1,(B:0.5):0.5):1,C:1);".to_string());
+/// ```
+pub fn insert_parent(tree: &mut Tree, child_id: &NodeId) {
+    let parent = tree.get(child_id).unwrap().parent.unwrap().clone();
+    let new_edge = match tree.get(child_id).unwrap().parent_edge.clone() {
+        Some(p) => Some(p / 2.0 ),
+        None  => None,
+    };
+
+    let new = tree.add_child(Node::new(), parent, new_edge).unwrap();
+
+    tree.get_mut(child_id).unwrap().set_parent(new, new_edge);
+    tree.get_mut(&new).unwrap().add_child(*child_id, new_edge);
+
+    tree.get_mut(&parent).unwrap().remove_child(&child_id).unwrap();
+}
+
 // Named IDs that match the name rules
 pub fn match_names(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> {
     // IDs with names
