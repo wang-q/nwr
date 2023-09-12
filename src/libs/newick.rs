@@ -353,7 +353,7 @@ pub fn match_names(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> {
     }
 
     // Include all descendants of internal nodes
-    let is_descendants = if args.contains_id("descendants") {
+    let is_descendants = if args.try_contains_id("descendants").is_ok() {
         args.get_flag("descendants")
     } else {
         false
