@@ -28,6 +28,7 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::prune::make_subcommand())
         .subcommand(cmd_nwr::rename::make_subcommand())
         .subcommand(cmd_nwr::replace::make_subcommand())
+        .subcommand(cmd_nwr::reroot::make_subcommand())
         .subcommand(cmd_nwr::restrict::make_subcommand())
         .subcommand(cmd_nwr::subtree::make_subcommand())
         .subcommand(cmd_nwr::stat::make_subcommand())
@@ -64,6 +65,7 @@ Subcommand groups:
         * topo
         * subtree
         * prune
+        * reroot
     * Visualization
         * indent
         * comment
@@ -94,6 +96,7 @@ Subcommand groups:
         Some(("prune", sub_matches)) => cmd_nwr::prune::execute(sub_matches),
         Some(("rename", sub_matches)) => cmd_nwr::rename::execute(sub_matches),
         Some(("replace", sub_matches)) => cmd_nwr::replace::execute(sub_matches),
+        Some(("reroot", sub_matches)) => cmd_nwr::reroot::execute(sub_matches),
         Some(("restrict", sub_matches)) => cmd_nwr::restrict::execute(sub_matches),
         Some(("subtree", sub_matches)) => cmd_nwr::subtree::execute(sub_matches),
         Some(("stat", sub_matches)) => cmd_nwr::stat::execute(sub_matches),
@@ -109,8 +112,6 @@ Subcommand groups:
 }
 
 // TODO: abbr_name.pl
-// TODO: nw_ used before
-//   nw_reroot
-// TODO:
+// TODO: `compgen -c nw_`
 //   nw_match
 //   nw_trim

@@ -411,6 +411,35 @@ fn command_prune() -> anyhow::Result<()> {
 }
 
 #[test]
+fn command_reroot() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("reroot")
+        .arg("tests/newick/catarrhini_wrong.nwk")
+        .arg("-n")
+        .arg("Cebus")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert!(stdout.contains("(Cebus,(((Cercopithecus,(Macaca,Papio)),Simias),(Hylobates,(Pongo,(Gorilla,(Pan,Homo))))));"));
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("reroot")
+        .arg("tests/newick/abcde.nwk")
+        .arg("-n")
+        .arg("B")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert!(stdout.contains("(B:0.5,(A:1,C:2)D:0.5);"));
+
+    Ok(())
+}
+
+#[test]
 fn command_indent() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd

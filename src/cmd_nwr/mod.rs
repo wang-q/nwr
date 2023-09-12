@@ -16,6 +16,7 @@ pub mod order;
 pub mod prune;
 pub mod rename;
 pub mod replace;
+pub mod reroot;
 pub mod restrict;
 pub mod stat;
 pub mod subtree;

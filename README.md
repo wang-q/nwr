@@ -206,13 +206,11 @@ nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -M
 # Condense the subtree to a node
 nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -M -c Primates
 
-cargo run --bin nwr prune tests/newick/catarrhini.nwk -n Homo -n Pan
+nwr prune tests/newick/catarrhini.nwk -n Homo -n Pan
 
-# compgen -c nw_
-nw_reroot tests/newick/catarrhini_wrong.nwk Cebus |
-    nw_order -c n -
-perl doc/reroot.pl tests/newick/catarrhini_wrong.nwk Cebus |
-    nw_order -c n -
+echo "((A:1,B:1)D:1,C:1)E;" |
+    nwr reroot stdin -n B
+nwr reroot tests/newick/catarrhini_wrong.nwk -n Cebus
 
 ```
 

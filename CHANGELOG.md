@@ -5,6 +5,7 @@
 * Add `nwr distance`
 * Add `nwr replace`
 * Add `nwr prune`
+* Add `nwr reroot`
 
 * Enhance `nwr label`
     * Various filtering methods

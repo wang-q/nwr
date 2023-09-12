@@ -1,5 +1,5 @@
 use intspan::IntSpan;
-use phylotree::tree::{Node, NodeId, Tree};
+use phylotree::tree::{Edge, Node, NodeId, Tree};
 use regex::RegexBuilder;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
@@ -327,19 +327,61 @@ pub fn get_comment_k(node: &Node, key: &str) -> Option<String> {
 ///
 /// assert_eq!(tree.to_newick().unwrap(), "((A:1,(B:0.5):0.5):1,C:1);".to_string());
 /// ```
-pub fn insert_parent(tree: &mut Tree, child_id: &NodeId) {
-    let parent = tree.get(child_id).unwrap().parent.unwrap().clone();
-    let new_edge = match tree.get(child_id).unwrap().parent_edge.clone() {
-        Some(p) => Some(p / 2.0 ),
-        None  => None,
+pub fn insert_parent(tree: &mut Tree, id: &NodeId) -> NodeId {
+    let parent = tree.get(id).unwrap().parent.unwrap().clone();
+    let new_edge = match tree.get(id).unwrap().parent_edge.clone() {
+        Some(p) => Some(p / 2.0),
+        None => None,
     };
 
     let new = tree.add_child(Node::new(), parent, new_edge).unwrap();
 
-    tree.get_mut(child_id).unwrap().set_parent(new, new_edge);
-    tree.get_mut(&new).unwrap().add_child(*child_id, new_edge);
+    tree.get_mut(id).unwrap().set_parent(new, new_edge);
+    tree.get_mut(&new).unwrap().add_child(*id, new_edge);
 
-    tree.get_mut(&parent).unwrap().remove_child(&child_id).unwrap();
+    tree.get_mut(&parent)
+        .unwrap()
+        .remove_child(&id)
+        .unwrap();
+
+    new
+}
+
+/// Swap parent-child link of a node
+///
+/// ```
+/// use phylotree::tree::Tree;
+///
+/// let newick = "((A,B)D,C)E;";
+/// let mut tree = Tree::from_newick(newick).unwrap();
+///
+/// let id_b = tree.get_by_name("B").unwrap().id;
+/// let id_d = tree.get_by_name("D").unwrap().id;
+/// let new_root = nwr::insert_parent(&mut tree, &id_b);
+///
+/// let mut edge = None;
+/// edge = nwr::swap_parent(&mut tree, &id_d, edge);
+/// edge = nwr::swap_parent(&mut tree, &new_root, edge);
+///
+/// assert_eq!(tree.to_newick().unwrap(), "(B,(A,(C)E)D);".to_string());
+/// ```
+pub fn swap_parent(tree: &mut Tree, id: &NodeId, prev_edge : Option<Edge>) -> Option<Edge> {
+    let parent = tree.get(id).unwrap().parent.unwrap().clone();
+
+    tree.get_mut(id).unwrap().parent = None;
+    tree.get_mut(&parent).unwrap().parent = Some(*id);
+
+    tree.get_mut(id).unwrap().add_child(parent, None);
+    tree.get_mut(&parent)
+        .unwrap()
+        .remove_child(&id)
+        .unwrap();
+
+    let edge = tree.get_mut(&parent).unwrap().parent_edge.clone();
+    tree.get_mut(&parent).unwrap().parent_edge = tree.get_mut(id).unwrap().parent_edge.clone();
+    tree.get_mut(id).unwrap().parent_edge = prev_edge;
+
+    edge
 }
 
 // Named IDs that match the name rules
