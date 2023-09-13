@@ -1,8 +1,7 @@
 use clap::*;
 use cmd_lib::*;
 use itertools::Itertools;
-use std::collections::BTreeMap;
-use std::io::{BufRead, Read, Write};
+use std::io::{BufRead, Write};
 use std::{env, fs};
 use tempfile::TempDir;
 
@@ -161,7 +160,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 if let Some(term) = parts.get(1) {
                     let id = nwr::term_to_tax_id(&conn, term).unwrap();
                     let lineage = match nwr::get_lineage(&conn, id) {
-                        Err(err) => {
+                        Err(_) => {
                             continue;
                         }
                         Ok(x) => x,
@@ -225,10 +224,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         env::set_current_dir(&curdir)?;
     } else {
         env::set_current_dir(&curdir)?;
-        fs::copy(
-            tempdir.path().join("result.nwk").to_str().unwrap(),
-            outfile,
-        )?;
+        fs::copy(tempdir.path().join("result.nwk").to_str().unwrap(), outfile)?;
     }
 
     if args.get_flag("map") {
@@ -238,19 +234,18 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         )?;
     }
 
-    pause();
-
     Ok(())
 }
 
-fn pause() {
-    let mut stdin = std::io::stdin();
-    let mut stdout = std::io::stdout();
-
-    // We want the cursor to stay at the end of the line, so we print without a newline and flush manually.
-    write!(stdout, "Press any key to continue...").unwrap();
-    stdout.flush().unwrap();
-
-    // Read a single byte and discard
-    let _ = stdin.read(&mut [0u8]).unwrap();
-}
+// use std::io::Read
+// fn pause() {
+//     let mut stdin = std::io::stdin();
+//     let mut stdout = std::io::stdout();
+//
+//     // We want the cursor to stay at the end of the line, so we print without a newline and flush manually.
+//     write!(stdout, "Press any key to continue...").unwrap();
+//     stdout.flush().unwrap();
+//
+//     // Read a single byte and discard
+//     let _ = stdin.read(&mut [0u8]).unwrap();
+// }

@@ -60,6 +60,14 @@ pub fn make_subcommand() -> Command {
                 .help("Where we place the replaces"),
         )
         .arg(
+            Arg::new("monophyly")
+                .long("monophyly")
+                .short('M')
+                .action(ArgAction::SetTrue)
+                .help("Only print the labels when they form a monophyletic subtree")
+                .hide(true),
+        )
+        .arg(
             Arg::new("outfile")
                 .short('o')
                 .long("outfile")

@@ -464,12 +464,12 @@ pub fn match_names(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> {
 
 // IDs that match the position rules
 pub fn match_positions(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> {
-    let mut skip_internal = if args.contains_id("Internal") {
+    let mut skip_internal = if args.try_contains_id("Internal").is_ok() {
         args.get_flag("Internal")
     } else {
         false
     };
-    let skip_leaf = if args.contains_id("Leaf") {
+    let skip_leaf = if args.try_contains_id("Leaf").is_ok() {
         args.get_flag("Leaf")
     } else {
         false
