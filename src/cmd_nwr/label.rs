@@ -192,6 +192,27 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 for column in columns.iter() {
                     match column.as_str() {
                         "dup" => out_string += format!("\t{}", x).as_str(),
+                        "taxid" => {
+                            out_string += format!(
+                                "\t{}",
+                                nwr::get_comment_k(&node, "T").unwrap_or("".to_string())
+                            )
+                            .as_str()
+                        }
+                        "species" => {
+                            out_string += format!(
+                                "\t{}",
+                                nwr::get_comment_k(&node, "S").unwrap_or("".to_string())
+                            )
+                            .as_str()
+                        }
+                        "full" => {
+                            out_string += format!(
+                                "\t{}",
+                                node.comment.clone().unwrap_or("".to_string())
+                            )
+                            .as_str()
+                        }
                         _ => unreachable!(),
                     }
                 }

@@ -178,7 +178,10 @@ nwr label tests/newick/catarrhini.nwk -n Homininae -n Pongo -DM
 # All leaves belong to Hominidae
 nwr label tests/newick/catarrhini.nwk -t Hominidae -I
 
-cargo run --bin nwr label tests/newick/catarrhini.nwk -c dup
+nwr label tests/newick/catarrhini.nwk -c dup
+
+cargo run --bin nwr label tests/newick/catarrhini.comment.nwk -c full
+
 
 nwr stat tests/newick/hg38.7way.nwk
 
