@@ -230,11 +230,21 @@ fn format_node(tree: &Tree, id: &NodeId, height: Edge) -> String {
                     comment += " ";
                 }
                 comment += pt.replace("T=", "").as_str();
+            } else if pt.starts_with("S=") {
+                if !comment.is_empty() {
+                    comment += " ";
+                }
+                comment += pt.replace("S=", "").as_str();
             } else if pt.starts_with("rank=") {
                 if !comment.is_empty() {
                     comment += " ";
                 }
                 comment += pt.replace("rank=", "").as_str();
+            } else if pt.starts_with("member=") {
+                if !comment.is_empty() {
+                    comment += " ";
+                }
+                comment += pt.replace("member=", "").as_str();
             } else {
                 if !comment.is_empty() {
                     comment += " ";
