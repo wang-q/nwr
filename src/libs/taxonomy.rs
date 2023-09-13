@@ -378,7 +378,7 @@ pub fn term_to_tax_id(conn: &rusqlite::Connection, term: &str) -> anyhow::Result
 
     let id: i64 = match term.parse::<i64>() {
         Ok(n) => n,
-        Err(_) => get_tax_id(conn, vec![term]).unwrap().pop().unwrap(),
+        Err(_) => get_tax_id(conn, vec![term])?.pop().unwrap(),
     };
 
     Ok(id)

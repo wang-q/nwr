@@ -488,7 +488,8 @@ pub fn match_positions(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> 
     // all matched IDs
     let mut ids = BTreeSet::new();
 
-    tree.inorder(&tree.get_root().unwrap())
+    // inorder needs IsBinary
+    tree.preorder(&tree.get_root().unwrap())
         .unwrap()
         .iter()
         .for_each(|id| {
@@ -545,7 +546,10 @@ pub fn match_restrict(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> {
             };
 
             if term.is_some() {
-                let tax_id = crate::term_to_tax_id(&conn, &term.unwrap()).unwrap();
+                let tax_id = match crate::term_to_tax_id(&conn, &term.unwrap()) {
+                    Ok(id) => id,
+                    Err(_) => continue,
+                };
                 if tax_id_set.contains(tax_id as i32) {
                     ids.insert(node.id);
                 }
