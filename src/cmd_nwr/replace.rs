@@ -33,6 +33,20 @@ pub fn make_subcommand() -> Command {
                 .help("Path to replace.tsv"),
         )
         .arg(
+            Arg::new("Internal")
+                .long("Internal")
+                .short('I')
+                .action(ArgAction::SetTrue)
+                .help("Skip internal labels"),
+        )
+        .arg(
+            Arg::new("Leaf")
+                .long("Leaf")
+                .short('L')
+                .action(ArgAction::SetTrue)
+                .help("Skip leaf labels"),
+        )
+        .arg(
             Arg::new("mode")
                 .long("mode")
                 .action(ArgAction::Set)
@@ -57,11 +71,19 @@ pub fn make_subcommand() -> Command {
 
 // command implementation
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
+    //----------------------------
+    // Args
+    //----------------------------
     let mut writer = intspan::writer(args.get_one::<String>("outfile").unwrap());
 
     let infile = args.get_one::<String>("infile").unwrap();
     let mut tree = nwr::read_newick(infile);
     let mode = args.get_one::<String>("mode").unwrap();
+
+    // ids with names
+    let id_of: BTreeMap<_, _> = nwr::get_name_id(&tree);
+    // All IDs matching positions
+    let ids_pos = nwr::match_positions(&tree, args);
 
     let mut replace_of: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for rfile in args.get_many::<String>("replace.tsv").unwrap() {
@@ -82,10 +104,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
     }
 
-    // ids with names
-    let id_of: BTreeMap<_, _> = nwr::get_name_id(&tree);
     for (k, id) in id_of.iter() {
-        if replace_of.contains_key(k) {
+        if replace_of.contains_key(k) && ids_pos.contains(id) {
             let node = tree.get_mut(id).unwrap();
 
             let replaces = replace_of.get(k).unwrap();
