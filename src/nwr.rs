@@ -25,6 +25,7 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::lineage::make_subcommand())
         .subcommand(cmd_nwr::member::make_subcommand())
         .subcommand(cmd_nwr::order::make_subcommand())
+        .subcommand(cmd_nwr::pl_condense::make_subcommand())
         .subcommand(cmd_nwr::prune::make_subcommand())
         .subcommand(cmd_nwr::rename::make_subcommand())
         .subcommand(cmd_nwr::replace::make_subcommand())
@@ -66,6 +67,7 @@ Subcommand groups:
         * subtree
         * prune
         * reroot
+        * pl-condense
     * Visualization
         * indent
         * comment
@@ -94,6 +96,7 @@ Subcommand groups:
         Some(("member", sub_matches)) => cmd_nwr::member::execute(sub_matches),
         Some(("order", sub_matches)) => cmd_nwr::order::execute(sub_matches),
         Some(("prune", sub_matches)) => cmd_nwr::prune::execute(sub_matches),
+        Some(("pl-condense", sub_matches)) => cmd_nwr::pl_condense::execute(sub_matches),
         Some(("rename", sub_matches)) => cmd_nwr::rename::execute(sub_matches),
         Some(("replace", sub_matches)) => cmd_nwr::replace::execute(sub_matches),
         Some(("reroot", sub_matches)) => cmd_nwr::reroot::execute(sub_matches),

@@ -13,6 +13,7 @@ pub mod label;
 pub mod lineage;
 pub mod member;
 pub mod order;
+pub mod pl_condense;
 pub mod prune;
 pub mod rename;
 pub mod replace;

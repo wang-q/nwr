@@ -37,31 +37,32 @@ cargo build
 Usage: nwr [COMMAND]
 
 Commands:
-  append    Append fields of higher ranks to a TSV file
-  ardb      Init the assembly database
-  comment   Add comments to node(s) in a Newick file
-  common    Output the common tree of terms
-  distance  Output a TSV/phylip file with distances between all named nodes
-  download  Download the latest releases of `taxdump` and assembly reports
-  indent    Indent the Newick file
-  info      Information of Taxonomy ID(s) or scientific name(s)
-  kb        Prints docs (knowledge bases)
-  label     Labels in the Newick file
-  lineage   Output the lineage of the term
-  member    List members (of certain ranks) under ancestral term(s)
-  order     Order nodes in a Newick file
-  prune     Remove nodes from the Newick file
-  rename    Rename named/unnamed nodes in a Newick file
-  replace   Replace node names/comments in a Newick file
-  reroot    Place the root in the middle of the desired node and its parent
-  restrict  Restrict taxonomy terms to ancestral descendants
-  subtree   Extract a subtree
-  stat      Statistics about the Newick file
-  template  Create dirs, data and scripts for a phylogenomic research
-  tex       Visualize the Newick tree via LaTeX
-  topo      Topological information of the Newick file
-  txdb      Init the taxonomy database
-  help      Print this message or the help of the given subcommand(s)
+  append       Append fields of higher ranks to a TSV file
+  ardb         Init the assembly database
+  comment      Add comments to node(s) in a Newick file
+  common       Output the common tree of terms
+  distance     Output a TSV/phylip file with distances between all named nodes
+  download     Download the latest releases of `taxdump` and assembly reports
+  indent       Indent the Newick file
+  info         Information of Taxonomy ID(s) or scientific name(s)
+  kb           Prints docs (knowledge bases)
+  label        Labels in the Newick file
+  lineage      Output the lineage of the term
+  member       List members (of certain ranks) under ancestral term(s)
+  order        Order nodes in a Newick file
+  pl-condense  Pipeline - condense subtrees based on taxonomy
+  prune        Remove nodes from the Newick file
+  rename       Rename named/unnamed nodes in a Newick file
+  replace      Replace node names/comments in a Newick file
+  reroot       Place the root in the middle of the desired node and its parent
+  restrict     Restrict taxonomy terms to ancestral descendants
+  subtree      Extract a subtree
+  stat         Statistics about the Newick file
+  template     Create dirs, data and scripts for a phylogenomic research
+  tex          Visualize the Newick tree via LaTeX
+  topo         Topological information of the Newick file
+  txdb         Init the taxonomy database
+  help         Print this message or the help of the given subcommand(s)
 
 Options:
   -h, --help     Print help
@@ -96,6 +97,7 @@ Subcommand groups:
         * subtree
         * prune
         * reroot
+        * pl-condense
     * Visualization
         * indent
         * comment
@@ -219,6 +221,8 @@ nwr prune tests/newick/catarrhini.nwk -n Homo -n Pan
 echo "((A:1,B:1)D:1,C:1)E;" |
     nwr reroot stdin -n B
 nwr reroot tests/newick/catarrhini_wrong.nwk -n Cebus
+
+cargo run --bin nwr pl-condense tests/newick/catarrhini.nwk -r family
 
 ```
 

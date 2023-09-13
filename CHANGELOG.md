@@ -2,6 +2,10 @@
 
 ## Unreleased - ReleaseDate
 
+* Add `nwr pl-condense`
+
+* Add `--column` to `nwr label`
+
 * Fix `--term` in `nwr subtree`
 * Handle more tags in `nwr tex`
 

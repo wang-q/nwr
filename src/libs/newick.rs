@@ -475,7 +475,7 @@ pub fn match_positions(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> 
         false
     };
 
-    let is_monophyly = if args.contains_id("monophyly") {
+    let is_monophyly = if args.try_contains_id("monophyly").is_ok() {
         args.get_flag("monophyly")
     } else {
         false

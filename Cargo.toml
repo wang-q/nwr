@@ -27,7 +27,7 @@ itertools = "0.11.0"
 #bio = "1.1.0"
 phylotree = "0.1.1"
 
-intspan = "^0.7.1"
+intspan = "^0.7.5"
 
 ftp = "3.0.1"
 tar = "0.4.38"
@@ -38,10 +38,12 @@ md5 = "0.7.0"
 rusqlite = { version = "0.28.0", features = ["bundled"] }
 csv = "1.1.6"
 
+cmd_lib = "1.3.0"
+tempfile = "3.6.0"
+
 [build-dependencies]
 
 [dev-dependencies]
-tempfile = "3.3.0"
 assert_cmd = "2.0.4"
 predicates = "3.0.3"
 
