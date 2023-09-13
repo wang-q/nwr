@@ -2,6 +2,9 @@
 
 ## Unreleased - ReleaseDate
 
+* Fix `--term` in `nwr subtree`
+* Handle more tags in `nwr tex`
+
 ## 0.6.5 - 2023-09-12
 
 * Add `nwr distance`
