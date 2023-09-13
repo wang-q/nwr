@@ -339,10 +339,7 @@ pub fn insert_parent(tree: &mut Tree, id: &NodeId) -> NodeId {
     tree.get_mut(id).unwrap().set_parent(new, new_edge);
     tree.get_mut(&new).unwrap().add_child(*id, new_edge);
 
-    tree.get_mut(&parent)
-        .unwrap()
-        .remove_child(&id)
-        .unwrap();
+    tree.get_mut(&parent).unwrap().remove_child(&id).unwrap();
 
     new
 }
@@ -365,20 +362,22 @@ pub fn insert_parent(tree: &mut Tree, id: &NodeId) -> NodeId {
 ///
 /// assert_eq!(tree.to_newick().unwrap(), "(B,(A,(C)E)D);".to_string());
 /// ```
-pub fn swap_parent(tree: &mut Tree, id: &NodeId, prev_edge : Option<Edge>) -> Option<Edge> {
+pub fn swap_parent(
+    tree: &mut Tree,
+    id: &NodeId,
+    prev_edge: Option<Edge>,
+) -> Option<Edge> {
     let parent = tree.get(id).unwrap().parent.unwrap().clone();
 
     tree.get_mut(id).unwrap().parent = None;
     tree.get_mut(&parent).unwrap().parent = Some(*id);
 
     tree.get_mut(id).unwrap().add_child(parent, None);
-    tree.get_mut(&parent)
-        .unwrap()
-        .remove_child(&id)
-        .unwrap();
+    tree.get_mut(&parent).unwrap().remove_child(&id).unwrap();
 
     let edge = tree.get_mut(&parent).unwrap().parent_edge.clone();
-    tree.get_mut(&parent).unwrap().parent_edge = tree.get_mut(id).unwrap().parent_edge.clone();
+    tree.get_mut(&parent).unwrap().parent_edge =
+        tree.get_mut(id).unwrap().parent_edge.clone();
     tree.get_mut(id).unwrap().parent_edge = prev_edge;
 
     edge
@@ -428,6 +427,15 @@ pub fn match_names(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> {
                 }
             }
         }
+    }
+
+    // Default is printing all named nodes
+    let is_all = !(args.contains_id("node")
+        || args.contains_id("file")
+        || args.contains_id("regex"));
+
+    if is_all {
+        ids = id_of.values().cloned().collect();
     }
 
     // Include all descendants of internal nodes
@@ -543,6 +551,8 @@ pub fn match_restrict(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> {
                 }
             }
         }
+    } else {
+        ids = id_of.values().cloned().collect();
     }
 
     ids

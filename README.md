@@ -210,6 +210,8 @@ nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -M
 # Condense the subtree to a node
 nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -M -c Primates
 
+nwr subtree tests/newick/catarrhini.nwk -t Hominidae
+
 nwr prune tests/newick/catarrhini.nwk -n Homo -n Pan
 
 echo "((A:1,B:1)D:1,C:1)E;" |

@@ -390,6 +390,26 @@ fn command_subtree() -> anyhow::Result<()> {
 }
 
 #[test]
+fn command_subtree_taxon() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("subtree")
+        .arg("tests/newick/catarrhini.nwk")
+        .arg("-t")
+        .arg("Hominidae")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert_eq!(stdout.lines().count(), 1);
+    assert!(stdout.contains(
+        "((Gorilla:16,(Pan:10,Homo:10):10)Homininae:15,Pongo:30)Hominidae:15;"
+    ));
+
+    Ok(())
+}
+
+#[test]
 fn command_prune() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd

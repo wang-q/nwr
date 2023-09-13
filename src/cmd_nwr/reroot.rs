@@ -1,5 +1,5 @@
 use clap::*;
-use phylotree::tree::{Tree};
+use phylotree::tree::Tree;
 use std::collections::{BTreeMap, BTreeSet};
 
 // Create clap subcommand arguments
@@ -16,6 +16,7 @@ understand your desired outcome
 * If multiple nodes are provided, the nodes will be specified as their lowest
   common ancestor
 * If the LCA is the original root, print the origianl tree
+* The parent edge of the original root will be ignored
 
 "###,
         )
@@ -89,7 +90,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             .get_path_from_root(&new_root)
             .unwrap()
             .into_iter()
-            .skip(1)// the first is old root
+            .skip(1) // the first is old root
             .collect();
 
         let mut edge = None; // root has no edge

@@ -133,8 +133,14 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     // ids with names
     let id_of: BTreeMap<_, _> = nwr::get_name_id(&tree);
 
+    // All IDs matching names
+    let ids_name = nwr::match_names(&tree, args);
+
+    // lineage restrict
+    let ids_restrict = nwr::match_restrict(&tree, args);
+
     // All IDs matched
-    let ids = nwr::match_names(&tree, args);
+    let ids: BTreeSet<usize> = ids_name.intersection(&ids_restrict).cloned().collect();
 
     if !ids.is_empty() {
         let mut nodes: Vec<usize> = ids.iter().cloned().collect();

@@ -144,23 +144,11 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     // All IDs matching names
     let ids_name = nwr::match_names(&tree, args);
 
-    // Default is printing all named nodes
-    let is_all = !(args.contains_id("node")
-        || args.contains_id("file")
-        || args.contains_id("regex"));
-
-    let mut ids: BTreeSet<usize> = if is_all {
-        ids_pos.into_iter().collect()
-    } else {
-        ids_pos.intersection(&ids_name).cloned().collect()
-    };
-
     // lineage restrict
-    if args.contains_id("term") {
-        let ids_restrict = nwr::match_restrict(&tree, args);
+    let ids_restrict = nwr::match_restrict(&tree, args);
 
-        ids = ids.intersection(&ids_restrict).cloned().collect()
-    }
+    let mut ids: BTreeSet<usize> = ids_pos.intersection(&ids_name).cloned().collect();
+    ids = ids.intersection(&ids_restrict).cloned().collect();
 
     // Print nothing if check_monophyly() failed
     if is_monophyly && !nwr::check_monophyly(&tree, &ids) {
