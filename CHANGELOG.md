@@ -5,6 +5,7 @@
 * Add `nwr pl-condense`
 
 * Add `--column` to `nwr label`
+* Add `-I` and `-L` to `nwr replace`
 
 * Fix `--term` in `nwr subtree`
 * Handle more tags in `nwr tex`
