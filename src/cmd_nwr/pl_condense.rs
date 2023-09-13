@@ -172,7 +172,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
     }
 
-    groups = groups.into_iter().unique().collect();
+    groups = groups.into_iter().unique().filter(|s| s.ne("NA")).collect();
 
     run_cmd!(info "==> Condensing")?;
     let mut cur_tree = "commented.nwk".to_string();
