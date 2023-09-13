@@ -26,6 +26,12 @@ This tool selectively outputs the names of the nodes in the tree
     * Nodes with the same name CAN cause problems
     * Activate `-I`
 
+* Set `--column` will output a TSV file with addtional columns
+    * `dup` - duplicate the node name
+    * `taxid` - `:T=` field in comment
+    * `species` - `:S=` field in comment
+    * `full` - full comment
+
 "###,
         )
         .arg(
@@ -114,6 +120,19 @@ This tool selectively outputs the names of the nodes in the tree
                 .help("Only print the labels when they form a monophyletic subtree"),
         )
         .arg(
+            Arg::new("column")
+                .long("column")
+                .short('c')
+                .action(ArgAction::Append)
+                .value_parser([
+                    builder::PossibleValue::new("dup"),
+                    builder::PossibleValue::new("taxid"),
+                    builder::PossibleValue::new("species"),
+                    builder::PossibleValue::new("full"),
+                ])
+                .help("Where we can find taxonomy terms"),
+        )
+        .arg(
             Arg::new("outfile")
                 .short('o')
                 .long("outfile")
@@ -134,6 +153,13 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let tree = nwr::read_newick(infile);
 
     let is_monophyly = args.get_flag("monophyly");
+
+    let mut columns = vec![];
+    if args.contains_id("column") {
+        for column in args.get_many::<String>("column").unwrap() {
+            columns.push(column.to_string());
+        }
+    }
 
     //----------------------------
     // Operating
@@ -161,7 +187,17 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     for id in ids.iter() {
         let node = tree.get(id).unwrap();
         if let Some(x) = node.name.clone() {
-            writer.write_fmt(format_args!("{}\n", x)).unwrap();
+            let mut out_string = format!("{}", x);
+            if !columns.is_empty() {
+                for column in columns.iter() {
+                    match column.as_str() {
+                        "dup" => out_string += format!("\t{}", x).as_str(),
+                        _ => unreachable!(),
+                    }
+                }
+            }
+
+            writer.write_fmt(format_args!("{}\n", out_string)).unwrap();
         }
     }
 
