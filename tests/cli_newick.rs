@@ -403,6 +403,11 @@ fn command_subtree() -> anyhow::Result<()> {
 
 #[test]
 fn command_subtree_taxon() -> anyhow::Result<()> {
+    let path = dirs::home_dir().unwrap().join(".nwr/");
+    if !path.exists() {
+        return Ok(());
+    }
+
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("subtree")
