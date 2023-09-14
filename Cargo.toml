@@ -16,35 +16,34 @@ name = "nwr"
 path = "src/nwr.rs"
 
 [dependencies]
-clap = { version = "4.0.29", features = ["cargo"] }
-anyhow = "1.0.66"
-regex = "1.7.0"
+clap = { version = "4.4.3", features = ["cargo"] }
+anyhow = "1.0.75"
+regex = "1.9.5"
 lazy_static = "1.4.0"
-tera = "1.17.1"
+tera = "1.19.1"
 
-flate2 = "1.0.25"
+flate2 = "1.0.27"
 itertools = "0.11.0"
-#bio = "1.1.0"
 phylotree = "0.1.1"
 
-intspan = "^0.7.5"
+intspan = "0.7.5"
 
 ftp = "3.0.1"
-tar = "0.4.38"
+tar = "0.4.40"
 dirs = "5.0.1"
-log = "0.4.17"
-simplelog = "0.12.0"
+log = "0.4.20"
+simplelog = "0.12.1"
 md5 = "0.7.0"
 rusqlite = { version = "0.28.0", features = ["bundled"] }
-csv = "1.1.6"
+csv = "1.2.2"
 
 cmd_lib = "1.3.0"
-tempfile = "3.6.0"
+tempfile = "3.8.0"
 
 [build-dependencies]
 
 [dev-dependencies]
-assert_cmd = "2.0.4"
+assert_cmd = "2.0.12"
 predicates = "3.0.3"
 
 [profile.release]
