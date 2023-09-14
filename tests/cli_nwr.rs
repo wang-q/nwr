@@ -75,7 +75,7 @@ fn command_info() -> anyhow::Result<()> {
         .unwrap();
     let stdout = String::from_utf8(output.stdout).unwrap();
 
-    assert_eq!(stdout.lines().count(), 13);
+    assert_eq!(stdout.lines().count(), 15);
     assert!(stdout.contains("ID: 10239"), "first record");
 
     Ok(())

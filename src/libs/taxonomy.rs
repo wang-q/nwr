@@ -55,7 +55,7 @@ impl std::fmt::Display for Taxon {
             lines.push_str(&format!("\nComments: {}", comments));
         }
 
-        writeln!(f, "{}", lines)
+        writeln!(f, "{}\n", lines)
     }
 }
 

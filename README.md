@@ -179,9 +179,7 @@ nwr label tests/newick/catarrhini.nwk -n Homininae -n Pongo -DM
 nwr label tests/newick/catarrhini.nwk -t Hominidae -I
 
 nwr label tests/newick/catarrhini.nwk -c dup
-
-cargo run --bin nwr label tests/newick/catarrhini.comment.nwk -c full
-
+nwr label tests/newick/catarrhini.comment.nwk -c full
 
 nwr stat tests/newick/hg38.7way.nwk
 
