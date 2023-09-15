@@ -2,6 +2,8 @@
 
 ## Unreleased - ReleaseDate
 
+## 0.7.0 - 2023-09-15
+
 * Add `nwr pl-condense`
 
 * Add `--column` to `nwr label`
