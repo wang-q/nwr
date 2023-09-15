@@ -187,7 +187,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     for id in ids.iter() {
         let node = tree.get(id).unwrap();
         if let Some(x) = node.name.clone() {
-            let mut out_string = format!("{}", x);
+            let mut out_string = x.to_string();
             if !columns.is_empty() {
                 for column in columns.iter() {
                     match column.as_str() {
@@ -195,14 +195,14 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                         "taxid" => {
                             out_string += format!(
                                 "\t{}",
-                                nwr::get_comment_k(&node, "T").unwrap_or("".to_string())
+                                nwr::get_comment_k(node, "T").unwrap_or("".to_string())
                             )
                             .as_str()
                         }
                         "species" => {
                             out_string += format!(
                                 "\t{}",
-                                nwr::get_comment_k(&node, "S").unwrap_or("".to_string())
+                                nwr::get_comment_k(node, "S").unwrap_or("".to_string())
                             )
                             .as_str()
                         }

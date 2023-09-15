@@ -328,18 +328,15 @@ pub fn get_comment_k(node: &Node, key: &str) -> Option<String> {
 /// assert_eq!(tree.to_newick().unwrap(), "((A:1,(B:0.5):0.5):1,C:1);".to_string());
 /// ```
 pub fn insert_parent(tree: &mut Tree, id: &NodeId) -> NodeId {
-    let parent = tree.get(id).unwrap().parent.unwrap().clone();
-    let new_edge = match tree.get(id).unwrap().parent_edge.clone() {
-        Some(p) => Some(p / 2.0),
-        None => None,
-    };
+    let parent = tree.get(id).unwrap().parent.unwrap();
+    let new_edge = tree.get(id).unwrap().parent_edge.map(|p| p / 2.0);
 
     let new = tree.add_child(Node::new(), parent, new_edge).unwrap();
 
     tree.get_mut(id).unwrap().set_parent(new, new_edge);
     tree.get_mut(&new).unwrap().add_child(*id, new_edge);
 
-    tree.get_mut(&parent).unwrap().remove_child(&id).unwrap();
+    tree.get_mut(&parent).unwrap().remove_child(id).unwrap();
 
     new
 }
@@ -367,17 +364,16 @@ pub fn swap_parent(
     id: &NodeId,
     prev_edge: Option<Edge>,
 ) -> Option<Edge> {
-    let parent = tree.get(id).unwrap().parent.unwrap().clone();
+    let parent = tree.get(id).unwrap().parent.unwrap();
 
     tree.get_mut(id).unwrap().parent = None;
     tree.get_mut(&parent).unwrap().parent = Some(*id);
 
     tree.get_mut(id).unwrap().add_child(parent, None);
-    tree.get_mut(&parent).unwrap().remove_child(&id).unwrap();
+    tree.get_mut(&parent).unwrap().remove_child(id).unwrap();
 
-    let edge = tree.get_mut(&parent).unwrap().parent_edge.clone();
-    tree.get_mut(&parent).unwrap().parent_edge =
-        tree.get_mut(id).unwrap().parent_edge.clone();
+    let edge = tree.get_mut(&parent).unwrap().parent_edge;
+    tree.get_mut(&parent).unwrap().parent_edge = tree.get_mut(id).unwrap().parent_edge;
     tree.get_mut(id).unwrap().parent_edge = prev_edge;
 
     edge
@@ -534,8 +530,8 @@ pub fn match_restrict(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> {
 
         let mode = args.get_one::<String>("mode").unwrap();
         let nodes: Vec<Node> = id_of
-            .iter()
-            .map(|(_, v)| tree.get(v).unwrap().clone())
+            .values()
+            .map(|v| tree.get(v).unwrap().clone())
             .collect();
         for node in nodes.iter() {
             let term = match mode.as_str() {

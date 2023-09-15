@@ -128,7 +128,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         ${nwr} label start.nwk -o labels.lst
     )?;
 
-    if abs_replace == "dup".to_string() {
+    if abs_replace == *"dup" {
         run_cmd!(info "==> Create replace.tsv from leaf labels")?;
         run_cmd!(
             ${nwr} label start.nwk -I -c dup -o replace.tsv
