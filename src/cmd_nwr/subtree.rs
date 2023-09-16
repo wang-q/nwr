@@ -178,7 +178,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             // create a new node
             let condense = args.get_one::<String>("condense").unwrap();
             let mut new_node = Node::new_named(condense);
-            new_node.comment = sub_root.comment.clone();
+
+            // old comment may contains taxonomy terms
+            // new_node.comment = sub_root.comment.clone();
+
             nwr::add_comment_kv(&mut new_node, "member", ids.len().to_string().as_str());
             let edge = sub_root.parent_edge;
 
