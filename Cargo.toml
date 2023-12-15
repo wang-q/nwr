@@ -37,7 +37,7 @@ md5 = "0.7.0"
 rusqlite = { version = "0.28.0", features = ["bundled"] }
 csv = "1.2.2"
 
-cmd_lib = "1.3.0"
+cmd_lib = "1.9.3"
 tempfile = "3.8.0"
 
 [build-dependencies]

@@ -86,8 +86,6 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
     }
 
-    init_builtin_logger();
-    use_builtin_cmd!(echo, info, cat);
     run_cmd!(info "==> Paths")?;
     run_cmd!(info "    \"nwr\"     = ${nwr}")?;
     run_cmd!(info "    \"curdir\"  = ${curdir}")?;
