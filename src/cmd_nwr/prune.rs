@@ -53,6 +53,13 @@ and for internal nodes, the following additional operations are performed
                 .help("Nodes match the regular expression"),
         )
         .arg(
+            Arg::new("descendants")
+                .long("descendants")
+                .short('D')
+                .action(ArgAction::SetTrue)
+                .help("Include all descendants of internal nodes"),
+        )
+        .arg(
             Arg::new("outfile")
                 .short('o')
                 .long("outfile")
