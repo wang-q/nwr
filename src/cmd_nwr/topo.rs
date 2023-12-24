@@ -64,7 +64,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let infile = args.get_one::<String>("infile").unwrap();
     let mut tree = nwr::read_newick(infile);
 
-    tree.inorder(&tree.get_root().unwrap())
+    // inorder trigger IsNotBinary
+    tree.preorder(&tree.get_root().unwrap())
         .unwrap()
         .iter()
         .for_each(|id| {

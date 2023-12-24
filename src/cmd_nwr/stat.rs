@@ -39,7 +39,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut n_leaf_label = 0;
     let mut n_internal_label = 0;
 
-    tree.inorder(&tree.get_root().unwrap())
+    tree.preorder(&tree.get_root().unwrap())
         .unwrap()
         .iter()
         .for_each(|id| {

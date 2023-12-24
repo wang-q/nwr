@@ -35,6 +35,7 @@ Modes and output formats for calculating distances
         .arg(
             Arg::new("mode")
                 .long("mode")
+                .short('m')
                 .action(ArgAction::Set)
                 .value_parser([
                     builder::PossibleValue::new("root"),
@@ -84,7 +85,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     // ids with names
     let mut id_of = BTreeMap::new();
-    tree.inorder(&tree.get_root().unwrap())
+    tree.preorder(&tree.get_root().unwrap())
         .unwrap()
         .iter()
         .for_each(|id| {
