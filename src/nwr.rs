@@ -118,3 +118,5 @@ Subcommand groups:
 // TODO: `compgen -c nw_`
 //   nw_match
 //   nw_trim
+// TODO:
+//   Fix `reroot`: bootstrap values
