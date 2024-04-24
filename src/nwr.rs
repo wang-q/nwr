@@ -116,7 +116,9 @@ Subcommand groups:
 
 // TODO: abbr_name.pl
 // TODO: `compgen -c nw_`
-//   nw_match
-//   nw_trim
+//      nw_match
+//      nw_trim
 // TODO:
-//   Fix `reroot`: bootstrap values
+//      Fix `reroot`: bootstrap values
+// TODO:
+//      Heatmap
