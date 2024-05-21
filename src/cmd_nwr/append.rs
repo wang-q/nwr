@@ -93,7 +93,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     for infile in args.get_many::<String>("infiles").unwrap() {
         let reader = intspan::reader(infile);
 
-        for line in reader.lines().map_while(Result::ok) {
+        'line: for line in reader.lines().map_while(Result::ok) {
             let mut fields: Vec<String> =
                 line.split('\t').map(|s| s.to_string()).collect();
 
@@ -117,7 +117,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             else {
                 // Check the given field
                 let term = fields.get(column - 1).unwrap();
-                let id = nwr::term_to_tax_id(&conn, term).unwrap();
+                let id = match nwr::term_to_tax_id(&conn, term) {
+                    Ok(x) => x,
+                    Err(_) => continue 'line,
+                };
 
                 if ranks.is_empty() {
                     let node = nwr::get_taxon(&conn, vec![id])
