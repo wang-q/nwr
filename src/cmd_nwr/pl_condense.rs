@@ -118,7 +118,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     run_cmd!(info "==> Start")?;
     run_cmd!(
-        ${nwr} indent ${abs_infile} --text r#""""# -o start.nwk
+        ${nwr} indent ${abs_infile} -o start.nwk
     )?;
 
     run_cmd!(info "==> Labels in the file")?;
@@ -153,7 +153,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         let conn = nwr::connect_txdb(&nwr::nwr_path()).unwrap();
 
         for rank in ranks.iter() {
-            'line: for line in intspan::reader(&abs_replace).lines().map_while(Result::ok) {
+            'line: for line in
+                intspan::reader(&abs_replace).lines().map_while(Result::ok)
+            {
                 let parts: Vec<&str> = line.split('\t').collect();
                 if let Some(term) = parts.get(1) {
                     let id = match nwr::term_to_tax_id(&conn, term) {
