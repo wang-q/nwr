@@ -3,6 +3,10 @@
 ## Unreleased - ReleaseDate
 
 * Fix multiple rounds of condensing leaf nodes
+* Skip invalid lines
+    * append
+    * ardb
+    * pl-condense
 
 ## 0.7.0 - 2023-09-15
 
