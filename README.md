@@ -162,7 +162,7 @@ cargo run --bin nwr common -d tests/nwr/ "Actinophage JHJ-1" "Bacillus phage bg1
 
 ### Newick files and LaTeX
 
-For more detailed usages, check [this](tree/README.md).
+For more detailed usages, check [this file](tree/README.md).
 
 #### Get information from the tree
 
