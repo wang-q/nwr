@@ -223,6 +223,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
         let fields: Vec<String> = line.split('\t').map(|s| s.to_string()).collect();
 
+        if fields.len() < 19 {
+            continue;
+        }
+
         // fields
         let tax_id = fields.get(5).unwrap().parse::<i64>().unwrap();
         let organism_name = fields.get(7).unwrap();
@@ -240,7 +244,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
         // Skip incompetent strains
         lazy_static! {
-            static ref RE1: Regex = Regex::new(r"(?xi)\b(Candidatus|candidate|uncultured|unidentified|bacterium|archaeon|metagenome)\b").unwrap();
+            static ref RE1: Regex = Regex::new(r"(?xi)\b(uncultured|unidentified|bacterium|archaeon|metagenome)\b").unwrap();
             static ref RE2: Regex = Regex::new(r"(?xi)(virus|phage)\b").unwrap();
         }
         if RE1.is_match(organism_name) || RE2.is_match(organism_name) {
