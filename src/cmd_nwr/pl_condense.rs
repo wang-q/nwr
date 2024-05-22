@@ -118,7 +118,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     run_cmd!(info "==> Start")?;
     run_cmd!(
-        ${nwr} indent ${abs_infile} --text r#""# -o start.nwk
+        ${nwr} indent ${abs_infile} --text r#""""# -o start.nwk
     )?;
 
     run_cmd!(info "==> Labels in the file")?;
