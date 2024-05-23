@@ -46,6 +46,13 @@ cat collect.pass.tsv |
     sed '1d' \
     > rep.lst
 
+log_info " sp. strains"
+cat collect.pass.tsv |
+    tsv-filter -H --str-in-fld "Organism_name: sp." |
+    tsv-select -f 1 |
+    sed '1d' \
+    > sp.lst
+
 log_info "Counts of lines"
 printf "#item\tfields\tlines\n" \
     > counts.tsv
@@ -54,7 +61,7 @@ for FILE in \
     url.tsv check.lst collect.tsv \
     n50.tsv n50.pass.tsv \
     collect.pass.tsv pass.lst \
-    omit.lst rep.lst \
+    omit.lst rep.lst sp.lst \
     ; do
     cat ${FILE} |
         datamash check |
