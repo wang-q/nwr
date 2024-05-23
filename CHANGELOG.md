@@ -4,9 +4,9 @@
 
 * Fix multiple rounds of condensing leaf nodes
 * Skip invalid lines
-    * append
-    * ardb
-    * pl-condense
+    * `nwr append`
+    * `nwr ardb`
+    * `nwr pl-condense`
 
 ## 0.7.0 - 2023-09-15
 
