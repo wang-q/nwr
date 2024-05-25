@@ -353,6 +353,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     context.insert("rank_col_of", &rank_col_of);
 
     context.insert("pro_species_of", &pro_species_of);
+    context.insert("pro_clust_id", args.get_one::<String>("clust-id").unwrap());
+    context.insert("pro_clust_cov", args.get_one::<String>("clust-cov").unwrap());
 
     let ass_columns = vec![
         "Organism_name",
