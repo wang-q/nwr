@@ -13,7 +13,7 @@ cat species-f.tsv |
     tsv-select -f 2 |
     tsv-uniq |
 while read SPECIES; do
-    if [[ -f "${SPECIES}"/info.tsv ]]; then
+    if [[ ! -f "${SPECIES}"/info.tsv ]]; then
         continue
     fi
 
@@ -42,12 +42,24 @@ while read SPECIES; do
         >> "${SPECIES}"/counts.tsv
 
 done
-#
-##----------------------------#
-## Counts
-##----------------------------#
-#log_info "Counts"
-#
+
+#----------------------------#
+# Total
+#----------------------------#
+log_info "Count total"
+cat species-f.tsv |
+    tsv-select -f 2 |
+    tsv-uniq |
+while read SPECIES; do
+    if [[ ! -f "${SPECIES}"/counts.tsv ]]; then
+        continue
+    fi
+
+    datamash transpose < "${SPECIES}"/counts.tsv
+done |
+    tsv-uniq \
+    > counts.tsv
+
 #printf "#item\tcount\n" \
 #    > counts.tsv
 #

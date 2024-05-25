@@ -5,9 +5,6 @@
 #----------------------------#
 log_warn Protein/collect.sh
 
-CLUST_ID={{ pro_clust_id }}
-CLUST_COV={{ pro_clust_cov }}
-
 #----------------------------#
 # filtered species.tsv
 #----------------------------#
@@ -19,13 +16,13 @@ cat species.tsv |
 {% for i in not_ins -%}
     tsv-join -e -f ../{{ i }} -k 1 |
 {% endfor -%}
-    head -n 10 \
+    cat \
     > species-f.tsv
 
 #----------------------------#
-# Unique and representative proteins
+# Unique proteins
 #----------------------------#
-log_info "Unique and representative proteins"
+log_info "Unique proteins"
 cat species-f.tsv |
     tsv-select -f 2 |
     tsv-uniq |
@@ -53,12 +50,6 @@ while read SPECIES; do
         pigz -p4 \
         > "${SPECIES}"/pro.fa.gz
 
-    #cluster-representative cluster-member
-    mmseqs easy-cluster "${SPECIES}"/pro.fa.gz "${SPECIES}"/res tmp \
-        --min-seq-id ${CLUST_ID} -c ${CLUST_COV} --remove-tmp-files -v 0
-
-    rm "${SPECIES}"/res_all_seqs.fasta
-    pigz -p4 "${SPECIES}"/res_rep_seq.fasta
 done
 
 #----------------------------#
@@ -118,8 +109,8 @@ while read SPECIES; do
         continue
     fi
 
-    echo -e "#name\tstrain" > "${SPECIES}"/temp.strain.tsv
-    cut -f 2,3 "${SPECIES}"/replace.tsv >> "${SPECIES}"/temp.strain.tsv
+    echo -e "#name\tid\tstrain" > "${SPECIES}"/temp.strain.tsv
+    tsv-select -f 2,1,3 "${SPECIES}"/replace.tsv >> "${SPECIES}"/temp.strain.tsv
 
     echo -e "#name\tsize" > "${SPECIES}"/temp.sizes.tsv
     faops size "${SPECIES}"/replace.fa.gz >> "${SPECIES}"/temp.sizes.tsv
@@ -160,61 +151,6 @@ while read SPECIES; do
 
     rm -f "${SPECIES}"/temp.*.tsv
 done
-
-##----------------------------#
-## Counts
-##----------------------------#
-#log_info "Counts"
-#
-#printf "#item\tcount\n" \
-#    > counts.tsv
-#
-#gzip -dcf all.pro.fa.gz |
-#    grep "^>" |
-#    wc -l |
-#    perl -nl -MNumber::Format -e '
-#        printf qq(Proteins\t%s\n), Number::Format::format_number($_, 0,);
-#        ' \
-#    >> counts.tsv
-#
-#gzip -dcf all.pro.fa.gz |
-#    grep "^>" |
-#    tsv-uniq |
-#    wc -l |
-#    perl -nl -MNumber::Format -e '
-#        printf qq(Unique headers and annotations\t%s\n), Number::Format::format_number($_, 0,);
-#        ' \
-#    >> counts.tsv
-#
-#gzip -dcf all.uniq.fa.gz |
-#    grep "^>" |
-#    wc -l |
-#    perl -nl -MNumber::Format -e '
-#        printf qq(Unique proteins\t%s\n), Number::Format::format_number($_, 0,);
-#        ' \
-#    >> counts.tsv
-#
-#gzip -dcf all.replace.fa.gz |
-#    grep "^>" |
-#    wc -l |
-#    perl -nl -MNumber::Format -e '
-#        printf qq(all.replace.fa\t%s\n), Number::Format::format_number($_, 0,);
-#        ' \
-#    >> counts.tsv
-#
-#cat all.annotation.tsv |
-#    wc -l |
-#    perl -nl -MNumber::Format -e '
-#        printf qq(all.annotation.tsv\t%s\n), Number::Format::format_number($_, 0,);
-#        ' \
-#    >> counts.tsv
-#
-#cat all.info.tsv |
-#    wc -l |
-#    perl -nl -MNumber::Format -e '
-#        printf qq(all.info.tsv\t%s\n), Number::Format::format_number($_, 0,);
-#        ' \
-#    >> counts.tsv
 
 log_info Done.
 

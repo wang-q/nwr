@@ -62,6 +62,7 @@ pub fn make_subcommand() -> Command {
         * species.tsv
     * Bash scripts
         * collect.sh
+        * compute.sh
         * count.sh
 
 "###,
@@ -432,6 +433,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
         gen_pro_data(&context)?;
         gen_pro_collect(&context)?;
+        gen_pro_compute(&context)?;
         gen_pro_count(&context)?;
     }
 
@@ -1052,6 +1054,34 @@ fn gen_pro_collect(context: &Context) -> anyhow::Result<()> {
     tera.add_raw_templates(vec![
         ("header", include_str!("../../templates/header.tera.sh")),
         ("t", include_str!("../../templates/pro_collect.tera.sh")),
+    ])
+    .unwrap();
+
+    let rendered = tera.render("t", context).unwrap();
+    writer.write_all(rendered.as_ref())?;
+
+    Ok(())
+}
+
+//----------------------------
+// Protein/compute.sh
+//----------------------------
+fn gen_pro_compute(context: &Context) -> anyhow::Result<()> {
+    let outname = "compute.sh";
+    eprintln!("Create Protein/{}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/Protein/{}", outdir, outname).as_ref())
+    };
+
+    let mut tera = Tera::default();
+    tera.add_raw_templates(vec![
+        ("header", include_str!("../../templates/header.tera.sh")),
+        ("t", include_str!("../../templates/pro_compute.tera.sh")),
     ])
     .unwrap();
 
