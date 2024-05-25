@@ -114,7 +114,7 @@ cat species-f.tsv |
     tsv-select -f 2 |
     tsv-uniq |
 while read SPECIES; do
-    if [[ -f "${SPECIES}"/info.tsv ]]; then
+    if [[ -s "${SPECIES}"/info.tsv ]]; then
         continue
     fi
 
@@ -153,11 +153,12 @@ while read SPECIES; do
         --append-fields 2 |
     tsv-join \
         --data-fields 1 \
-        -f all.annotation.tsv \
+        -f "${SPECIES}"/temp.anno.tsv \
         --key-fields 1 \
         --append-fields 2 \
         > "${SPECIES}"/info.tsv
 
+    rm -f "${SPECIES}"/temp.*.tsv
 done
 
 ##----------------------------#
