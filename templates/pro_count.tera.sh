@@ -55,54 +55,13 @@ while read SPECIES; do
         continue
     fi
 
-    datamash transpose < "${SPECIES}"/counts.tsv
+    cat "${SPECIES}"/counts.tsv |
+        datamash transpose |
+        sed "s/^count/${SPECIES}/"
 done |
     tsv-uniq \
     > counts.tsv
 
-#printf "#item\tcount\n" \
-#    > counts.tsv
-#
-#gzip -dcf all.pro.fa.gz |
-#    grep "^>" |
-#    wc -l |
-#    perl -nl -MNumber::Format -e '
-#        printf qq(Proteins\t%s\n), Number::Format::format_number($_, 0,);
-#        ' \
-#    >> counts.tsv
-#
-#gzip -dcf all.pro.fa.gz |
-#    grep "^>" |
-#    tsv-uniq |
-#    wc -l |
-#    perl -nl -MNumber::Format -e '
-#        printf qq(Unique headers and annotations\t%s\n), Number::Format::format_number($_, 0,);
-#        ' \
-#    >> counts.tsv
-#
-#gzip -dcf all.uniq.fa.gz |
-#    grep "^>" |
-#    wc -l |
-#    perl -nl -MNumber::Format -e '
-#        printf qq(Unique proteins\t%s\n), Number::Format::format_number($_, 0,);
-#        ' \
-#    >> counts.tsv
-#
-#gzip -dcf all.replace.fa.gz |
-#    grep "^>" |
-#    wc -l |
-#    perl -nl -MNumber::Format -e '
-#        printf qq(all.replace.fa\t%s\n), Number::Format::format_number($_, 0,);
-#        ' \
-#    >> counts.tsv
-#
-#cat all.annotation.tsv |
-#    wc -l |
-#    perl -nl -MNumber::Format -e '
-#        printf qq(all.annotation.tsv\t%s\n), Number::Format::format_number($_, 0,);
-#        ' \
-#    >> counts.tsv
-#
 #cat all.info.tsv |
 #    wc -l |
 #    perl -nl -MNumber::Format -e '
