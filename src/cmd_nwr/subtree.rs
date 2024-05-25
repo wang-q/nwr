@@ -152,7 +152,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
         if is_monophyly {
             let name_of: BTreeMap<usize, String> =
-                id_of.iter().map(|(k, v)| (v.clone(), k.clone())).collect();
+                id_of.iter().map(|(k, v)| (*v, k.clone())).collect();
 
             let mut descendants = BTreeSet::new();
             for id in &tree.get_subtree(&sub_root_id).unwrap() {
