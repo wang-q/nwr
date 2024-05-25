@@ -191,12 +191,11 @@ pub fn make_subcommand() -> Command {
         )
         .arg(
             Arg::new("clust-cov")
-                .long("clust-id")
+                .long("clust-cov")
                 .num_args(1)
                 .default_value("0.95")
                 .help("The min coverage of query and target for clustering"),
         )
-
 }
 
 // command implementation

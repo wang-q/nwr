@@ -158,6 +158,8 @@ cargo run --bin nwr info -d tests/nwr/ --tsv Viruses "Actinophage JHJ-1" "Bacill
 
 cargo run --bin nwr common -d tests/nwr/ "Actinophage JHJ-1" "Bacillus phage bg1"
 
+cargo run --bin nwr template tests/assembly/Trichoderma.assembly.tsv --ass -o stdout
+
 ```
 
 ### Newick files and LaTeX
