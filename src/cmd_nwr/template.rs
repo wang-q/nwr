@@ -60,6 +60,9 @@ pub fn make_subcommand() -> Command {
 * --pro: Protein/
     * One TSV file
         * species.tsv
+    * Bash scripts
+        * collect.sh
+        * count.sh
 
 "###,
         )
@@ -179,6 +182,21 @@ pub fn make_subcommand() -> Command {
                 .action(ArgAction::SetTrue)
                 .help("Prepare Protein/ materials"),
         )
+        .arg(
+            Arg::new("clust-id")
+                .long("clust-id")
+                .num_args(1)
+                .default_value("0.95")
+                .help("The min sequence identity for clustering"),
+        )
+        .arg(
+            Arg::new("clust-cov")
+                .long("clust-id")
+                .num_args(1)
+                .default_value("0.95")
+                .help("The min coverage of query and target for clustering"),
+        )
+
 }
 
 // command implementation
