@@ -242,9 +242,21 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         let gbrs_paired_asm = fields.get(17).unwrap();
         let ftp_path = fields.get(19).unwrap();
 
+        // clean NA/na
+        let infraspecific_name = if infraspecific_name.as_str() == "NA"
+            || infraspecific_name.as_str() == "na"
+        {
+            ""
+        } else {
+            infraspecific_name
+        };
+
         // Skip incompetent strains
         lazy_static! {
-            static ref RE1: Regex = Regex::new(r"(?xi)\b(uncultured|unidentified|bacterium|archaeon|metagenome)\b").unwrap();
+            static ref RE1: Regex = Regex::new(
+                r"(?xi)\b(uncultured|unidentified|bacterium|archaeon|metagenome)\b"
+            )
+            .unwrap();
             static ref RE2: Regex = Regex::new(r"(?xi)(virus|phage)\b").unwrap();
         }
         if RE1.is_match(organism_name) || RE2.is_match(organism_name) {
