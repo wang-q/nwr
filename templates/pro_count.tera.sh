@@ -62,13 +62,6 @@ done |
     tsv-uniq \
     > counts.tsv
 
-#cat all.info.tsv |
-#    wc -l |
-#    perl -nl -MNumber::Format -e '
-#        printf qq(all.info.tsv\t%s\n), Number::Format::format_number($_, 0,);
-#        ' \
-#    >> counts.tsv
-
 log_info Done.
 
 exit 0
