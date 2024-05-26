@@ -13,7 +13,9 @@ cat url.tsv |
         echo >&2
         log_info "{3}\t{1}"
         mkdir -p "{3}/{1}"
-        rsync -avP --no-links {2}/ {3}/{1}/ --exclude="assembly_status.txt"
+        rsync -avP --no-links {2}/ {3}/{1}/ \
+            --exclude="assembly_status.txt" \
+            --exclude="*assembly_structure/*"
     '
 
 log_info Done.

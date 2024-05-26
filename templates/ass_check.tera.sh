@@ -23,7 +23,9 @@ cat url.tsv |
         fi
         log_debug "{3}\t{1}"
         cd "{3}/{1}"
-        md5sum --check md5checksums.txt --status
+        md5sum --check <(
+            cat md5checksums.txt | grep -v "assembly_structure"
+            ) --status
         if [ "$?" -eq "0" ]; then
             echo "{1}" >> ../../check.lst
         else
