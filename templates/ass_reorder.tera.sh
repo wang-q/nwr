@@ -43,7 +43,7 @@ find . -maxdepth 3 -mindepth 2 -type f -name "*_genomic.fna.gz" |
     > misplaced.tsv
 
 cat misplaced.tsv |
-    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
         SPECIES=$(
             tsv-filter url.tsv --str-in-fld "1:{2}" |
                 tsv-select -f 3
