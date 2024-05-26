@@ -7,6 +7,7 @@
     * `nwr append`
     * `nwr ardb`
     * `nwr pl-condense`
+* Rewrite `nwr template --pro` scripts
 
 ## 0.7.0 - 2023-09-15
 
