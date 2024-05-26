@@ -6,7 +6,7 @@
 log_warn download.sh
 
 cat sample.tsv |
-    tsv-filter --istr-ne "na" |
+    tsv-filter --istr-ne "1:na" |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
         mkdir -p "{3}"
         if [ ! -s "{3}/{1}.txt" ]; then
