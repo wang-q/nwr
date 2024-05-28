@@ -8,6 +8,7 @@
     * `nwr ardb`
     * `nwr pl-condense`
 * Rewrite `nwr template --pro` scripts
+* Delete `fungi61` because it takes up a lot of disk space
 
 ## 0.7.0 - 2023-09-15
 

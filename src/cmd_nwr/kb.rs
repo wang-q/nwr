@@ -13,7 +13,6 @@ pub fn make_subcommand() -> Command {
 
 * bac120  - 120 bacterial marker genes
 * ar53    - 53 archaeal marker genes
-* fungi61 - 61 fungal marker genes
 
 "###,
         )
@@ -41,7 +40,6 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     static FILE_FORMATS: &str = include_str!("../../doc/formats.md");
     static FILE_BAC: &[u8] = include_bytes!("../../doc/bac120.tar.gz");
     static FILE_AR: &[u8] = include_bytes!("../../doc/ar53.tar.gz");
-    static FILE_FUNGI: &[u8] = include_bytes!("../../doc/fungi61.tar.gz");
 
     match args.get_one::<String>("infile").unwrap().as_ref() {
         "formats" => {
@@ -56,11 +54,6 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         "ar53" => {
             fs::create_dir_all(outfile)?;
             let mut archive = Archive::new(GzDecoder::new(FILE_AR));
-            archive.unpack(outfile)?;
-        }
-        "fungi61" => {
-            fs::create_dir_all(outfile)?;
-            let mut archive = Archive::new(GzDecoder::new(FILE_FUNGI));
             archive.unpack(outfile)?;
         }
         _ => unreachable!(),
