@@ -24,7 +24,13 @@ cat url.tsv |
         log_debug "{3}\t{1}"
         cd "{3}/{1}"
         md5sum --check <(
-            cat md5checksums.txt | grep -v "assembly_structure"
+            cat md5checksums.txt |
+                grep -v "assembly_structure" |
+                grep -v "annotation_hashes.txt" |
+                grep -v "_feature_table.txt.gz" |
+                grep -v "_genomic_gaps.txt.gz" |
+                grep -v "_protein.gpff.gz" |
+                grep -v "_wgsmaster.gpff.gz"
             ) --status
         if [ "$?" -eq "0" ]; then
             echo "{1}" >> ../../check.lst
