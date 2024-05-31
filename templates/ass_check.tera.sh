@@ -29,8 +29,8 @@ cat url.tsv |
                 grep -v "annotation_hashes.txt" |
                 grep -v "_feature_table.txt.gz" |
                 grep -v "_genomic_gaps.txt.gz" |
-                grep -v "_protein.gpff.gz" |
-                grep -v "_wgsmaster.gpff.gz"
+                grep -v "_protein.gbff.gz" |
+                grep -v "_wgsmaster.gbff.gz"
             ) --status
         if [ "$?" -eq "0" ]; then
             echo "{1}" >> ../../check.lst

@@ -19,7 +19,7 @@ cat url.tsv |
             --exclude="annotation_hashes.txt" \
             --exclude="*_feature_table.txt.gz" \
             --exclude="*_genomic_gaps.txt.gz" \
-            --exclude="*_protein.gpff.gz" \
+            --exclude="*_protein.gbff.gz" \
             --exclude="*_wgsmaster.gbff.gz"
     '
 
