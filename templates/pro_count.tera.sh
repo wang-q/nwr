@@ -18,12 +18,20 @@ while read SPECIES; do
     fi
 
     N_STRAIN=$(cat "${SPECIES}"/strains.tsv | wc -l)
-    N_TOTAL=$(cat "${SPECIES}"/replace.tsv | wc -l)
-    N_DEDUP=$(cat "${SPECIES}"/res_cluster.tsv | wc -l)
+    N_TOTAL=$(
+        cat "${SPECIES}"/info.tsv |
+            tsv-summarize -H --count |
+            sed '1d'
+        )
+    N_DEDUP=$(
+        cat "${SPECIES}"/info.tsv |
+            tsv-summarize -H --unique-count id |
+            sed '1d'
+        )
     N_REP=$(
-        cat "${SPECIES}"/res_cluster.tsv |
-            tsv-select -f 1 | tsv-uniq |
-            wc -l
+        cat "${SPECIES}"/info.tsv |
+            tsv-summarize -H --unique-count rep |
+            sed '1d'
         )
 
     printf "#item\tcount\n" \

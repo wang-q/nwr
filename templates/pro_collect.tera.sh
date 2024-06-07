@@ -150,6 +150,9 @@ while read SPECIES; do
         > "${SPECIES}"/info.tsv
 
     rm -f "${SPECIES}"/temp.*.tsv
+
+    rm -f "${SPECIES}"/replace.fa.gz
+    rm -f "${SPECIES}"/replace.tsv
 done
 
 log_info Done.
