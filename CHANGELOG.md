@@ -2,6 +2,8 @@
 
 ## Unreleased - ReleaseDate
 
+* Rewrite `nwr template --ass` scripts
+    * Skip unnecessary downloads
 * Rewrite `nwr template --pro` scripts
     * Remove unnecessary intermediate files
 
