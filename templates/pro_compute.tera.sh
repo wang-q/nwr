@@ -59,8 +59,6 @@ while read SPECIES; do
     rm -f "${SPECIES}"/temp.*.tsv
     rm -f "${SPECIES}"/res_cluster.tsv
 
-    rm -f "${SPECIES}"/pro.fa.gz
-
 done
 
 log_info Done.
