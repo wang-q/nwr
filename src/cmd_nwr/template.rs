@@ -62,7 +62,7 @@ pub fn make_subcommand() -> Command {
         * species.tsv
     * Bash scripts
         * collect.sh
-        * compute.sh
+        * info.sh
         * count.sh
 
 "###,
@@ -433,7 +433,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
         gen_pro_data(&context)?;
         gen_pro_collect(&context)?;
-        gen_pro_compute(&context)?;
+        gen_pro_info(&context)?;
         gen_pro_count(&context)?;
     }
 
@@ -1064,10 +1064,10 @@ fn gen_pro_collect(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// Protein/compute.sh
+// Protein/info.sh
 //----------------------------
-fn gen_pro_compute(context: &Context) -> anyhow::Result<()> {
-    let outname = "compute.sh";
+fn gen_pro_info(context: &Context) -> anyhow::Result<()> {
+    let outname = "info.sh";
     eprintln!("Create Protein/{}", outname);
 
     let outdir = context.get("outdir").unwrap().as_str().unwrap();
@@ -1081,7 +1081,7 @@ fn gen_pro_compute(context: &Context) -> anyhow::Result<()> {
     let mut tera = Tera::default();
     tera.add_raw_templates(vec![
         ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/pro_compute.tera.sh")),
+        ("t", include_str!("../../templates/pro_info.tera.sh")),
     ])
     .unwrap();
 

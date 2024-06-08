@@ -5,6 +5,10 @@
 #----------------------------#
 log_warn Protein/collect.sh
 
+{% set parallel2 = parallel | int / 4 -%}
+{% set parallel2 = parallel2 | round(method="floor") -%}
+{% if parallel2 < 1 %}{% set parallel2 = 1 %}{% endif -%}
+
 #----------------------------#
 # filtered species.tsv
 #----------------------------#
@@ -27,7 +31,7 @@ cat species-f.tsv |
     tsv-select -f 2 |
     tsv-uniq |
 while read SPECIES; do
-    if [[ -f "${SPECIES}"/res_rep_seq.fasta.gz ]]; then
+    if [[ -s "${SPECIES}"/pro.fa.gz ]]; then
         continue
     fi
 
@@ -53,107 +57,27 @@ while read SPECIES; do
 done
 
 #----------------------------#
-# replace.fa
+# Clustering
 #----------------------------#
-log_info "Replacing headers"
+log_info "Clustering"
 cat species-f.tsv |
     tsv-select -f 2 |
     tsv-uniq |
-while read SPECIES; do
-    if [[ -f "${SPECIES}"/replace.fa.gz ]]; then
-        continue
-    fi
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j {{ parallel2 }} '
+        if [[ -s {}/res_rep_seq.fasta.gz ]]; then
+            exit
+        fi
 
-    rm -f {2}/replace.tsv
+        log_debug "{}"
 
-    cat "${SPECIES}"/strains.tsv |
-        parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
-            if [[ ! -d "../ASSEMBLY/{2}/{1}" ]]; then
-                exit
-            fi
+        #cluster-representative cluster-member
+        mmseqs easy-cluster "{}"/pro.fa.gz "{}"/res tmp \
+            --threads 4 --remove-tmp-files -v 0 \
+            --min-seq-id {{ pro_clust_id }} -c {{ pro_clust_cov }}
 
-            gzip -dcf ../ASSEMBLY/{2}/{1}/*_protein.faa.gz |
-                grep "^>" |
-                cut -d" " -f 1 |
-                sed "s/^>//" |
-                perl -nl -e '\''
-                    $n = $_;
-                    $s = $n;
-                    $s =~ s/\.\d+//;
-                    printf qq(%s\t%s_%s\t%s\n), $n, {1}, $s, {1};
-                '\'' \
-                > {2}/{1}.replace.tsv
-
-            cat {2}/{1}.replace.tsv >> {2}/replace.tsv
-
-            faops replace -s \
-                ../ASSEMBLY/{2}/{1}/*_protein.faa.gz \
-                <(cut -f 1,2 {2}/{1}.replace.tsv) \
-                stdout |
-                pigz -p4 \
-                >> {2}/replace.fa.gz
-
-            rm {2}/{1}.replace.tsv
-        '
-done
-
-#----------------------------#
-# info.tsv
-#----------------------------#
-log_info "info.tsv"
-cat species-f.tsv |
-    tsv-select -f 2 |
-    tsv-uniq |
-while read SPECIES; do
-    if [[ -s "${SPECIES}"/info.tsv ]]; then
-        continue
-    fi
-
-    echo -e "#name\tid\tstrain" > "${SPECIES}"/temp.strain.tsv
-    tsv-select -f 2,1,3 "${SPECIES}"/replace.tsv >> "${SPECIES}"/temp.strain.tsv
-
-    echo -e "#name\tsize" > "${SPECIES}"/temp.sizes.tsv
-    faops size "${SPECIES}"/replace.fa.gz >> "${SPECIES}"/temp.sizes.tsv
-
-    echo -e "#name\tannotation" > "${SPECIES}"/temp.anno.tsv
-    cat "${SPECIES}"/strains.tsv |
-        parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
-            if [[ ! -d "../ASSEMBLY/{2}/{1}" ]]; then
-                exit
-            fi
-
-            gzip -dcf ../ASSEMBLY/{2}/{1}/*_protein.faa.gz |
-                grep "^>" |
-                sed "s/^>//" |
-                perl -nl -e '\'' /\[.+\[/ and s/\[/\(/; print; '\'' |
-                perl -nl -e '\'' /\].+\]/ and s/\]/\)/; print; '\'' |
-                perl -nl -e '\'' s/\s+\[.+?\]$//g; print; '\'' |
-                sed "s/MULTISPECIES: //g" |
-                perl -nl -e '\''
-                    /^(\w+)\.\d+\s+(.+)$/ or next;
-                    printf qq(%s_%s\t%s\n), {1}, $1, $2;
-                '\''
-        ' \
-        >> "${SPECIES}"/temp.anno.tsv
-
-    tsv-join \
-        "${SPECIES}"/temp.strain.tsv \
-        --data-fields 1 \
-        -f "${SPECIES}"/temp.sizes.tsv \
-        --key-fields 1 \
-        --append-fields 2 |
-    tsv-join \
-        --data-fields 1 \
-        -f "${SPECIES}"/temp.anno.tsv \
-        --key-fields 1 \
-        --append-fields 2 \
-        > "${SPECIES}"/info.tsv
-
-    rm -f "${SPECIES}"/temp.*.tsv
-
-    rm -f "${SPECIES}"/replace.fa.gz
-    rm -f "${SPECIES}"/replace.tsv
-done
+        rm "{}"/res_all_seqs.fasta
+        pigz -p4 "{}"/res_rep_seq.fasta
+    '
 
 log_info Done.
 
