@@ -3,7 +3,21 @@
 #----------------------------#
 # Run
 #----------------------------#
-log_warn compute.sh
+log_warn info.sh
+
+#----------------------------#
+# filtered species.tsv
+#----------------------------#
+log_info "Protein/species-f.tsv"
+cat species.tsv |
+{% for i in ins -%}
+    tsv-join -f ../{{ i }} -k 1 |
+{% endfor -%}
+{% for i in not_ins -%}
+    tsv-join -e -f ../{{ i }} -k 1 |
+{% endfor -%}
+    cat \
+    > species-f.tsv
 
 #----------------------------#
 # info.tsv

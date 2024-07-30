@@ -6,6 +6,20 @@
 log_warn Protein/count.sh
 
 #----------------------------#
+# filtered species.tsv
+#----------------------------#
+log_info "Protein/species-f.tsv"
+cat species.tsv |
+{% for i in ins -%}
+    tsv-join -f ../{{ i }} -k 1 |
+{% endfor -%}
+{% for i in not_ins -%}
+    tsv-join -e -f ../{{ i }} -k 1 |
+{% endfor -%}
+    cat \
+    > species-f.tsv
+
+#----------------------------#
 # Each species
 #----------------------------#
 log_info "Count each species"
@@ -13,6 +27,10 @@ cat species-f.tsv |
     tsv-select -f 2 |
     tsv-uniq |
 while read SPECIES; do
+    if [[ -f "${SPECIES}"/info.tsv ]]; then
+        continue
+    fi
+
     if [[ ! -f "${SPECIES}"/info.tsv ]]; then
         continue
     fi
