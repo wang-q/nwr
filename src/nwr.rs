@@ -42,36 +42,19 @@ fn main() -> anyhow::Result<()> {
 Subcommand groups:
 
 * Database
-    * download
-    * txdb
-    * ardb
+    * download / txdb / ardb
 
 * Taxonomy
-    * info
-    * lineage
-    * member
-    * append
-    * restrict
-    * common
+    * info / lineage / member / append / restrict / common
 
 * Newick
     * Information
-        * label
-        * stat
-        * distance
+        * label / stat / distance /
     * Manipulation
-        * order
-        * rename
-        * replace
-        * topo
-        * subtree
-        * prune
-        * reroot
+        * order / rename / replace / topo / subtree / prune / reroot /
         * pl-condense
     * Visualization
-        * indent
-        * comment
-        * tex
+        * indent / comment / tex
 
 * Assembly
     * template
