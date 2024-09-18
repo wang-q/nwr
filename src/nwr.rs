@@ -53,9 +53,9 @@ Subcommand groups:
 
 * Newick
     * Information
-        * label / stat / distance /
+        * label / stat / distance
     * Manipulation
-        * order / rename / replace / topo / subtree / prune / reroot /
+        * order / rename / replace / topo / subtree / prune / reroot
         * pl-condense
     * Visualization
         * indent / comment / tex
