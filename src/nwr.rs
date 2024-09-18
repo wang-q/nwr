@@ -18,6 +18,7 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::common::make_subcommand())
         .subcommand(cmd_nwr::distance::make_subcommand())
         .subcommand(cmd_nwr::download::make_subcommand())
+        .subcommand(cmd_nwr::euclid::make_subcommand())
         .subcommand(cmd_nwr::indent::make_subcommand())
         .subcommand(cmd_nwr::info::make_subcommand())
         .subcommand(cmd_nwr::kb::make_subcommand())
@@ -47,6 +48,9 @@ Subcommand groups:
 * Taxonomy
     * info / lineage / member / append / restrict / common
 
+* Vectors
+    * euclid / cosine / jaccard
+
 * Newick
     * Information
         * label / stat / distance /
@@ -65,31 +69,32 @@ Subcommand groups:
 
     // Check which subcomamnd the user ran...
     match app.get_matches().subcommand() {
-        Some(("append", sub_matches)) => cmd_nwr::append::execute(sub_matches),
-        Some(("ardb", sub_matches)) => cmd_nwr::ardb::execute(sub_matches),
-        Some(("common", sub_matches)) => cmd_nwr::common::execute(sub_matches),
-        Some(("comment", sub_matches)) => cmd_nwr::comment::execute(sub_matches),
-        Some(("distance", sub_matches)) => cmd_nwr::distance::execute(sub_matches),
         Some(("download", sub_matches)) => cmd_nwr::download::execute(sub_matches),
-        Some(("indent", sub_matches)) => cmd_nwr::indent::execute(sub_matches),
+        Some(("txdb", sub_matches)) => cmd_nwr::txdb::execute(sub_matches),
+        Some(("ardb", sub_matches)) => cmd_nwr::ardb::execute(sub_matches),
         Some(("info", sub_matches)) => cmd_nwr::info::execute(sub_matches),
-        Some(("kb", sub_matches)) => cmd_nwr::kb::execute(sub_matches),
-        Some(("label", sub_matches)) => cmd_nwr::label::execute(sub_matches),
         Some(("lineage", sub_matches)) => cmd_nwr::lineage::execute(sub_matches),
         Some(("member", sub_matches)) => cmd_nwr::member::execute(sub_matches),
+        Some(("append", sub_matches)) => cmd_nwr::append::execute(sub_matches),
+        Some(("restrict", sub_matches)) => cmd_nwr::restrict::execute(sub_matches),
+        Some(("common", sub_matches)) => cmd_nwr::common::execute(sub_matches),
+        Some(("euclid", sub_matches)) => cmd_nwr::euclid::execute(sub_matches),
+        Some(("label", sub_matches)) => cmd_nwr::label::execute(sub_matches),
+        Some(("stat", sub_matches)) => cmd_nwr::stat::execute(sub_matches),
+        Some(("distance", sub_matches)) => cmd_nwr::distance::execute(sub_matches),
         Some(("order", sub_matches)) => cmd_nwr::order::execute(sub_matches),
-        Some(("prune", sub_matches)) => cmd_nwr::prune::execute(sub_matches),
-        Some(("pl-condense", sub_matches)) => cmd_nwr::pl_condense::execute(sub_matches),
         Some(("rename", sub_matches)) => cmd_nwr::rename::execute(sub_matches),
         Some(("replace", sub_matches)) => cmd_nwr::replace::execute(sub_matches),
-        Some(("reroot", sub_matches)) => cmd_nwr::reroot::execute(sub_matches),
-        Some(("restrict", sub_matches)) => cmd_nwr::restrict::execute(sub_matches),
-        Some(("subtree", sub_matches)) => cmd_nwr::subtree::execute(sub_matches),
-        Some(("stat", sub_matches)) => cmd_nwr::stat::execute(sub_matches),
-        Some(("template", sub_matches)) => cmd_nwr::template::execute(sub_matches),
-        Some(("tex", sub_matches)) => cmd_nwr::tex::execute(sub_matches),
         Some(("topo", sub_matches)) => cmd_nwr::topo::execute(sub_matches),
-        Some(("txdb", sub_matches)) => cmd_nwr::txdb::execute(sub_matches),
+        Some(("subtree", sub_matches)) => cmd_nwr::subtree::execute(sub_matches),
+        Some(("prune", sub_matches)) => cmd_nwr::prune::execute(sub_matches),
+        Some(("reroot", sub_matches)) => cmd_nwr::reroot::execute(sub_matches),
+        Some(("pl-condense", sub_matches)) => cmd_nwr::pl_condense::execute(sub_matches),
+        Some(("indent", sub_matches)) => cmd_nwr::indent::execute(sub_matches),
+        Some(("comment", sub_matches)) => cmd_nwr::comment::execute(sub_matches),
+        Some(("tex", sub_matches)) => cmd_nwr::tex::execute(sub_matches),
+        Some(("template", sub_matches)) => cmd_nwr::template::execute(sub_matches),
+        Some(("kb", sub_matches)) => cmd_nwr::kb::execute(sub_matches),
         _ => unreachable!(),
     }
     .unwrap();

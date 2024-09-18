@@ -25,3 +25,4 @@ pub mod template;
 pub mod tex;
 pub mod topo;
 pub mod txdb;
+pub mod euclid;
