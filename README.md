@@ -50,6 +50,7 @@ Commands:
   common       Output the common tree of terms
   distance     Output a TSV/phylip file with distances between all named nodes
   download     Download the latest releases of `taxdump` and assembly reports
+  similarity   Similarity of vectors
   indent       Indent the Newick file
   info         Information of Taxonomy ID(s) or scientific name(s)
   kb           Prints docs (knowledge bases)
@@ -79,36 +80,22 @@ Options:
 Subcommand groups:
 
 * Database
-    * download
-    * txdb
-    * ardb
+    * download / txdb / ardb
 
 * Taxonomy
-    * info
-    * lineage
-    * member
-    * append
-    * restrict
-    * common
+    * info / lineage / member / append / restrict / common
+
+* Vectors
+    * similarity: euclid/cosine/jaccard
 
 * Newick
     * Information
-        * label
-        * stat
-        * distance
+        * label / stat / distance
     * Manipulation
-        * order
-        * rename
-        * replace
-        * topo
-        * subtree
-        * prune
-        * reroot
+        * order / rename / replace / topo / subtree / prune / reroot
         * pl-condense
     * Visualization
-        * indent
-        * comment
-        * tex
+        * indent / comment / tex
 
 * Assembly
     * template
