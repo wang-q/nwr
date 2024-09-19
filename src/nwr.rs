@@ -18,7 +18,7 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::common::make_subcommand())
         .subcommand(cmd_nwr::distance::make_subcommand())
         .subcommand(cmd_nwr::download::make_subcommand())
-        .subcommand(cmd_nwr::euclid::make_subcommand())
+        .subcommand(cmd_nwr::similarity::make_subcommand())
         .subcommand(cmd_nwr::indent::make_subcommand())
         .subcommand(cmd_nwr::info::make_subcommand())
         .subcommand(cmd_nwr::kb::make_subcommand())
@@ -49,7 +49,7 @@ Subcommand groups:
     * info / lineage / member / append / restrict / common
 
 * Vectors
-    * euclid / cosine / jaccard
+    * similarity: euclid/cosine/jaccard
 
 * Newick
     * Information
@@ -78,7 +78,7 @@ Subcommand groups:
         Some(("append", sub_matches)) => cmd_nwr::append::execute(sub_matches),
         Some(("restrict", sub_matches)) => cmd_nwr::restrict::execute(sub_matches),
         Some(("common", sub_matches)) => cmd_nwr::common::execute(sub_matches),
-        Some(("euclid", sub_matches)) => cmd_nwr::euclid::execute(sub_matches),
+        Some(("similarity", sub_matches)) => cmd_nwr::similarity::execute(sub_matches),
         Some(("label", sub_matches)) => cmd_nwr::label::execute(sub_matches),
         Some(("stat", sub_matches)) => cmd_nwr::stat::execute(sub_matches),
         Some(("distance", sub_matches)) => cmd_nwr::distance::execute(sub_matches),

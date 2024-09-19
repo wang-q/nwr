@@ -169,6 +169,17 @@ cargo run --bin nwr template tests/assembly/Trichoderma.assembly.tsv --ass -o st
 
 ```
 
+### Similarity and dissimilarity (distance) of vectors
+
+```shell
+cargo run --bin nwr similarity tests/assembly/domain.tsv --mode euclid --bin
+
+cargo run --bin nwr similarity tests/assembly/domain.tsv --mode cosine --bin
+
+cargo run --bin nwr similarity tests/assembly/domain.tsv --mode jaccard --bin
+
+```
+
 ### Newick files and LaTeX
 
 For more detailed usages, check [this file](tree/README.md).

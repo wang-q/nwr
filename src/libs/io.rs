@@ -1,6 +1,6 @@
-use std::io::Read;
-use std::{fmt, io, str};
 use phylotree::tree::{Node, NodeId, Tree};
+use std::io::Read;
+use std::{fmt, str};
 
 //----------------------------
 // newick
@@ -29,7 +29,6 @@ pub fn read_newick(infile: &str) -> Tree {
 
     tree
 }
-
 
 /// Writes the tree with indentations
 ///
@@ -101,7 +100,7 @@ fn format_node(node: &Node) -> String {
 #[derive(Default, Clone)]
 pub struct AsmEntry {
     name: String,
-    vector: Vec<i32>,
+    list: Vec<f64>,
 }
 
 impl AsmEntry {
@@ -109,14 +108,14 @@ impl AsmEntry {
     pub fn name(&self) -> &String {
         &self.name
     }
-    pub fn vector(&self) -> &Vec<i32> {
-        &self.vector
+    pub fn list(&self) -> &Vec<f64> {
+        &self.list
     }
 
     pub fn new() -> Self {
         Self {
             name: String::new(),
-            vector: vec![],
+            list: vec![],
         }
     }
 
@@ -125,15 +124,15 @@ impl AsmEntry {
     /// ```
     /// # use nwr::AsmEntry;
     /// let name = "Es_coli_005008_GCF_013426115_1".to_string();
-    /// let vector : Vec<i32> = vec![1,5,2,7,6,6];
-    /// let entry = AsmEntry::from(&name, &vector);
+    /// let list : Vec<f64> = vec![1.0,5.0,2.0,7.0,6.0,6.0];
+    /// let entry = AsmEntry::from(&name, &list);
     /// # assert_eq!(*entry.name(), "Es_coli_005008_GCF_013426115_1");
-    /// # assert_eq!(*entry.vector().get(1).unwrap(), 5i32);
+    /// # assert_eq!(*entry.list().get(1).unwrap(), 5f64);
     /// ```
-    pub fn from(name: &String, vector: &[i32]) -> Self {
+    pub fn from(name: &String, vector: &[f64]) -> Self {
         Self {
             name: name.clone(),
-            vector: Vec::from(vector),
+            list: Vec::from(vector),
         }
     }
 
@@ -142,15 +141,16 @@ impl AsmEntry {
     /// let line = "Es_coli_005008_GCF_013426115_1\t1,5,2,7,6,6".to_string();
     /// let entry = AsmEntry::parse(&line);
     /// # assert_eq!(*entry.name(), "Es_coli_005008_GCF_013426115_1");
-    /// # assert_eq!(*entry.vector().get(1).unwrap(), 5i32);
+    /// # assert_eq!(*entry.list().get(1).unwrap(), 5f64);
     /// ```
     pub fn parse(line: &str) -> AsmEntry {
         let fields: Vec<&str> = line.split('\t').collect();
         if fields.len() == 2 {
             let name = fields[0].to_string();
             let parts: Vec<&str> = fields[1].split(',').collect();
-            let vector: Vec<i32> = parts.iter().map(|e| e.parse::<i32>().unwrap()).collect();
-            Self::from(&name, &vector)
+            let list: Vec<f64> =
+                parts.iter().map(|e| e.parse::<f64>().unwrap()).collect();
+            Self::from(&name, &list)
         } else {
             Self::new()
         }
@@ -163,8 +163,8 @@ impl fmt::Display for AsmEntry {
     /// ```
     /// # use nwr::AsmEntry;
     /// let name = "Es_coli_005008_GCF_013426115_1".to_string();
-    /// let vector : Vec<i32> = vec![1,5,2,7,6,6];
-    /// let entry = AsmEntry::from(&name, &vector);
+    /// let list : Vec<f64> = vec![1.0,5.0,2.0,7.0,6.0,6.0];
+    /// let entry = AsmEntry::from(&name, &list);
     /// assert_eq!(entry.to_string(), "Es_coli_005008_GCF_013426115_1\t1,5,2,7,6,6\n");
     /// ```
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -172,13 +172,12 @@ impl fmt::Display for AsmEntry {
             f,
             "{}\t{}\n",
             self.name(),
-            self.vector.iter().map(|e| e.to_string()).collect::<Vec<_>>().join(","),
+            self.list
+                .iter()
+                .map(|e| e.to_string())
+                .collect::<Vec<_>>()
+                .join(","),
         )?;
         Ok(())
     }
 }
-
-
-
-// https://www.maartengrootendorst.com/blog/distances/
-// https://crates.io/crates/semanticsimilarity_rs
