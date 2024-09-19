@@ -1,7 +1,10 @@
-use phylotree::tree::Tree;
 use std::io::Read;
 use std::{fmt, io, str};
+use phylotree::tree::{Node, NodeId, Tree};
 
+//----------------------------
+// newick
+//----------------------------
 pub fn read_newick(infile: &str) -> Tree {
     let mut reader = intspan::reader(infile);
     let mut newick = String::new();
@@ -27,6 +30,74 @@ pub fn read_newick(infile: &str) -> Tree {
     tree
 }
 
+
+/// Writes the tree with indentations
+///
+/// ```
+/// use phylotree::tree::Tree;
+///
+/// let newick = "(A,B);";
+/// let tree = Tree::from_newick(newick).unwrap();
+///
+/// assert_eq!(nwr::format_tree(&tree, "  "), "(\n  A,\n  B\n);".to_string());
+/// ```
+pub fn format_tree(tree: &Tree, indent: &str) -> String {
+    let root = tree.get_root().unwrap();
+    format_subtree(tree, &root, indent) + ";"
+}
+
+pub fn format_subtree(tree: &Tree, id: &NodeId, indent: &str) -> String {
+    let node = tree.get(id).unwrap();
+
+    let children = &node.children;
+    let depth = node.get_depth();
+
+    if children.is_empty() {
+        if indent.is_empty() {
+            format_node(node)
+        } else {
+            let indention = indent.repeat(depth);
+            format!("{}{}", indention, format_node(node))
+        }
+    } else {
+        let branch_set = children
+            .iter()
+            .map(|child| format_subtree(tree, child, indent))
+            .collect::<Vec<_>>();
+
+        if indent.is_empty() {
+            format!("({}){}", branch_set.join(","), format_node(node))
+        } else {
+            let indention = indent.repeat(depth);
+            format!(
+                "{}(\n{}\n{}){}",
+                indention,
+                branch_set.join(",\n"),
+                indention,
+                format_node(node)
+            )
+        }
+    }
+}
+
+fn format_node(node: &Node) -> String {
+    let mut repr = String::new();
+    if let Some(name) = node.name.clone() {
+        repr += &name;
+    }
+    if let Some(parent_edge) = node.parent_edge {
+        repr += &format!(":{}", &parent_edge);
+    }
+    if let Some(comment) = node.comment.clone() {
+        repr += &format!("[{}]", &comment);
+    }
+
+    repr
+}
+
+//----------------------------
+// AsmEntry
+//----------------------------
 #[derive(Default, Clone)]
 pub struct AsmEntry {
     name: String,
