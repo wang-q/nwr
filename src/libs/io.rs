@@ -65,6 +65,25 @@ impl AsmEntry {
             vector: Vec::from(vector),
         }
     }
+
+    /// ```
+    /// # use nwr::AsmEntry;
+    /// let line = "Es_coli_005008_GCF_013426115_1\t1,5,2,7,6,6".to_string();
+    /// let entry = AsmEntry::parse(&line);
+    /// # assert_eq!(*entry.name(), "Es_coli_005008_GCF_013426115_1");
+    /// # assert_eq!(*entry.vector().get(1).unwrap(), 5i32);
+    /// ```
+    pub fn parse(line: &str) -> AsmEntry {
+        let fields: Vec<&str> = line.split('\t').collect();
+        if fields.len() == 2 {
+            let name = fields[0].to_string();
+            let parts: Vec<&str> = fields[1].split(',').collect();
+            let vector: Vec<i32> = parts.iter().map(|e| e.parse::<i32>().unwrap()).collect();
+            Self::from(&name, &vector)
+        } else {
+            Self::new()
+        }
+    }
 }
 
 impl fmt::Display for AsmEntry {
@@ -88,9 +107,6 @@ impl fmt::Display for AsmEntry {
     }
 }
 
-pub fn parse_asm_line(line: &str) -> AsmEntry {
-
-}
 
 
 // https://www.maartengrootendorst.com/blog/distances/
