@@ -5,6 +5,10 @@ on:
     tags:
       - '*'
 
+# We need this to be able to create releases.
+permissions:
+  contents: write
+
 jobs:
   linux-gnu:
     runs-on: ubuntu-latest
@@ -15,7 +19,7 @@ jobs:
         run: ldd --version
 
       - name: Checkout sources
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install stable toolchain
         uses: actions-rs/toolchain@v1
@@ -30,7 +34,7 @@ jobs:
         run: tar cvfz nwr.tar.gz target/release/nwr
         shell: bash
       - name: Upload binaries to releases
-        uses: svenstaro/upload-release-action@v1-release
+        uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: nwr.tar.gz
@@ -51,7 +55,7 @@ jobs:
         run: tar cvfz nwr.tar.gz target/release/nwr
         shell: bash
       - name: Upload binaries to releases
-        uses: svenstaro/upload-release-action@v1-release
+        uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: nwr.tar.gz
@@ -75,7 +79,7 @@ jobs:
         run: Compress-Archive -DestinationPath ./nwr.zip -Path ./target/release/nwr.exe
         shell: powershell
       - name: Upload binaries to releases
-        uses: svenstaro/upload-release-action@v1-release
+        uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: nwr.zip
