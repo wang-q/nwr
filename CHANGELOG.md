@@ -2,10 +2,6 @@
 
 ## Unreleased - ReleaseDate
 
-## 0.7.4 - 2024-09-19
-
-## 0.7.3 - 2024-09-19
-
 * Add `nwr similarity`
 
 * Rewrite `nwr template --ass` scripts
