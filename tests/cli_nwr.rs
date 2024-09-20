@@ -357,7 +357,9 @@ fn command_similarity() -> anyhow::Result<()> {
     let stdout = String::from_utf8(output.stdout).unwrap();
 
     assert_eq!(stdout.lines().count(), 100);
-    assert!(stdout.contains("Acin_baum_1326584_GCF_025854095_1\tAcin_baum_1326584_GCF_025854095_1\t1.0000"));
+    assert!(stdout.contains(
+        "Acin_baum_1326584_GCF_025854095_1\tAcin_baum_1326584_GCF_025854095_1\t1.0000"
+    ));
 
     Ok(())
 }

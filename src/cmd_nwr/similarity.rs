@@ -1,5 +1,4 @@
 use clap::*;
-use rayon::prelude::*;
 use std::io::BufRead;
 
 // Create clap subcommand arguments
@@ -76,7 +75,7 @@ modes:
             Arg::new("parallel")
                 .long("parallel")
                 .num_args(1)
-                .default_value("8")
+                .default_value("1")
                 .value_parser(value_parser!(usize))
                 .help("Number of threads"),
         )
@@ -97,17 +96,13 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     //----------------------------
     let mut writer = intspan::writer(args.get_one::<String>("outfile").unwrap());
 
-    let mode = args.get_one::<String>("mode").unwrap();
+    let opt_mode = args.get_one::<String>("mode").unwrap();
 
     let is_bin = args.get_flag("bin");
     let is_sim = args.get_flag("sim");
     let is_dis = args.get_flag("dis");
 
-    let parallel = *args.get_one::<usize>("parallel").unwrap();
-    rayon::ThreadPoolBuilder::new()
-        .num_threads(parallel)
-        .build_global()
-        .unwrap();
+    let opt_parallel = *args.get_one::<usize>("parallel").unwrap();
 
     let infiles = args
         .get_many::<String>("infiles")
@@ -118,40 +113,60 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     //----------------------------
     // Ops
     //----------------------------
-    if infiles.len() == 1 {
-        let entries = load_file(infiles.get(0).unwrap(), is_bin);
+    let entries = load_file(infiles.get(0).unwrap(), is_bin);
+    let others = if infiles.len() == 2 {
+        load_file(infiles.get(1).unwrap(), is_bin)
+    } else {
+        entries.clone()
+    };
 
-        for i in 0..entries.len() {
-            for j in 0..entries.len() {
-                let e1 = entries.get(i).unwrap();
-                let e2 = entries.get(j).unwrap();
-                let score = calc(e1.list(), e2.list(), mode, is_sim, is_dis);
+    // Channel 1 - Entries
+    let (snd1, rcv1) = crossbeam::channel::bounded::<(nwr::AsmEntry, nwr::AsmEntry)>(10);
+    // Channel 2 - Results
+    let (snd2, rcv2) = crossbeam::channel::bounded::<String>(10);
 
-                writer.write_fmt(format_args!(
-                    "{}\t{}\t{:.4}\n",
-                    e1.name(),
-                    e2.name(),
-                    score
-                ))?;
+    crossbeam::scope(|s| {
+        //----------------------------
+        // Reader thread
+        //----------------------------
+        s.spawn(|_| {
+            for e1 in &entries {
+                for e2 in &others {
+                    snd1.send((e1.clone(), e2.clone())).unwrap();
+                }
             }
-        }
-    } else if infiles.len() == 2 {
-        let entries = load_file(infiles.get(0).unwrap(), is_bin);
-        let others = load_file(infiles.get(1).unwrap(), is_bin);
+            // Close the channel - this is necessary to exit the for-loop in the worker
+            drop(snd1);
+        });
 
-        for e1 in &entries {
-            for e2 in &others {
-                let score = calc(e1.list(), e2.list(), mode, is_sim, is_dis);
-
-                writer.write_fmt(format_args!(
-                    "{}\t{}\t{:.4}\n",
-                    e1.name(),
-                    e2.name(),
-                    score
-                ))?;
-            }
+        //----------------------------
+        // Worker threads
+        //----------------------------
+        for _ in 0..opt_parallel {
+            // Send to sink, receive from source
+            let (sendr, recvr) = (snd2.clone(), rcv1.clone());
+            // Spawn workers in separate threads
+            s.spawn(move |_| {
+                // Receive until channel closes
+                for (e1, e2) in recvr.iter() {
+                    let score = calc(e1.list(), e2.list(), opt_mode, is_sim, is_dis);
+                    let out_string =
+                        format!("{}\t{}\t{:.4}\n", e1.name(), e2.name(), score);
+                    sendr.send(out_string).unwrap();
+                }
+            });
         }
-    }
+        // Close the channel, otherwise sink will never exit the for-loop
+        drop(snd2);
+
+        //----------------------------
+        // Writer (main) thread
+        //----------------------------
+        for out_string in rcv2.iter() {
+            writer.write_all(out_string.as_ref()).unwrap();
+        }
+    })
+    .unwrap();
 
     Ok(())
 }
@@ -198,19 +213,19 @@ fn calc(l1: &[f64], l2: &[f64], mode: &str, is_sim: bool, is_dis: bool) -> f64 {
 // https://www.maartengrootendorst.com/blog/distances/
 // https://crates.io/crates/semanticsimilarity_rs
 fn euclidean_distance(v1: &[f64], v2: &[f64]) -> f64 {
-    v1.par_iter()
-        .zip(v2.par_iter())
+    v1.iter()
+        .zip(v2.iter())
         .map(|(a, b)| (a - b).powi(2))
         .sum::<f64>()
         .sqrt()
 }
 
 fn dot_product(v1: &[f64], v2: &[f64]) -> f64 {
-    v1.par_iter().zip(v2.par_iter()).map(|(a, b)| a * b).sum()
+    v1.iter().zip(v2.iter()).map(|(a, b)| a * b).sum()
 }
 
 fn norm(v1: &[f64]) -> f64 {
-    v1.par_iter().map(|x| x.powi(2)).sum::<f64>().sqrt()
+    v1.iter().map(|x| x.powi(2)).sum::<f64>().sqrt()
 }
 
 fn cosine_similarity(v1: &[f64], v2: &[f64]) -> f64 {
@@ -226,13 +241,13 @@ fn cosine_similarity(v1: &[f64], v2: &[f64]) -> f64 {
 
 fn weighted_jaccard_similarity(v1: &[f64], v2: &[f64]) -> f64 {
     let numerator = v1
-        .par_iter()
-        .zip(v2.par_iter())
+        .iter()
+        .zip(v2.iter())
         .map(|(a, b)| f64::min(*a, *b))
         .sum::<f64>();
     let denominator = v1
-        .par_iter()
-        .zip(v2.par_iter())
+        .iter()
+        .zip(v2.iter())
         .map(|(a, b)| f64::max(*a, *b))
         .sum::<f64>();
 
