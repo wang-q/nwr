@@ -9,7 +9,7 @@ repository = "https://github.com/wang-q/nwr"
 readme = "README.md"
 categories = ["command-line-utilities", "science"]
 license = "MIT"
-edition = "2018"
+edition = "2021"
 
 [[bin]]
 name = "nwr"
@@ -46,6 +46,13 @@ tempfile = "3.8.0"
 [dev-dependencies]
 assert_cmd = "2.0.12"
 predicates = "3.0.3"
+rand = "0.8.5"
+criterion = "0.5.1"
+approx = "0.5.1"
+
+[[bench]]
+name = "simd"
+harness = false # Allows Criterion to control the benchmarking process
 
 [profile.release]
 lto = true
