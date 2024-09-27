@@ -141,24 +141,24 @@ nwr common "Escherichia coli" 4932 Drosophila_melanogaster 9606 "Mus musculus"
 
 ```shell
 # Concurrent tests may trigger sqlite locking
-cargo test -- --test-threads=1
+cargo +nightly test -- --test-threads=1
 
-cargo test --color=always --package nwr --test cli_nwr command_template -- --show-output
+cargo +nightly test --color=always --package nwr --test cli_nwr command_template -- --show-output
 
 # rustup update -- nightly
 cargo +nightly bench --bench simd
 
 # debug mode has a slow connection
-cargo run --release --bin nwr download
+cargo +nightly run --release --bin nwr download
 
 # tests/nwr/
-cargo run --bin nwr txdb -d tests/nwr/
+cargo +nightly run --bin nwr txdb -d tests/nwr/
 
-cargo run --bin nwr info -d tests/nwr/ --tsv Viruses "Actinophage JHJ-1" "Bacillus phage bg1"
+cargo +nightly run --bin nwr info -d tests/nwr/ --tsv Viruses "Actinophage JHJ-1" "Bacillus phage bg1"
 
-cargo run --bin nwr common -d tests/nwr/ "Actinophage JHJ-1" "Bacillus phage bg1"
+cargo +nightly run --bin nwr common -d tests/nwr/ "Actinophage JHJ-1" "Bacillus phage bg1"
 
-cargo run --bin nwr template tests/assembly/Trichoderma.assembly.tsv --ass -o stdout
+cargo +nightly run --bin nwr template tests/assembly/Trichoderma.assembly.tsv --ass -o stdout
 
 ```
 
@@ -171,7 +171,31 @@ cargo run --bin nwr similarity tests/assembly/domain.tsv --mode cosine --bin
 
 cargo run --bin nwr similarity tests/assembly/domain.tsv --mode jaccard --bin
 
+hyperfine --warmup 1 \
+    -n p1 \
+    'nwr similarity data/Domian_content_1000.tsv --parallel 1 --mode jaccard --bin > /dev/null' \
+    -n p2 \
+    'nwr similarity data/Domian_content_1000.tsv --parallel 2 --mode jaccard --bin > /dev/null' \
+    -n p3 \
+    'nwr similarity data/Domian_content_1000.tsv --parallel 3 --mode jaccard --bin > /dev/null' \
+    -n p4 \
+    'nwr similarity data/Domian_content_1000.tsv --parallel 4 --mode jaccard --bin > /dev/null' \
+    -n p6 \
+    'nwr similarity data/Domian_content_1000.tsv --parallel 6 --mode jaccard --bin > /dev/null' \
+    -n p8 \
+    'nwr similarity data/Domian_content_1000.tsv --parallel 8 --mode jaccard --bin > /dev/null' \
+    --export-markdown sim.md.tmp
+
 ```
+
+| Command |       Mean [s] | Min [s] | Max [s] |    Relative |
+|:--------|---------------:|--------:|--------:|------------:|
+| `p1`    | 17.364 ± 1.244 |  16.065 |  20.367 | 2.11 ± 0.18 |
+| `p2`    | 10.467 ± 1.405 |   9.421 |  14.045 | 1.27 ± 0.18 |
+| `p3`    |  8.226 ± 0.380 |   7.615 |   8.722 |        1.00 |
+| `p4`    |  8.430 ± 0.842 |   7.777 |  10.614 | 1.02 ± 0.11 |
+| `p6`    |  8.330 ± 0.827 |   7.648 |  10.371 | 1.01 ± 0.11 |
+| `p8`    | 10.268 ± 2.407 |   8.415 |  15.486 | 1.25 ± 0.30 |
 
 ### Newick files and LaTeX
 

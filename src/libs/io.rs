@@ -100,7 +100,7 @@ fn format_node(node: &Node) -> String {
 #[derive(Default, Clone)]
 pub struct AsmEntry {
     name: String,
-    list: Vec<f64>,
+    list: Vec<f32>,
 }
 
 impl AsmEntry {
@@ -108,7 +108,7 @@ impl AsmEntry {
     pub fn name(&self) -> &String {
         &self.name
     }
-    pub fn list(&self) -> &Vec<f64> {
+    pub fn list(&self) -> &Vec<f32> {
         &self.list
     }
 
@@ -124,12 +124,12 @@ impl AsmEntry {
     /// ```
     /// # use nwr::AsmEntry;
     /// let name = "Es_coli_005008_GCF_013426115_1".to_string();
-    /// let list : Vec<f64> = vec![1.0,5.0,2.0,7.0,6.0,6.0];
+    /// let list : Vec<f32> = vec![1.0,5.0,2.0,7.0,6.0,6.0];
     /// let entry = AsmEntry::from(&name, &list);
     /// # assert_eq!(*entry.name(), "Es_coli_005008_GCF_013426115_1");
-    /// # assert_eq!(*entry.list().get(1).unwrap(), 5f64);
+    /// # assert_eq!(*entry.list().get(1).unwrap(), 5f32);
     /// ```
-    pub fn from(name: &String, vector: &[f64]) -> Self {
+    pub fn from(name: &String, vector: &[f32]) -> Self {
         Self {
             name: name.clone(),
             list: Vec::from(vector),
@@ -141,15 +141,15 @@ impl AsmEntry {
     /// let line = "Es_coli_005008_GCF_013426115_1\t1,5,2,7,6,6".to_string();
     /// let entry = AsmEntry::parse(&line);
     /// # assert_eq!(*entry.name(), "Es_coli_005008_GCF_013426115_1");
-    /// # assert_eq!(*entry.list().get(1).unwrap(), 5f64);
+    /// # assert_eq!(*entry.list().get(1).unwrap(), 5f32);
     /// ```
     pub fn parse(line: &str) -> AsmEntry {
         let fields: Vec<&str> = line.split('\t').collect();
         if fields.len() == 2 {
             let name = fields[0].to_string();
             let parts: Vec<&str> = fields[1].split(',').collect();
-            let list: Vec<f64> =
-                parts.iter().map(|e| e.parse::<f64>().unwrap()).collect();
+            let list: Vec<f32> =
+                parts.iter().map(|e| e.parse::<f32>().unwrap()).collect();
             Self::from(&name, &list)
         } else {
             Self::new()
@@ -163,7 +163,7 @@ impl fmt::Display for AsmEntry {
     /// ```
     /// # use nwr::AsmEntry;
     /// let name = "Es_coli_005008_GCF_013426115_1".to_string();
-    /// let list : Vec<f64> = vec![1.0,5.0,2.0,7.0,6.0,6.0];
+    /// let list : Vec<f32> = vec![1.0,5.0,2.0,7.0,6.0,6.0];
     /// let entry = AsmEntry::from(&name, &list);
     /// assert_eq!(entry.to_string(), "Es_coli_005008_GCF_013426115_1\t1,5,2,7,6,6\n");
     /// ```
