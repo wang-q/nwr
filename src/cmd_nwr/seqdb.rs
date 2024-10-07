@@ -10,7 +10,7 @@ pub fn make_subcommand() -> Command {
     Command::new("seqdb")
         .about("Init the seq database")
         .after_help(
-            r#"
+            r###"
 In RefSeq, many species contain hundreds or thousands of assemblies where many of
 the protein sequences are identical or highly similar。
 
@@ -20,7 +20,44 @@ the protein sequences are identical or highly similar。
 
 * The DDL
 
-"#,
+    CREATE TABLE rank (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name VARCHAR NOT NULL UNIQUE
+    );
+    CREATE TABLE assembly (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name VARCHAR NOT NULL UNIQUE,
+        rank_id INTEGER NOT NULL,
+        FOREIGN KEY (rank_id) REFERENCES rank(id)
+    );
+    CREATE TABLE sequence (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name VARCHAR NOT NULL UNIQUE,
+        size INTEGER,
+        annotation TEXT
+    );
+    CREATE TABLE representative (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name VARCHAR NOT NULL UNIQUE,
+        f1 TEXT,
+        f2 TEXT,
+        f3 TEXT
+    );
+    CREATE TABLE rep_seq (
+        representative_id INTEGER NOT NULL,
+        sequence_id INTEGER NOT NULL,
+        PRIMARY KEY (representative_id, sequence_id),
+        FOREIGN KEY (representative_id) REFERENCES representative(id),
+        FOREIGN KEY (sequence_id) REFERENCES sequence(id)
+    );
+    CREATE TABLE asm_seq (
+        assembly_id INTEGER NOT NULL,
+        sequence_id INTEGER NOT NULL,
+        PRIMARY KEY (assembly_id, sequence_id),
+        FOREIGN KEY (assembly_id) REFERENCES assembly(id),
+        FOREIGN KEY (sequence_id) REFERENCES sequence(id)
+    );
+"###,
         )
         .arg(
             Arg::new("init")
@@ -77,44 +114,42 @@ DROP TABLE IF EXISTS assembly;
 DROP TABLE IF EXISTS rank;
 
 CREATE TABLE rank (
-    id VARCHAR PRIMARY KEY
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR NOT NULL UNIQUE
 );
-
 CREATE TABLE assembly (
-    id VARCHAR PRIMARY KEY,
-    rank_id VARCHAR NOT NULL,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR NOT NULL UNIQUE,
+    rank_id INTEGER NOT NULL,
     FOREIGN KEY (rank_id) REFERENCES rank(id)
 );
-
+CREATE TABLE sequence (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR NOT NULL UNIQUE,
+    size INTEGER,
+    annotation TEXT
+);
 CREATE TABLE representative (
-    id VARCHAR PRIMARY KEY,
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR NOT NULL UNIQUE,
     f1 TEXT,
     f2 TEXT,
     f3 TEXT
 );
-
-CREATE TABLE sequence (
-    id VARCHAR PRIMARY KEY,
-    size INTEGER,
-    annotation TEXT
-);
-
 CREATE TABLE rep_seq (
-    representative_id VARCHAR NOT NULL,
-    sequence_id VARCHAR NOT NULL,
+    representative_id INTEGER NOT NULL,
+    sequence_id INTEGER NOT NULL,
     PRIMARY KEY (representative_id, sequence_id),
     FOREIGN KEY (representative_id) REFERENCES representative(id),
     FOREIGN KEY (sequence_id) REFERENCES sequence(id)
 );
-
 CREATE TABLE asm_seq (
-    assembly_id VARCHAR NOT NULL,
-    sequence_id VARCHAR NOT NULL,
+    assembly_id INTEGER NOT NULL,
+    sequence_id INTEGER NOT NULL,
     PRIMARY KEY (assembly_id, sequence_id),
     FOREIGN KEY (assembly_id) REFERENCES assembly(id),
     FOREIGN KEY (sequence_id) REFERENCES sequence(id)
 );
-
 "###;
 
 // command implementation
@@ -192,15 +227,18 @@ fn insert_strain(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
 
         stmts.push(format!(
             "
-            INSERT OR IGNORE INTO rank
+            INSERT OR IGNORE INTO rank(name)
             VALUES ('{}');
             ",
             rank
         ));
         stmts.push(format!(
             "
-            INSERT INTO assembly
-            VALUES ('{}', '{}');
+            INSERT INTO assembly(name, rank_id)
+            VALUES (
+                '{}',
+                (SELECT id FROM rank WHERE name = '{}')
+            );
             ",
             strain, rank
         ));
@@ -227,15 +265,15 @@ fn insert_size(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
         let record = result?;
 
         // sequence name, size
-        let id: String = record[0].trim().parse()?;
+        let name: String = record[0].trim().parse()?;
         let size: i64 = record[1].trim().parse()?;
 
         stmts.push(format!(
             "
-            INSERT INTO sequence(id, size)
+            INSERT INTO sequence(name, size)
             VALUES ('{}', {});
             ",
-            id, size
+            name, size
         ));
     }
 
@@ -261,16 +299,16 @@ fn insert_anno(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
         let record = result?;
 
         // sequence name, size
-        let id: String = record[0].trim().parse()?;
+        let name: String = record[0].trim().parse()?;
         let anno: String = record[1].trim().parse()?;
 
         stmts.push(format!(
             "
             UPDATE sequence
             SET annotation = '{}'
-            WHERE sequence.id = '{}';
+            WHERE sequence.name = '{}';
             ",
-            anno, id
+            anno, name
         ));
     }
 
@@ -302,7 +340,7 @@ fn insert_clust(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
 
         stmts.push(format!(
             "
-            INSERT OR IGNORE INTO representative(id)
+            INSERT OR IGNORE INTO representative(name)
             VALUES ('{}');
             ",
             rep
@@ -311,7 +349,10 @@ fn insert_clust(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
         stmts.push(format!(
             "
             INSERT INTO rep_seq(representative_id, sequence_id)
-            VALUES ('{}', '{}');
+            VALUES (
+                (SELECT id FROM representative WHERE name = '{}'),
+                (SELECT id FROM sequence WHERE name = '{}')
+            );
             ",
             rep, seq
         ));
@@ -346,10 +387,14 @@ fn insert_seq(nwrdir: PathBuf, conn: Connection) -> anyhow::Result<()> {
         stmts.push(format!(
             "
             INSERT INTO asm_seq(assembly_id, sequence_id)
-            VALUES ('{}', '{}');
+            VALUES (
+                (SELECT id FROM assembly WHERE name = '{}'),
+                (SELECT id FROM sequence WHERE name = '{}')
+            );
             ",
             asm, seq
         ));
+
     }
 
     // There could left records in stmts

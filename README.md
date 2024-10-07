@@ -159,7 +159,7 @@ cargo run --bin nwr template tests/assembly/Trichoderma.assembly.tsv --ass -o st
 
 ```shell
 export SEQ_DIR="$HOME/data/Bacteria/Protein/Zymomonas_mobilis"
-export SEQ_DIR="$HOME/data/Bacteria/Protein/Pseudomonas_aeruginosa"
+#export SEQ_DIR="$HOME/data/Bacteria/Protein/Pseudomonas_aeruginosa"
 
 hnsm size ${SEQ_DIR}/pro.fa.gz -o ${SEQ_DIR}/size.tsv
 
@@ -174,21 +174,35 @@ cat "${SEQ_DIR}"/strains.tsv |
             sed "s/^>//" |
             sed "s/'\''//g" |
             sed "s/\-\-//g" |
-            perl -nl -e '\'' /\[.+\[/ and s/\[/\(/; print; '\'' |
+            perl -nl -e '\'' /\[.+\[/ and s/\[/\(/; print; '\'' `#replace [ with ( if there are two consecutive [` |
             perl -nl -e '\'' /\].+\]/ and s/\]/\)/; print; '\'' |
             perl -nl -e '\'' s/\s+\[.+?\]$//g; print; '\'' |
             sed "s/MULTISPECIES: //g" |
             perl -nl -e '\''
                 /^(\w+)\.(\d+)\s+(.+)$/ or next;
-                printf qq(%s.%s\t%s\t%s\n), $1, $2, {1}, $3;
+                printf qq(%s.%s\t%s\t%s\n), $1, $2, qq({1}), $3;
             '\''
     ' \
-    > "${SEQ_DIR}"/seq.tsv
+    > "${SEQ_DIR}"/detail.tsv
 
-tsv-select -f 1,3 "${SEQ_DIR}"/seq.tsv |
+tsv-select -f 1,3 "${SEQ_DIR}"/detail.tsv |
     tsv-uniq > ${SEQ_DIR}/anno.tsv
 
+tsv-select -f 1,2 "${SEQ_DIR}"/detail.tsv |
+    tsv-uniq > ${SEQ_DIR}/seq.tsv
+
 cargo run --bin nwr seqdb -d ${SEQ_DIR} --init --strain --size --anno --clust --seq
+
+echo "
+    SELECT
+        assembly_id,
+        COUNT(*) AS count
+    FROM asm_seq
+    WHERE 1=1
+    GROUP BY assembly_id
+    " |
+    sqlite3 -tabs ${SEQ_DIR}/seq.sqlite
+
 
 ```
 
