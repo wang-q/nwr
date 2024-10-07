@@ -1,4 +1,5 @@
 use clap::*;
+use itertools::Itertools;
 use log::{debug, info};
 use simplelog::*;
 use std::fs::File;
@@ -7,8 +8,8 @@ use std::fs::File;
 pub fn make_subcommand() -> Command {
     Command::new("txdb")
         .about("Init the taxonomy database")
-        .after_help(
-            r#"
+        .after_help(format!(
+            r###"
 ~/.nwr/taxonomy.sqlite
 
 * The database built from `taxdump.tar.gz`
@@ -23,33 +24,10 @@ pub fn make_subcommand() -> Command {
         " |
         sqlite3 -tabs ~/.nwr/taxonomy.sqlite
 
-    CREATE TABLE division (
-        id       INTEGER      NOT NULL
-                              PRIMARY KEY,
-        division VARCHAR (50) NOT NULL
-    )
-    CREATE TABLE name (
-        id         INTEGER      NOT NULL
-                                PRIMARY KEY,
-        tax_id     INTEGER      NOT NULL,
-        name       VARCHAR (50) NOT NULL,
-        name_class VARCHAR (50) NOT NULL
-    )
-    CREATE TABLE node (
-        tax_id        INTEGER      NOT NULL
-                                   PRIMARY KEY,
-        parent_tax_id INTEGER,
-        rank          VARCHAR (25) NOT NULL,
-        division_id   INTEGER      NOT NULL,
-        comment       TEXT,
-        FOREIGN KEY (
-            division_id
-        )
-        REFERENCES division (id)
-    )
-
-"#,
-        )
+{}
+"###,
+            DDL.lines().map(|l| format!("    {}", l)).join("\n")
+        ))
         .arg(
             Arg::new("dir")
                 .long("dir")
@@ -60,7 +38,7 @@ pub fn make_subcommand() -> Command {
         )
 }
 
-static DDL_TX: &str = r###"
+static DDL: &str = r###"
 DROP TABLE IF EXISTS division;
 DROP TABLE IF EXISTS node;
 DROP TABLE IF EXISTS name;
@@ -120,7 +98,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     )?;
 
     info!("==> Create tables");
-    conn.execute_batch(DDL_TX)?;
+    conn.execute_batch(DDL)?;
 
     // divisions
     info!("==> Loading division.dmp");

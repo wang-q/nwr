@@ -1,4 +1,5 @@
 use clap::*;
+use itertools::Itertools;
 use lazy_static::lazy_static;
 use log::{debug, info};
 use nwr::Taxon;
@@ -12,8 +13,8 @@ use std::io::{BufRead, BufReader};
 pub fn make_subcommand() -> Command {
     Command::new("ardb")
         .about("Init the assembly database")
-        .after_help(
-            r#"
+        .after_help(format!(
+            r###"
 This command init the assembly database, which includes metadata for assemblies on the NCBI genomes FTP site.
 
 ~/.nwr/ar_refseq.sqlite
@@ -83,42 +84,14 @@ This command init the assembly database, which includes metadata for assemblies 
         " |
         sqlite3 -tabs ~/.nwr/ar_refseq.sqlite
 
-* The DDL
-
-    echo "
-        SELECT sql
-        FROM sqlite_master
-        WHERE type='table'
-        ORDER BY name;
-        " |
-        sqlite3 -tabs ~/.nwr/ar_refseq.sqlite
-
-    CREATE TABLE ar (
-        tax_id             INTEGER,
-        organism_name      VARCHAR (200),
-        infraspecific_name VARCHAR (200),
-        bioproject         VARCHAR (50),
-        biosample          VARCHAR (50),
-        assembly_accession VARCHAR (50),
-        refseq_category    VARCHAR (50),
-        assembly_level     VARCHAR (50),
-        genome_rep         VARCHAR (50),
-        seq_rel_date       DATE,
-        asm_name           VARCHAR (200),
-        gbrs_paired_asm    VARCHAR (200),
-        ftp_path           VARCHAR (200),
-        species            VARCHAR (50),
-        species_id         INTEGER,
-        genus              VARCHAR (50),
-        genus_id           INTEGER,
-        family             VARCHAR (50),
-        family_id          INTEGER
-    )
-
 * Requires SQLite version 3.34 or above.
 
-"#,
-        )
+* The DDL
+
+{}
+"###,
+            DDL.lines().map(|l| format!("    {}", l)).join("\n")
+        ))
         .arg(
             Arg::new("dir")
                 .long("dir")
@@ -135,7 +108,7 @@ This command init the assembly database, which includes metadata for assemblies 
         )
 }
 
-static DDL_AR: &str = r###"
+static DDL: &str = r###"
 DROP TABLE IF EXISTS ar;
 
 CREATE TABLE IF NOT EXISTS ar (

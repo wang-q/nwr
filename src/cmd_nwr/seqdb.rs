@@ -1,4 +1,5 @@
 use clap::*;
+use itertools::Itertools;
 use log::{debug, info};
 use rusqlite::Connection;
 use simplelog::*;
@@ -9,7 +10,7 @@ use std::path::PathBuf;
 pub fn make_subcommand() -> Command {
     Command::new("seqdb")
         .about("Init the seq database")
-        .after_help(
+        .after_help(format!(
             r###"
 In RefSeq, many species contain hundreds or thousands of assemblies where many of
 the protein sequences are identical or highly similar。
@@ -20,45 +21,10 @@ the protein sequences are identical or highly similar。
 
 * The DDL
 
-    CREATE TABLE rank (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name VARCHAR NOT NULL UNIQUE
-    );
-    CREATE TABLE assembly (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name VARCHAR NOT NULL UNIQUE,
-        rank_id INTEGER NOT NULL,
-        FOREIGN KEY (rank_id) REFERENCES rank(id)
-    );
-    CREATE TABLE sequence (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name VARCHAR NOT NULL UNIQUE,
-        size INTEGER,
-        annotation TEXT
-    );
-    CREATE TABLE representative (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name VARCHAR NOT NULL UNIQUE,
-        f1 TEXT,
-        f2 TEXT,
-        f3 TEXT
-    );
-    CREATE TABLE rep_seq (
-        representative_id INTEGER NOT NULL,
-        sequence_id INTEGER NOT NULL,
-        PRIMARY KEY (representative_id, sequence_id),
-        FOREIGN KEY (representative_id) REFERENCES representative(id),
-        FOREIGN KEY (sequence_id) REFERENCES sequence(id)
-    );
-    CREATE TABLE asm_seq (
-        assembly_id INTEGER NOT NULL,
-        sequence_id INTEGER NOT NULL,
-        PRIMARY KEY (assembly_id, sequence_id),
-        FOREIGN KEY (assembly_id) REFERENCES assembly(id),
-        FOREIGN KEY (sequence_id) REFERENCES sequence(id)
-    );
+{}
 "###,
-        )
+            DDL.lines().map(|l| format!("    {}", l)).join("\n")
+        ))
         .arg(
             Arg::new("init")
                 .long("init")
@@ -105,14 +71,7 @@ the protein sequences are identical or highly similar。
         )
 }
 
-static DDL_TX: &str = r###"
-DROP TABLE IF EXISTS asm_seq;
-DROP TABLE IF EXISTS rep_seq;
-DROP TABLE IF EXISTS sequence;
-DROP TABLE IF EXISTS representative;
-DROP TABLE IF EXISTS assembly;
-DROP TABLE IF EXISTS rank;
-
+static DDL: &str = r###"
 CREATE TABLE rank (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR NOT NULL UNIQUE
@@ -184,7 +143,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     if is_init {
         info!("==> Create tables");
-        conn.execute_batch(DDL_TX)?;
+        conn.execute_batch(DDL)?;
     }
 
     if is_strain {
@@ -394,7 +353,6 @@ fn insert_seq(nwrdir: PathBuf, conn: Connection) -> anyhow::Result<()> {
             ",
             asm, seq
         ));
-
     }
 
     // There could left records in stmts
