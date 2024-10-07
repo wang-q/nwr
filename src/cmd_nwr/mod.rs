@@ -19,6 +19,7 @@ pub mod rename;
 pub mod replace;
 pub mod reroot;
 pub mod restrict;
+pub mod seqdb;
 pub mod stat;
 pub mod subtree;
 pub mod template;

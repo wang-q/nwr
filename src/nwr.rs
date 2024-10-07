@@ -30,6 +30,7 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::replace::make_subcommand())
         .subcommand(cmd_nwr::reroot::make_subcommand())
         .subcommand(cmd_nwr::restrict::make_subcommand())
+        .subcommand(cmd_nwr::seqdb::make_subcommand())
         .subcommand(cmd_nwr::subtree::make_subcommand())
         .subcommand(cmd_nwr::stat::make_subcommand())
         .subcommand(cmd_nwr::template::make_subcommand())
@@ -58,6 +59,7 @@ Subcommand groups:
 * Assembly
     * template
     * kb
+    * seqdb
 
 "###,
         );
@@ -89,6 +91,7 @@ Subcommand groups:
         Some(("tex", sub_matches)) => cmd_nwr::tex::execute(sub_matches),
         Some(("template", sub_matches)) => cmd_nwr::template::execute(sub_matches),
         Some(("kb", sub_matches)) => cmd_nwr::kb::execute(sub_matches),
+        Some(("seqdb", sub_matches)) => cmd_nwr::seqdb::execute(sub_matches),
         _ => unreachable!(),
     }
     .unwrap();

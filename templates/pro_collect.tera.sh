@@ -50,9 +50,8 @@ while read SPECIES; do
 
             gzip -dcf ../ASSEMBLY/{2}/{1}/*_protein.faa.gz
         ' |
-        faops filter -u stdin stdout |
-        pigz -p4 \
-        > "${SPECIES}"/pro.fa.gz
+        hnsm filter -u stdin |
+        hnsm gz -p 4 -o "${SPECIES}"/pro.fa
 
 done
 
@@ -64,7 +63,7 @@ cat species-f.tsv |
     tsv-select -f 2 |
     tsv-uniq |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j {{ parallel2 }} '
-        if [[ -s {}/res_rep_seq.fasta.gz ]]; then
+        if [[ -s {}/rep_seq.fa.gz ]]; then
             exit
         fi
 

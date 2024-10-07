@@ -155,6 +155,43 @@ cargo run --bin nwr template tests/assembly/Trichoderma.assembly.tsv --ass -o st
 
 ```
 
+### seqdb
+
+```shell
+export SEQ_DIR="$HOME/data/Bacteria/Protein/Zymomonas_mobilis"
+export SEQ_DIR="$HOME/data/Bacteria/Protein/Pseudomonas_aeruginosa"
+
+hnsm size ${SEQ_DIR}/pro.fa.gz -o ${SEQ_DIR}/size.tsv
+
+cat "${SEQ_DIR}"/strains.tsv |
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
+        if [[ ! -d "$HOME/data/Bacteria/ASSEMBLY/{2}/{1}" ]]; then
+            exit
+        fi
+
+        gzip -dcf $HOME/data/Bacteria/ASSEMBLY/{2}/{1}/*_protein.faa.gz |
+            grep "^>" |
+            sed "s/^>//" |
+            sed "s/'\''//g" |
+            sed "s/\-\-//g" |
+            perl -nl -e '\'' /\[.+\[/ and s/\[/\(/; print; '\'' |
+            perl -nl -e '\'' /\].+\]/ and s/\]/\)/; print; '\'' |
+            perl -nl -e '\'' s/\s+\[.+?\]$//g; print; '\'' |
+            sed "s/MULTISPECIES: //g" |
+            perl -nl -e '\''
+                /^(\w+)\.(\d+)\s+(.+)$/ or next;
+                printf qq(%s.%s\t%s\t%s\n), $1, $2, {1}, $3;
+            '\''
+    ' \
+    > "${SEQ_DIR}"/seq.tsv
+
+tsv-select -f 1,3 "${SEQ_DIR}"/seq.tsv |
+    tsv-uniq > ${SEQ_DIR}/anno.tsv
+
+cargo run --bin nwr seqdb -d ${SEQ_DIR} --init --strain --size --anno --clust --seq
+
+```
+
 ### Newick files and LaTeX
 
 For more detailed usages, check [this file](tree/README.md).
