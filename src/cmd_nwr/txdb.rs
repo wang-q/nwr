@@ -26,7 +26,7 @@ pub fn make_subcommand() -> Command {
 
 {}
 "###,
-            DDL.lines().map(|l| format!("    {}", l)).join("\n")
+            DDL_TX.lines().map(|l| format!("    {}", l)).join("\n")
         ))
         .arg(
             Arg::new("dir")
@@ -38,7 +38,7 @@ pub fn make_subcommand() -> Command {
         )
 }
 
-static DDL: &str = r###"
+static DDL_TX: &str = r###"
 DROP TABLE IF EXISTS division;
 DROP TABLE IF EXISTS node;
 DROP TABLE IF EXISTS name;
@@ -98,7 +98,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     )?;
 
     info!("==> Create tables");
-    conn.execute_batch(DDL)?;
+    conn.execute_batch(DDL_TX)?;
 
     // divisions
     info!("==> Loading division.dmp");

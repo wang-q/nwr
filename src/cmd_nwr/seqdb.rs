@@ -23,7 +23,7 @@ the protein sequences are identical or highly similar。
 
 {}
 "###,
-            DDL.lines().map(|l| format!("    {}", l)).join("\n")
+            DDL_SEQ.lines().map(|l| format!("    {}", l)).join("\n")
         ))
         .arg(
             Arg::new("init")
@@ -71,7 +71,7 @@ the protein sequences are identical or highly similar。
         )
 }
 
-static DDL: &str = r###"
+static DDL_SEQ: &str = r###"
 CREATE TABLE rank (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR NOT NULL UNIQUE
@@ -143,7 +143,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     if is_init {
         info!("==> Create tables");
-        conn.execute_batch(DDL)?;
+        conn.execute_batch(DDL_SEQ)?;
     }
 
     if is_strain {

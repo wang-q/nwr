@@ -90,7 +90,7 @@ This command init the assembly database, which includes metadata for assemblies 
 
 {}
 "###,
-            DDL.lines().map(|l| format!("    {}", l)).join("\n")
+            DDL_AR.lines().map(|l| format!("    {}", l)).join("\n")
         ))
         .arg(
             Arg::new("dir")
@@ -108,7 +108,7 @@ This command init the assembly database, which includes metadata for assemblies 
         )
 }
 
-static DDL: &str = r###"
+static DDL_AR: &str = r###"
 DROP TABLE IF EXISTS ar;
 
 CREATE TABLE IF NOT EXISTS ar (
