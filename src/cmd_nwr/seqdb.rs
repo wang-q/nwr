@@ -225,7 +225,7 @@ fn insert_size(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
 
     let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
     for (i, result) in tsv_rdr.records().enumerate() {
-        batch_insert(&conn, &mut stmts, i)?;
+        batch_exec(&conn, &mut stmts, i)?;
 
         let record = result?;
 
@@ -259,7 +259,7 @@ fn insert_anno(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
 
     let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
     for (i, result) in tsv_rdr.records().enumerate() {
-        batch_insert(&conn, &mut stmts, i)?;
+        batch_exec(&conn, &mut stmts, i)?;
 
         let record = result?;
 
@@ -294,7 +294,7 @@ fn insert_clust(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
 
     let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
     for (i, result) in tsv_rdr.records().enumerate() {
-        batch_insert(&conn, &mut stmts, i)?;
+        batch_exec(&conn, &mut stmts, i)?;
 
         let record = result?;
 
@@ -341,7 +341,7 @@ fn insert_seq(nwrdir: PathBuf, conn: Connection) -> anyhow::Result<()> {
 
     let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
     for (i, result) in tsv_rdr.records().enumerate() {
-        batch_insert(&conn, &mut stmts, i)?;
+        batch_exec(&conn, &mut stmts, i)?;
 
         let record = result?;
 
@@ -368,7 +368,7 @@ fn insert_seq(nwrdir: PathBuf, conn: Connection) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn batch_insert(
+fn batch_exec(
     conn: &Connection,
     stmts: &mut Vec<String>,
     i: usize,
