@@ -76,38 +76,43 @@ CREATE TABLE rank (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR NOT NULL UNIQUE
 );
-CREATE TABLE assembly (
+-- assembly
+CREATE TABLE asm (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR NOT NULL UNIQUE,
     rank_id INTEGER NOT NULL,
     FOREIGN KEY (rank_id) REFERENCES rank(id)
 );
-CREATE TABLE sequence (
+-- sequence
+CREATE TABLE seq (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR NOT NULL UNIQUE,
     size INTEGER,
     annotation TEXT
 );
-CREATE TABLE representative (
+-- representative
+CREATE TABLE rep (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR NOT NULL UNIQUE,
     f1 TEXT,
     f2 TEXT,
     f3 TEXT
 );
+-- Junction table to associate rep with seq
 CREATE TABLE rep_seq (
-    representative_id INTEGER NOT NULL,
-    sequence_id INTEGER NOT NULL,
-    PRIMARY KEY (representative_id, sequence_id),
-    FOREIGN KEY (representative_id) REFERENCES representative(id),
-    FOREIGN KEY (sequence_id) REFERENCES sequence(id)
+    rep_id INTEGER NOT NULL,
+    seq_id INTEGER NOT NULL,
+    PRIMARY KEY (rep_id, seq_id),
+    FOREIGN KEY (rep_id) REFERENCES rep(id),
+    FOREIGN KEY (seq_id) REFERENCES seq(id)
 );
+-- Junction table to associate asm with seq
 CREATE TABLE asm_seq (
-    assembly_id INTEGER NOT NULL,
-    sequence_id INTEGER NOT NULL,
-    PRIMARY KEY (assembly_id, sequence_id),
-    FOREIGN KEY (assembly_id) REFERENCES assembly(id),
-    FOREIGN KEY (sequence_id) REFERENCES sequence(id)
+    asm_id INTEGER NOT NULL,
+    seq_id INTEGER NOT NULL,
+    PRIMARY KEY (asm_id, seq_id),
+    FOREIGN KEY (asm_id) REFERENCES asm(id),
+    FOREIGN KEY (seq_id) REFERENCES seq(id)
 );
 "###;
 
@@ -147,6 +152,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     }
 
     if is_strain {
+        // strain, rank
         insert_strain(&nwrdir, &conn)?;
     }
 
@@ -170,7 +176,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 }
 
 fn insert_strain(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
-    info!("==> Loading strains.tsv to `rank` and `assembly`");
+    info!("==> Loading strains.tsv to `rank` and `asm`");
     let dmp = File::open(nwrdir.join("strains.tsv"))?;
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
@@ -193,7 +199,7 @@ fn insert_strain(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
         ));
         stmts.push(format!(
             "
-            INSERT INTO assembly(name, rank_id)
+            INSERT INTO asm(name, rank_id)
             VALUES (
                 '{}',
                 (SELECT id FROM rank WHERE name = '{}')
@@ -210,7 +216,7 @@ fn insert_strain(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
 }
 
 fn insert_size(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
-    info!("==> Loading size.tsv to `sequence`");
+    info!("==> Loading size.tsv to `seq`");
     let dmp = File::open(nwrdir.join("size.tsv"))?;
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
@@ -229,7 +235,7 @@ fn insert_size(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
 
         stmts.push(format!(
             "
-            INSERT INTO sequence(name, size)
+            INSERT INTO seq(name, size)
             VALUES ('{}', {});
             ",
             name, size
@@ -244,7 +250,7 @@ fn insert_size(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
 }
 
 fn insert_anno(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
-    info!("==> Loading anno.tsv to `sequence`");
+    info!("==> Loading anno.tsv to `seq`");
     let dmp = File::open(nwrdir.join("anno.tsv"))?;
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
@@ -263,9 +269,9 @@ fn insert_anno(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
 
         stmts.push(format!(
             "
-            UPDATE sequence
+            UPDATE seq
             SET annotation = '{}'
-            WHERE sequence.name = '{}';
+            WHERE seq.name = '{}';
             ",
             anno, name
         ));
@@ -279,8 +285,8 @@ fn insert_anno(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
 }
 
 fn insert_clust(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
-    info!("==> Loading clust.tsv to `representative` and `rep_seq`");
-    let dmp = File::open(nwrdir.join("clust.tsv"))?;
+    info!("==> Loading res_cluster.tsv to `rep` and `rep_seq`");
+    let dmp = File::open(nwrdir.join("res_cluster.tsv"))?;
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
@@ -299,7 +305,7 @@ fn insert_clust(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
 
         stmts.push(format!(
             "
-            INSERT OR IGNORE INTO representative(name)
+            INSERT OR IGNORE INTO rep(name)
             VALUES ('{}');
             ",
             rep
@@ -307,10 +313,10 @@ fn insert_clust(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
 
         stmts.push(format!(
             "
-            INSERT INTO rep_seq(representative_id, sequence_id)
+            INSERT INTO rep_seq(rep_id, seq_id)
             VALUES (
-                (SELECT id FROM representative WHERE name = '{}'),
-                (SELECT id FROM sequence WHERE name = '{}')
+                (SELECT id FROM rep WHERE name = '{}'),
+                (SELECT id FROM seq WHERE name = '{}')
             );
             ",
             rep, seq
@@ -345,10 +351,10 @@ fn insert_seq(nwrdir: PathBuf, conn: Connection) -> anyhow::Result<()> {
 
         stmts.push(format!(
             "
-            INSERT INTO asm_seq(assembly_id, sequence_id)
+            INSERT INTO asm_seq(asm_id, seq_id)
             VALUES (
-                (SELECT id FROM assembly WHERE name = '{}'),
-                (SELECT id FROM sequence WHERE name = '{}')
+                (SELECT id FROM asm WHERE name = '{}'),
+                (SELECT id FROM seq WHERE name = '{}')
             );
             ",
             asm, seq
