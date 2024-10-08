@@ -4,7 +4,6 @@ use log::{debug, info};
 use rusqlite::Connection;
 use simplelog::*;
 use std::fs::File;
-use std::path::PathBuf;
 
 // Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
@@ -127,21 +126,26 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     let _ = SimpleLogger::init(LevelFilter::Debug, Config::default());
 
-    let nwrdir =
-        std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf();
-    let file = nwrdir.join("seq.sqlite");
-    if is_init && file.exists() {
-        std::fs::remove_file(&file).unwrap();
+    let dir = std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf();
+    let db = dir.join("seq.sqlite");
+    if is_init && db.exists() {
+        std::fs::remove_file(&db).unwrap();
     }
 
     info!("==> Opening database");
-    let conn = rusqlite::Connection::open(file)?;
+    let conn = rusqlite::Connection::open(db)?;
     conn.execute_batch(
         "
+        -- To improve performance
+        -- disables the rollback journal
         PRAGMA journal_mode = OFF;
+        -- SQLite will not wait for data to be written to disk
         PRAGMA synchronous = 0;
+        -- reducing disk I/O
         PRAGMA cache_size = 1000000;
+        -- reducing lock contention, as no others would use the db
         PRAGMA locking_mode = EXCLUSIVE;
+        -- stores temporary tables and indices in memory
         PRAGMA temp_store = MEMORY;
         ",
     )?;
@@ -152,32 +156,44 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     }
 
     if is_strain {
+        info!("==> Loading strains.tsv to `rank` and `asm`");
         // strain, rank
-        insert_strain(&nwrdir, &conn)?;
+        let dmp = File::open(dir.join("strains.tsv"))?;
+        insert_strain(&dmp, &conn)?;
     }
 
     if is_size {
-        insert_size(&nwrdir, &conn)?;
+        info!("==> Loading size.tsv to `seq`");
+        // sequence name, size
+        let dmp = File::open(dir.join("size.tsv"))?;
+        insert_size(&dmp, &conn)?;
     }
 
     if is_anno {
-        insert_anno(&nwrdir, &conn)?;
+        info!("==> Loading anno.tsv to `seq`");
+        // sequence name, anno
+        let dmp = File::open(dir.join("anno.tsv"))?;
+        insert_anno(&dmp, &conn)?;
     }
 
     if is_clust {
-        insert_clust(&nwrdir, &conn)?;
+        info!("==> Loading res_cluster.tsv to `rep` and `rep_seq`");
+        // rep, seq
+        let dmp = File::open(dir.join("res_cluster.tsv"))?;
+        insert_clust(&dmp, &conn)?;
     }
 
     if is_seq {
-        insert_seq(nwrdir, conn)?;
+        info!("==> Loading seq.tsv to `asm_seq`");
+        // sequence name, asm
+        let dmp = File::open(dir.join("seq.tsv"))?;
+        insert_seq(&dmp, conn)?;
     }
 
     Ok(())
 }
 
-fn insert_strain(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
-    info!("==> Loading strains.tsv to `rank` and `asm`");
-    let dmp = File::open(nwrdir.join("strains.tsv"))?;
+fn insert_strain(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
@@ -215,9 +231,7 @@ fn insert_strain(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn insert_size(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
-    info!("==> Loading size.tsv to `seq`");
-    let dmp = File::open(nwrdir.join("size.tsv"))?;
+fn insert_size(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
@@ -228,8 +242,6 @@ fn insert_size(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
         batch_exec(&conn, &mut stmts, i)?;
 
         let record = result?;
-
-        // sequence name, size
         let name: String = record[0].trim().parse()?;
         let size: i64 = record[1].trim().parse()?;
 
@@ -242,16 +254,14 @@ fn insert_size(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
         ));
     }
 
-    // There could left records in stmts
+    // Records may be left in stmts
     stmts.push(String::from("COMMIT;"));
     let stmt = &stmts.join("\n");
     conn.execute_batch(stmt)?;
     Ok(())
 }
 
-fn insert_anno(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
-    info!("==> Loading anno.tsv to `seq`");
-    let dmp = File::open(nwrdir.join("anno.tsv"))?;
+fn insert_anno(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
@@ -262,8 +272,6 @@ fn insert_anno(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
         batch_exec(&conn, &mut stmts, i)?;
 
         let record = result?;
-
-        // sequence name, size
         let name: String = record[0].trim().parse()?;
         let anno: String = record[1].trim().parse()?;
 
@@ -277,16 +285,14 @@ fn insert_anno(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
         ));
     }
 
-    // There could left records in stmts
+    // Records may be left in stmts
     stmts.push(String::from("COMMIT;"));
     let stmt = &stmts.join("\n");
     conn.execute_batch(stmt)?;
     Ok(())
 }
 
-fn insert_clust(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
-    info!("==> Loading res_cluster.tsv to `rep` and `rep_seq`");
-    let dmp = File::open(nwrdir.join("res_cluster.tsv"))?;
+fn insert_clust(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
@@ -297,11 +303,8 @@ fn insert_clust(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
         batch_exec(&conn, &mut stmts, i)?;
 
         let record = result?;
-
-        // sequence name, size
         let rep: String = record[0].trim().parse()?;
         let seq: String = record[1].trim().parse()?;
-        // eprintln!("record = {:#?}", record);
 
         stmts.push(format!(
             "
@@ -323,7 +326,7 @@ fn insert_clust(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
         ));
     }
 
-    // There could left records in stmts
+    // Records may be left in stmts
     stmts.push(String::from("COMMIT;"));
     let stmt = &stmts.join("\n");
     conn.execute_batch(stmt)?;
@@ -331,9 +334,7 @@ fn insert_clust(nwrdir: &PathBuf, conn: &Connection) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn insert_seq(nwrdir: PathBuf, conn: Connection) -> anyhow::Result<()> {
-    info!("==> Loading seq.tsv to `asm_seq`");
-    let dmp = File::open(nwrdir.join("seq.tsv"))?;
+fn insert_seq(dmp: &File, conn: Connection) -> anyhow::Result<()> {
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
@@ -361,7 +362,7 @@ fn insert_seq(nwrdir: PathBuf, conn: Connection) -> anyhow::Result<()> {
         ));
     }
 
-    // There could left records in stmts
+    // Records may be left in stmts
     stmts.push(String::from("COMMIT;"));
     let stmt = &stmts.join("\n");
     conn.execute_batch(stmt)?;
