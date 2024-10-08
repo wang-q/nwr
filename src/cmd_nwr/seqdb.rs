@@ -12,7 +12,7 @@ pub fn make_subcommand() -> Command {
         .after_help(format!(
             r###"
 In RefSeq, many species contain hundreds or thousands of assemblies where many of
-the protein sequences are identical or highly similar。
+the protein sequences are identical or highly similar
 
 ./seq.sqlite
 
