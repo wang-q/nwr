@@ -4,6 +4,7 @@ use log::{debug, info};
 use rusqlite::Connection;
 use simplelog::*;
 use std::fs::File;
+use std::path::PathBuf;
 
 // Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
@@ -18,12 +19,22 @@ the protein sequences are identical or highly similar
 
 * This database is a repository of protein sequence information per rank group
 
+* If `--strain` is called without specifying a path, it will load the default file under `--dir`
+
 * The DDL
 
 {}
 "###,
             DDL_SEQ.lines().map(|l| format!("    {}", l)).join("\n")
         ))
+        .arg(
+            Arg::new("dir")
+                .long("dir")
+                .short('d')
+                .num_args(1)
+                .default_value(".")
+                .help("Change working directory"),
+        )
         .arg(
             Arg::new("init")
                 .long("init")
@@ -33,40 +44,31 @@ the protein sequences are identical or highly similar
         .arg(
             Arg::new("strain")
                 .long("strain")
-                .action(ArgAction::SetTrue)
-                .help("Load strain.tsv"),
+                .num_args(0..=1)
+                .help("Load strains.tsv"),
         )
         .arg(
             Arg::new("size")
                 .long("size")
-                .action(ArgAction::SetTrue)
-                .help("Load size.tsv"),
-        )
-        .arg(
-            Arg::new("anno")
-                .long("anno")
-                .action(ArgAction::SetTrue)
-                .help("Load anno.tsv"),
+                .num_args(0..=1)
+                .help("Load sizes.tsv"),
         )
         .arg(
             Arg::new("clust")
                 .long("clust")
-                .action(ArgAction::SetTrue)
-                .help("Load clust.tsv"),
+                .num_args(0..=1)
+                .help("Load res_cluster.tsv"),
+        )        .arg(
+            Arg::new("anno")
+                .long("anno")
+                .num_args(0..=1)
+                .help("Load anno.tsv"),
         )
         .arg(
-            Arg::new("seq")
-                .long("seq")
-                .action(ArgAction::SetTrue)
-                .help("Load seq.tsv"),
-        )
-        .arg(
-            Arg::new("dir")
-                .long("dir")
-                .short('d')
-                .num_args(1)
-                .default_value(".")
-                .help("Change working directory"),
+            Arg::new("asmseq")
+                .long("asmseq")
+                .num_args(0..=1)
+                .help("Load asmseq.tsv"),
         )
 }
 
@@ -117,22 +119,64 @@ CREATE TABLE asm_seq (
 
 // command implementation
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    let is_init = args.get_flag("init");
-    let is_strain = args.get_flag("strain");
-    let is_size = args.get_flag("size");
-    let is_anno = args.get_flag("anno");
-    let is_clust = args.get_flag("clust");
-    let is_seq = args.get_flag("seq");
+    //----------------------------
+    // Args
+    //----------------------------
+    let dir = std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf();
 
+    let is_init = args.get_flag("init");
+    let opt_strain = if args.contains_id("strain") {
+        match args.get_one::<String>("strain") {
+            Some(path) => PathBuf::from(path),
+            None => dir.join("strains.tsv"),
+        }
+    } else {
+        PathBuf::new()
+    };
+    let opt_size = if args.contains_id("size") {
+        match args.get_one::<String>("size") {
+            Some(path) => PathBuf::from(path),
+            None => dir.join("sizes.tsv"),
+        }
+    } else {
+        PathBuf::new()
+    };
+    let opt_clust = if args.contains_id("clust") {
+        match args.get_one::<String>("clust") {
+            Some(path) => PathBuf::from(path),
+            None => dir.join("res_cluster.tsv"),
+        }
+    } else {
+        PathBuf::new()
+    };
+    let opt_anno = if args.contains_id("anno") {
+        match args.get_one::<String>("anno") {
+            Some(path) => PathBuf::from(path),
+            None => dir.join("anno.tsv"),
+        }
+    } else {
+        PathBuf::new()
+    };
+    let opt_asmseq = if args.contains_id("asmseq") {
+        match args.get_one::<String>("asmseq") {
+            Some(path) => PathBuf::from(path),
+            None => dir.join("asmseq.tsv"),
+        }
+    } else {
+        PathBuf::new()
+    };
+
+    //----------------------------
+    // Ops
+    //----------------------------
     let _ = SimpleLogger::init(LevelFilter::Debug, Config::default());
 
-    let dir = std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf();
     let db = dir.join("seq.sqlite");
     if is_init && db.exists() {
         std::fs::remove_file(&db).unwrap();
     }
 
-    info!("==> Opening database");
+    info!("==> Opening database `{}`", db.display());
     let conn = rusqlite::Connection::open(db)?;
     conn.execute_batch(
         "
@@ -155,39 +199,42 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         conn.execute_batch(DDL_SEQ)?;
     }
 
-    if is_strain {
-        info!("==> Loading strains.tsv to `rank` and `asm`");
+    if !opt_strain.as_os_str().is_empty() {
+        info!("==> Loading `{}` to `rank` and `asm`", opt_strain.display());
         // strain, rank
-        let dmp = File::open(dir.join("strains.tsv"))?;
+        let dmp = File::open(opt_strain)?;
         insert_strain(&dmp, &conn)?;
     }
 
-    if is_size {
-        info!("==> Loading size.tsv to `seq`");
+    if !opt_size.as_os_str().is_empty() {
+        info!("==> Loading `{}` to `seq`", opt_size.display());
         // sequence name, size
-        let dmp = File::open(dir.join("size.tsv"))?;
+        let dmp = File::open(opt_size)?;
         insert_size(&dmp, &conn)?;
     }
 
-    if is_anno {
-        info!("==> Loading anno.tsv to `seq`");
-        // sequence name, anno
-        let dmp = File::open(dir.join("anno.tsv"))?;
-        insert_anno(&dmp, &conn)?;
-    }
-
-    if is_clust {
-        info!("==> Loading res_cluster.tsv to `rep` and `rep_seq`");
+    if !opt_clust.as_os_str().is_empty() {
+        info!(
+            "==> Loading `{}` to `rep` and `rep_seq`",
+            opt_clust.display()
+        );
         // rep, seq
-        let dmp = File::open(dir.join("res_cluster.tsv"))?;
+        let dmp = File::open(opt_clust)?;
         insert_clust(&dmp, &conn)?;
     }
 
-    if is_seq {
-        info!("==> Loading seq.tsv to `asm_seq`");
+    if !opt_anno.as_os_str().is_empty() {
+        info!("==> Loading `{}` to `seq`", opt_anno.display());
+        // rep, seq
+        let dmp = File::open(opt_anno)?;
+        insert_anno(&dmp, &conn)?;
+    }
+
+    if !opt_asmseq.as_os_str().is_empty() {
+        info!("==> Loading `{}` to `asm_seq`", opt_asmseq.display());
         // sequence name, asm
-        let dmp = File::open(dir.join("seq.tsv"))?;
-        insert_seq(&dmp, conn)?;
+        let dmp = File::open(opt_asmseq)?;
+        insert_asmseq(&dmp, conn)?;
     }
 
     Ok(())
@@ -247,41 +294,10 @@ fn insert_size(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
 
         stmts.push(format!(
             "
-            INSERT INTO seq(name, size)
+            INSERT OR IGNORE INTO seq(name, size)
             VALUES ('{}', {});
             ",
             name, size
-        ));
-    }
-
-    // Records may be left in stmts
-    stmts.push(String::from("COMMIT;"));
-    let stmt = &stmts.join("\n");
-    conn.execute_batch(stmt)?;
-    Ok(())
-}
-
-fn insert_anno(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
-    let mut tsv_rdr = csv::ReaderBuilder::new()
-        .has_headers(false)
-        .delimiter(b'\t')
-        .from_reader(dmp);
-
-    let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
-    for (i, result) in tsv_rdr.records().enumerate() {
-        batch_exec(&conn, &mut stmts, i)?;
-
-        let record = result?;
-        let name: String = record[0].trim().parse()?;
-        let anno: String = record[1].trim().parse()?;
-
-        stmts.push(format!(
-            "
-            UPDATE seq
-            SET annotation = '{}'
-            WHERE seq.name = '{}';
-            ",
-            anno, name
         ));
     }
 
@@ -334,7 +350,38 @@ fn insert_clust(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn insert_seq(dmp: &File, conn: Connection) -> anyhow::Result<()> {
+fn insert_anno(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
+    let mut tsv_rdr = csv::ReaderBuilder::new()
+        .has_headers(false)
+        .delimiter(b'\t')
+        .from_reader(dmp);
+
+    let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
+    for (i, result) in tsv_rdr.records().enumerate() {
+        batch_exec(&conn, &mut stmts, i)?;
+
+        let record = result?;
+        let name: String = record[0].trim().parse()?;
+        let anno: String = record[1].trim().parse()?;
+
+        stmts.push(format!(
+            "
+            UPDATE seq
+            SET annotation = '{}'
+            WHERE seq.name = '{}';
+            ",
+            anno, name
+        ));
+    }
+
+    // Records may be left in stmts
+    stmts.push(String::from("COMMIT;"));
+    let stmt = &stmts.join("\n");
+    conn.execute_batch(stmt)?;
+    Ok(())
+}
+
+fn insert_asmseq(dmp: &File, conn: Connection) -> anyhow::Result<()> {
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')

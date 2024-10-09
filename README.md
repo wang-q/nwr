@@ -161,8 +161,6 @@ cargo run --bin nwr template tests/assembly/Trichoderma.assembly.tsv --ass -o st
 export SEQ_DIR="$HOME/data/Bacteria/Protein/Zymomonas_mobilis"
 #export SEQ_DIR="$HOME/data/Bacteria/Protein/Pseudomonas_aeruginosa"
 
-hnsm size ${SEQ_DIR}/pro.fa.gz -o ${SEQ_DIR}/size.tsv
-
 cat "${SEQ_DIR}"/strains.tsv |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
         if [[ ! -d "$HOME/data/Bacteria/ASSEMBLY/{2}/{1}" ]]; then
@@ -185,13 +183,21 @@ cat "${SEQ_DIR}"/strains.tsv |
     ' \
     > "${SEQ_DIR}"/detail.tsv
 
-tsv-select -f 1,3 "${SEQ_DIR}"/detail.tsv |
-    tsv-uniq > ${SEQ_DIR}/anno.tsv
+cargo run --bin nwr seqdb -d ${SEQ_DIR} --init --strain
 
-tsv-select -f 1,2 "${SEQ_DIR}"/detail.tsv |
-    tsv-uniq > ${SEQ_DIR}/seq.tsv
+cargo run --bin nwr seqdb -d ${SEQ_DIR} \
+    --size <(
+        hnsm size ${SEQ_DIR}/pro.fa.gz
+    ) \
+    --clust
 
-cargo run --bin nwr seqdb -d ${SEQ_DIR} --init --strain --size --anno --clust --seq
+cargo run --bin nwr seqdb -d ${SEQ_DIR} \
+    --anno <(
+        tsv-select -f 1,3 "${SEQ_DIR}"/detail.tsv | tsv-uniq
+    ) \
+    --asmseq <(
+        tsv-select -f 1,2 "${SEQ_DIR}"/detail.tsv | tsv-uniq
+    )
 
 echo "
     SELECT

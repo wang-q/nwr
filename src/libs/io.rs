@@ -1,6 +1,6 @@
 use phylotree::tree::{Node, NodeId, Tree};
 use std::io::Read;
-use std::{fmt, str};
+use std::str;
 
 //----------------------------
 // newick
