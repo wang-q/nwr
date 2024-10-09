@@ -201,11 +201,11 @@ cargo run --bin nwr seqdb -d ${SEQ_DIR} \
 
 echo "
     SELECT
-        assembly_id,
+        asm_id,
         COUNT(*) AS count
     FROM asm_seq
     WHERE 1=1
-    GROUP BY assembly_id
+    GROUP BY asm_id
     " |
     sqlite3 -tabs ${SEQ_DIR}/seq.sqlite
 
