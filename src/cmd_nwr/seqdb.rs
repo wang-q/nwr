@@ -21,6 +21,8 @@ the protein sequences are identical or highly similar
 
 * If `--strain` is called without specifying a path, it will load the default file under `--dir`
 
+* `--rep` requires two arguemnts, `--rep f1 file`
+
 * The DDL
 
 {}
@@ -69,6 +71,12 @@ the protein sequences are identical or highly similar
                 .long("asmseq")
                 .num_args(0..=1)
                 .help("Load asmseq.tsv"),
+        )
+        .arg(
+            Arg::new("rep")
+                .long("rep")
+                .num_args(2)
+                .help("Load features into rep"),
         )
 }
 

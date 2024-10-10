@@ -131,6 +131,8 @@ nwr ardb --genbank
 
 nwr common "Escherichia coli" 4932 Drosophila_melanogaster 9606 "Mus musculus"
 
+# rm ~/.nwr/*.dmp
+
 ```
 
 ### Development
@@ -158,8 +160,16 @@ cargo run --bin nwr template tests/assembly/Trichoderma.assembly.tsv --ass -o st
 ### seqdb
 
 ```shell
-export SEQ_DIR="$HOME/data/Bacteria/Protein/Zymomonas_mobilis"
+export SEQ_DIR="$HOME/data/Bacteria/Protein/Pseudomonas_fragi"
 #export SEQ_DIR="$HOME/data/Bacteria/Protein/Pseudomonas_aeruginosa"
+
+cargo run --bin nwr seqdb -d ${SEQ_DIR} --init --strain
+
+cargo run --bin nwr seqdb -d ${SEQ_DIR} \
+    --size <(
+        hnsm size ${SEQ_DIR}/pro.fa.gz
+    ) \
+    --clust
 
 cat "${SEQ_DIR}"/strains.tsv |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
@@ -182,14 +192,6 @@ cat "${SEQ_DIR}"/strains.tsv |
             '\''
     ' \
     > "${SEQ_DIR}"/detail.tsv
-
-cargo run --bin nwr seqdb -d ${SEQ_DIR} --init --strain
-
-cargo run --bin nwr seqdb -d ${SEQ_DIR} \
-    --size <(
-        hnsm size ${SEQ_DIR}/pro.fa.gz
-    ) \
-    --clust
 
 cargo run --bin nwr seqdb -d ${SEQ_DIR} \
     --anno <(
