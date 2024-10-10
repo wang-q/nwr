@@ -15,14 +15,19 @@ cat url.tsv |
         mkdir -p "{3}/{1}"
         rsync -avP --no-links {2}/ {3}/{1}/ \
             --exclude="*assembly_structure/*" \
-            --exclude="assembly_status.txt" \
             --exclude="annotation_hashes.txt" \
+            --exclude="*_ani_contam_ranges.tsv" \
+            --exclude="*_ani_report.txt" \
+            --exclude="assembly_status.txt" \
+            --exclude="*_assembly_stats.txt" \
+            --exclude="*_fcs_report.txt" \
             --exclude="*_feature_table.txt.gz" \
             --exclude="*_genomic_gaps.txt.gz" \
             --exclude="*_genomic.gtf.gz" \
             --exclude="*_protein.gpff.gz" \
             --exclude="*_translated_cds.faa.gz" \
-            --exclude="*_wgsmaster.gbff.gz"
+            --exclude="*_wgsmaster.gbff.gz" \
+            --exclude="uncompressed_checksums.txt"
     '
 
 log_info Done.

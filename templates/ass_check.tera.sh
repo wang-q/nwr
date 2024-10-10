@@ -27,12 +27,18 @@ cat url.tsv |
             cat md5checksums.txt |
                 grep -v "assembly_structure" |
                 grep -v "annotation_hashes.txt" |
+                grep -v "_ani_contam_ranges.tsv" |
+                grep -v "_ani_report.txt" |
+                grep -v "assembly_status.txt" |
+                grep -v "_assembly_stats.txt" |
+                grep -v "_fcs_report.txt" |
                 grep -v "_feature_table.txt.gz" |
                 grep -v "_genomic_gaps.txt.gz" |
                 grep -v "_genomic.gtf.gz" |
                 grep -v "_protein.gpff.gz" |
                 grep -v "_translated_cds.faa.gz" |
-                grep -v "_wgsmaster.gbff.gz"
+                grep -v "_wgsmaster.gbff.gz" |
+                grep -v "uncompressed_checksums.txt"
             ) --status
         if [ "$?" -eq "0" ]; then
             echo "{1}" >> ../../check.lst
