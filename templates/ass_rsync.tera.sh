@@ -1,6 +1,21 @@
 {%- include "header" -%}
 {# Keep a blank line #}
 #----------------------------#
+# Usage
+#----------------------------#
+USAGE="
+Usage: $0 [STR_IN_FLD]
+
+Default values:
+    STR_IN_FLD  ''
+
+$ bash rsync.sh Klebsiella
+
+"
+
+STR_IN_FLD=${1:-}
+
+#----------------------------#
 # Run
 #----------------------------#
 log_warn rsync.sh
@@ -9,6 +24,11 @@ touch check.lst
 
 cat url.tsv |
     tsv-join -f check.lst -k 1 -e |
+    if ! [ -z "$1" ]; then
+        tsv-filter --str-in-fld "3:${STR_IN_FLD}"
+    else
+        tsv-uniq
+    fi |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
         echo >&2
         log_info "{3}\t{1}"
