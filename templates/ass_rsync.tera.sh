@@ -43,6 +43,7 @@ cat url.tsv |
             --exclude="*_fcs_report.txt" \
             --exclude="*_feature_table.txt.gz" \
             --exclude="*_genomic_gaps.txt.gz" \
+            --exclude="*_genomic.gbff.gz" \
             --exclude="*_genomic.gtf.gz" \
             --exclude="*_protein.gpff.gz" \
             --exclude="*_translated_cds.faa.gz" \
