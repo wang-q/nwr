@@ -4,16 +4,19 @@
 # Usage
 #----------------------------#
 USAGE="
-Usage: $0 [STR_IN_FLD]
+Usage: $0 [STR_IN_FLD] ...
 
 Default values:
     STR_IN_FLD  ''
 
-$ bash rsync.sh Klebsiella
+$ bash rsync.sh Klebsiella Stutzerimonas
 
 "
 
-STR_IN_FLD=${1:-}
+if [ "$1" == "-h" ] || [ "$1" == "--help" ]; then
+    echo $USAGE
+    exit 0
+fi
 
 #----------------------------#
 # Run
@@ -24,8 +27,20 @@ touch check.lst
 
 cat url.tsv |
     tsv-join -f check.lst -k 1 -e |
-    if ! [ -z "$1" ]; then
-        tsv-filter --str-in-fld "3:${STR_IN_FLD}"
+    if [ "$#" -gt 0 ]; then
+        # Initialize an string to store the cmd
+        result="tsv-filter --or"
+
+        # Iterate over each argument and prepend the fixed string
+        for arg in "$@"; do
+            result+=" --str-in-fld '3:$arg'"
+        done
+
+        # Remove the trailing space from the result string
+        result=${result% }
+
+        # Execute the result string as a Bash command
+        eval "$result"
     else
         tsv-uniq
     fi |
