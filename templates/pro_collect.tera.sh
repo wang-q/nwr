@@ -32,6 +32,24 @@ log_warn Protein/collect.sh
 #----------------------------#
 log_info "Protein/species-f.tsv"
 cat species.tsv |
+    sort |
+    if [ "$#" -gt 0 ]; then
+        # Initialize an string to store the cmd
+        result="tsv-filter --or"
+
+        # Iterate over each argument and prepend the fixed string
+        for arg in "$@"; do
+            result+=" --str-in-fld '2:$arg'"
+        done
+
+        # Remove the trailing space from the result string
+        result=${result% }
+
+        # Execute the result string as a Bash command
+        eval "$result"
+    else
+        tsv-uniq
+    fi |
 {% for i in ins -%}
     tsv-join -f ../{{ i }} -k 1 |
 {% endfor -%}
@@ -47,23 +65,6 @@ cat species.tsv |
 log_info "Unique proteins"
 cat species-f.tsv |
     tsv-select -f 2 |
-    if [ "$#" -gt 0 ]; then
-        # Initialize an string to store the cmd
-        result="tsv-filter --or"
-
-        # Iterate over each argument and prepend the fixed string
-        for arg in "$@"; do
-            result+=" --str-in-fld '1:$arg'"
-        done
-
-        # Remove the trailing space from the result string
-        result=${result% }
-
-        # Execute the result string as a Bash command
-        eval "$result"
-    else
-        tsv-uniq
-    fi |
     tsv-uniq |
 while read SPECIES; do
     if [[ -s "${SPECIES}"/pro.fa.gz ]]; then
@@ -96,23 +97,6 @@ done
 log_info "Clustering"
 cat species-f.tsv |
     tsv-select -f 2 |
-    if [ "$#" -gt 0 ]; then
-        # Initialize an string to store the cmd
-        result="tsv-filter --or"
-
-        # Iterate over each argument and prepend the fixed string
-        for arg in "$@"; do
-            result+=" --str-in-fld '1:$arg'"
-        done
-
-        # Remove the trailing space from the result string
-        result=${result% }
-
-        # Execute the result string as a Bash command
-        eval "$result"
-    else
-        tsv-uniq
-    fi |
     tsv-uniq |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j {{ parallel2 }} '
         if [[ -s {}/rep_seq.fa.gz ]]; then
@@ -127,7 +111,8 @@ cat species-f.tsv |
             --min-seq-id {{ pro_clust_id }} -c {{ pro_clust_cov }}
 
         rm "{}"/res_all_seqs.fasta
-        pigz -p4 "{}"/res_rep_seq.fasta
+        hnsm gz "{}"/res_rep_seq.fasta -o "{}"/rep_seq.fa
+        rm "{}"/res_rep_seq.fasta
     '
 
 log_info Done.
