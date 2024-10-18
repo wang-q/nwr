@@ -35,37 +35,22 @@ while read SPECIES; do
         continue
     fi
 
-    N_STRAIN=$(cat "${SPECIES}"/strains.tsv | wc -l)
-    N_TOTAL=$(
-        cat "${SPECIES}"/info.tsv |
-            tsv-summarize -H --count |
-            sed '1d'
-        )
-    N_DEDUP=$(
-        cat "${SPECIES}"/info.tsv |
-            tsv-summarize -H --unique-count id |
-            sed '1d'
-        )
-    N_REP=$(
-        cat "${SPECIES}"/info.tsv |
-            tsv-summarize -H --unique-count rep |
-            sed '1d'
-        )
+    log_debug "${SPECIES}"
 
-    printf "#item\tcount\n" \
+    echo "
+.header ON
+        SELECT
+            '${SPECIES}' AS species,
+            COUNT(distinct asm_seq.asm_id) AS strain,
+            COUNT(*) AS total,
+            COUNT(distinct rep_seq.seq_id) AS dedup,
+            COUNT(distinct rep_seq.rep_id) AS rep
+        FROM asm_seq
+        JOIN rep_seq ON asm_seq.seq_id = rep_seq.seq_id
+        WHERE 1=1
+        " |
+        sqlite3 -tabs ${SPECIES}/seq.sqlite \
         > "${SPECIES}"/counts.tsv
-
-    printf "strain\t%s\n" "${N_STRAIN}" \
-        >> "${SPECIES}"/counts.tsv
-
-    printf "total\t%s\n" "${N_TOTAL}" \
-        >> "${SPECIES}"/counts.tsv
-
-    printf "dedup\t%s\n" "${N_DEDUP}" \
-        >> "${SPECIES}"/counts.tsv
-
-    printf "rep\t%s\n" "${N_REP}" \
-        >> "${SPECIES}"/counts.tsv
 
 done
 
@@ -81,9 +66,7 @@ while read SPECIES; do
         continue
     fi
 
-    cat "${SPECIES}"/counts.tsv |
-        datamash transpose |
-        sed "s/^count/${SPECIES}/"
+    cat "${SPECIES}"/counts.tsv
 done |
     tsv-uniq \
     > counts.tsv
