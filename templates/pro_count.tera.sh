@@ -27,11 +27,11 @@ cat species-f.tsv |
     tsv-select -f 2 |
     tsv-uniq |
 while read SPECIES; do
-    if [[ -f "${SPECIES}"/info.tsv ]]; then
+    if [[ -f "${SPECIES}"/counts.tsv ]]; then
         continue
     fi
 
-    if [[ ! -f "${SPECIES}"/info.tsv ]]; then
+    if [[ ! -f "${SPECIES}"/seq.sqlite ]]; then
         continue
     fi
 

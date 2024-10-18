@@ -161,7 +161,7 @@ cargo run --bin nwr template tests/assembly/Trichoderma.assembly.tsv --ass -o st
 
 ```shell
 export SEQ_DIR="$HOME/data/Bacteria/Protein/Pseudomonas_fragi"
-#export SEQ_DIR="$HOME/data/Bacteria/Protein/Pseudomonas_aeruginosa"
+export SEQ_DIR="$HOME/data/Bacteria/Protein/Bacillus_cereus"
 
 cargo run --bin nwr seqdb -d ${SEQ_DIR} --init --strain
 
@@ -178,6 +178,20 @@ echo "
     FROM asm_seq
     WHERE 1=1
     GROUP BY asm_id
+    " |
+    sqlite3 -tabs ${SEQ_DIR}/seq.sqlite
+
+echo "
+.header ON
+    SELECT
+        'species' AS species,
+        COUNT(distinct asm_seq.asm_id) AS strain,
+        COUNT(*) AS total,
+        COUNT(distinct rep_seq.seq_id) AS dedup,
+        COUNT(distinct rep_seq.rep_id) AS rep
+    FROM asm_seq
+    JOIN rep_seq ON asm_seq.seq_id = rep_seq.seq_id
+    WHERE 1=1
     " |
     sqlite3 -tabs ${SEQ_DIR}/seq.sqlite
 
