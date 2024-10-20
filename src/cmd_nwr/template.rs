@@ -131,7 +131,7 @@ pub fn make_subcommand() -> Command {
             Arg::new("sketch")
                 .long("sketch")
                 .num_args(1)
-                .default_value("100000")
+                .default_value("10000")
                 .help("Sketch size passed to `mash sketch`"),
         )
         .arg(
