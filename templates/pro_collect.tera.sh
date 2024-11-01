@@ -74,7 +74,8 @@ while read SPECIES; do
         tsv-filter --str-eq "2:${SPECIES}" \
         > "${SPECIES}"/strains.tsv
 
-    rm -f "${SPECIES}"/anno.tsv
+    rm -f "${SPECIES}"/detail.tsv
+    rm -f "${SPECIES}"/detail.tsv.gz
     cat "${SPECIES}"/strains.tsv |
         parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
             if [[ ! -d "../ASSEMBLY/{2}/{1}" ]]; then
@@ -93,12 +94,16 @@ while read SPECIES; do
                     /^(\w+)\.(\d+)\s+(.+)$/ or next;
                     printf qq(%s.%s\t%s\t%s\n), $1, $2, qq({1}), $3;
                 '\'' \
-                >> {2}/anno.tsv
+                >> {2}/detail.tsv
 
             gzip -dcf ../ASSEMBLY/{2}/{1}/*_protein.faa.gz
         ' |
         hnsm filter stdin -u |
         hnsm gz stdin -p 4 -o "${SPECIES}"/pro.fa
+
+    tsv-select -f 1,3 "${SPECIES}"/detail.tsv | tsv-uniq | gzip > "${SPECIES}"/anno.tsv.gz
+    tsv-select -f 1,2 "${SPECIES}"/detail.tsv | tsv-uniq | gzip > "${SPECIES}"/asmseq.tsv.gz
+    rm -f "${SPECIES}"/detail.tsv
 done
 
 log_info Done.

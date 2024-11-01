@@ -81,38 +81,13 @@ while read SPECIES; do
         ) \
         --clust
 
-    cat "${SPECIES}"/strains.tsv |
-        parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
-            if [[ ! -d "../ASSEMBLY/{2}/{1}" ]]; then
-                exit
-            fi
-
-            gzip -dcf ../ASSEMBLY/{2}/{1}/*_protein.faa.gz |
-                grep "^>" |
-                sed "s/^>//" |
-                sed "s/'\''//g" |
-                sed "s/\-\-//g" |
-                perl -nl -e '\'' /\[.+\[/ and s/\[/\(/; print; '\'' `#replace [ with ( if there are two consecutive [` |
-                perl -nl -e '\'' /\].+\]/ and s/\]/\)/; print; '\'' |
-                perl -nl -e '\'' s/\s+\[.+?\]$//g; print; '\'' |
-                sed "s/MULTISPECIES: //g" |
-                perl -nl -e '\''
-                    /^(\w+)\.(\d+)\s+(.+)$/ or next;
-                    printf qq(%s.%s\t%s\t%s\n), $1, $2, qq({1}), $3;
-                '\''
-        ' \
-        > "${SPECIES}"/detail.tsv
-
     nwr seqdb -d ${SPECIES} \
         --anno <(
-            tsv-select -f 1,3 "${SPECIES}"/detail.tsv | tsv-uniq
+            gzip -dcf "${SPECIES}"/anno.tsv.gz
         ) \
         --asmseq <(
-            tsv-select -f 1,2 "${SPECIES}"/detail.tsv | tsv-uniq
+            gzip -dcf "${SPECIES}"/asmseq.tsv.gz
         )
-
-    rm "${SPECIES}"/detail.tsv
-
 done
 
 log_info Done.
