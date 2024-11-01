@@ -82,7 +82,7 @@ while read SPECIES; do
 
             gzip -dcf ../ASSEMBLY/{2}/{1}/*_protein.faa.gz
         ' |
-        hnsm filter stdin -u |
+        hnsm dedup |
         hnsm gz stdin -p 4 -o "${SPECIES}"/pro.fa
 
 done
