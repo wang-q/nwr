@@ -92,8 +92,8 @@ while read SPECIES; do
                     print;
                 '\'' |
                 perl -nl -e '\''
-                    /^([\w\d\.]+)\s+(.+)$/ or next;
-                    printf qq(%s\t%s\t%s\n), $1, qq({1}), $2;
+                    /^(\w+)\.(\d+)\s+(.+)$/ or next;
+                    printf qq(%s.%s\t%s\t%s\n), $1, $2, qq({1}), $3;
                 '\'' \
                 >> {2}/anno.tsv
 
