@@ -74,17 +74,33 @@ while read SPECIES; do
         tsv-filter --str-eq "2:${SPECIES}" \
         > "${SPECIES}"/strains.tsv
 
+    rm -f "${SPECIES}"/anno.tsv
     cat "${SPECIES}"/strains.tsv |
         parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
             if [[ ! -d "../ASSEMBLY/{2}/{1}" ]]; then
                 exit
             fi
 
+            gzip -dcf ../ASSEMBLY/{2}/{1}/*_protein.faa.gz |
+                grep "^>" |
+                sed "s/^>//" |
+                sed "s/'\''//g" | `# confusing sqlite`
+                sed "s/\-\-//g" | `# confusing sqlite`
+                perl -nl -e '\''
+                    s/\s+\[.+?\]$//g; # The content in the last [] relates to taxonomic groups
+                    s/MULTISPECIES: //g;
+                    print;
+                '\'' |
+                perl -nl -e '\''
+                    /^([\w\d\.]+)\s+(.+)$/ or next;
+                    printf qq(%s\t%s\t%s\n), $1, qq({1}), $2;
+                '\'' \
+                >> {2}/anno.tsv
+
             gzip -dcf ../ASSEMBLY/{2}/{1}/*_protein.faa.gz
         ' |
-        hnsm dedup stdin |
+        hnsm filter stdin -u |
         hnsm gz stdin -p 4 -o "${SPECIES}"/pro.fa
-
 done
 
 log_info Done.
