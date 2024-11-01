@@ -23,10 +23,6 @@ fi
 #----------------------------#
 log_warn Protein/collect.sh
 
-{% set parallel2 = parallel | int / 4 -%}
-{% set parallel2 = parallel2 | round(method="floor") -%}
-{% if parallel2 < 1 %}{% set parallel2 = 1 %}{% endif -%}
-
 #----------------------------#
 # filtered species.tsv
 #----------------------------#
@@ -90,30 +86,6 @@ while read SPECIES; do
         hnsm gz stdin -p 4 -o "${SPECIES}"/pro.fa
 
 done
-
-#----------------------------#
-# Clustering
-#----------------------------#
-log_info "Clustering"
-cat species-f.tsv |
-    tsv-select -f 2 |
-    tsv-uniq |
-    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j {{ parallel2 }} '
-        if [[ -s {}/rep_seq.fa.gz ]]; then
-            exit
-        fi
-
-        log_debug "{}"
-
-        #cluster-representative cluster-member
-        mmseqs easy-cluster "{}"/pro.fa.gz "{}"/res tmp \
-            --threads 4 --remove-tmp-files -v 0 \
-            --min-seq-id {{ pro_clust_id }} -c {{ pro_clust_cov }}
-
-        rm "{}"/res_all_seqs.fasta
-        hnsm gz "{}"/res_rep_seq.fasta -o "{}"/rep_seq.fa
-        rm "{}"/res_rep_seq.fasta
-    '
 
 log_info Done.
 

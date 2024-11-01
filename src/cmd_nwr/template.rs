@@ -183,20 +183,6 @@ pub fn make_subcommand() -> Command {
                 .action(ArgAction::SetTrue)
                 .help("Prepare Protein/ materials"),
         )
-        .arg(
-            Arg::new("clust-id")
-                .long("clust-id")
-                .num_args(1)
-                .default_value("0.95")
-                .help("The min sequence identity for clustering"),
-        )
-        .arg(
-            Arg::new("clust-cov")
-                .long("clust-cov")
-                .num_args(1)
-                .default_value("0.95")
-                .help("The min coverage of query and target for clustering"),
-        )
 }
 
 // command implementation
@@ -436,6 +422,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
         gen_pro_data(&context)?;
         gen_pro_collect(&context)?;
+        gen_pro_cluster(&context)?;
         gen_pro_info(&context)?;
         gen_pro_count(&context)?;
     }
@@ -1057,6 +1044,34 @@ fn gen_pro_collect(context: &Context) -> anyhow::Result<()> {
     tera.add_raw_templates(vec![
         ("header", include_str!("../../templates/header.tera.sh")),
         ("t", include_str!("../../templates/pro_collect.tera.sh")),
+    ])
+    .unwrap();
+
+    let rendered = tera.render("t", context).unwrap();
+    writer.write_all(rendered.as_ref())?;
+
+    Ok(())
+}
+
+//----------------------------
+// Protein/cluster.sh
+//----------------------------
+fn gen_pro_cluster(context: &Context) -> anyhow::Result<()> {
+    let outname = "cluster.sh";
+    eprintln!("Create Protein/{}", outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/Protein/{}", outdir, outname).as_ref())
+    };
+
+    let mut tera = Tera::default();
+    tera.add_raw_templates(vec![
+        ("header", include_str!("../../templates/header.tera.sh")),
+        ("t", include_str!("../../templates/pro_cluster.tera.sh")),
     ])
     .unwrap();
 
