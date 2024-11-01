@@ -81,16 +81,14 @@ while read SPECIES; do
                 exit
             fi
 
+            # >WP_011278454.1 biotin--[acetyl-CoA-carboxylase] ligase [Sulfolobus acidocaldarius]
             gzip -dcf ../ASSEMBLY/{2}/{1}/*_protein.faa.gz |
                 grep "^>" |
                 sed "s/^>//" |
-                sed "s/'\''//g" | `# confusing sqlite`
-                sed "s/\-\-//g" | `# confusing sqlite`
-                perl -nl -e '\''
-                    s/\s+\[.+?\]$//g; # The content in the last [] relates to taxonomic groups
-                    s/MULTISPECIES: //g;
-                    print;
-                '\'' |
+                sed "s/'\''//g" |
+                sed "s/\-\-//g" |
+                perl -nl -e '\'' s/\s+\[.+?\]$//g; print; '\'' |
+                sed "s/MULTISPECIES: //g" |
                 perl -nl -e '\''
                     /^(\w+)\.(\d+)\s+(.+)$/ or next;
                     printf qq(%s.%s\t%s\t%s\n), $1, $2, qq({1}), $3;
