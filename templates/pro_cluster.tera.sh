@@ -21,7 +21,7 @@ fi
 #----------------------------#
 # Run
 #----------------------------#
-log_warn Protein/collect.sh
+log_warn Protein/cluster.sh
 
 {% set parallel2 = parallel | int / 4 -%}
 {% set parallel2 = parallel2 | round(method="floor") -%}
@@ -89,9 +89,9 @@ cat species-f.tsv |
     '
 
 #----------------------------#
-# Clustering .8 .8
+# Family .8 .8
 #----------------------------#
-log_info "Clustering .8 .8"
+log_info "Family .8 .8"
 cat species-f.tsv |
     tsv-select -f 2 |
     tsv-uniq |
@@ -102,25 +102,25 @@ cat species-f.tsv |
         if [[ ! -s {}/rep_seq.fa.gz ]]; then
             exit
         fi
-        if [[ -s {}/f88_cluster.tsv ]]; then
+        if [[ -s {}/fam88_cluster.tsv ]]; then
             exit
         fi
 
         log_debug "{}"
 
         #cluster-representative cluster-member
-        mmseqs easy-cluster "{}"/rep_seq.fa.gz "{}"/f88 tmp \
+        mmseqs easy-cluster "{}"/rep_seq.fa.gz "{}"/fam88 tmp \
             --threads 4 --remove-tmp-files -v 0 \
             --min-seq-id 0.8 -c 0.8
 
-        rm "{}"/f88_all_seqs.fasta
-        rm "{}"/f88_rep_seq.fasta
+        rm "{}"/fam88_all_seqs.fasta
+        rm "{}"/fam88_rep_seq.fasta
     '
 
 #----------------------------#
-# Clustering .3 .8
+# Family .3 .8
 #----------------------------#
-log_info "Clustering .3 .8"
+log_info "Family .3 .8"
 cat species-f.tsv |
     tsv-select -f 2 |
     tsv-uniq |
@@ -131,19 +131,19 @@ cat species-f.tsv |
         if [[ ! -s {}/rep_seq.fa.gz ]]; then
             exit
         fi
-        if [[ -s {}/f38_cluster.tsv ]]; then
+        if [[ -s {}/fam38_cluster.tsv ]]; then
             exit
         fi
 
         log_debug "{}"
 
         #cluster-representative cluster-member
-        mmseqs easy-cluster "{}"/rep_seq.fa.gz "{}"/f38 tmp \
+        mmseqs easy-cluster "{}"/rep_seq.fa.gz "{}"/fam38 tmp \
             --threads 4 --remove-tmp-files -v 0 \
             --min-seq-id 0.3 -c 0.8
 
-        rm "{}"/f38_all_seqs.fasta
-        rm "{}"/f38_rep_seq.fasta
+        rm "{}"/fam38_all_seqs.fasta
+        rm "{}"/fam38_rep_seq.fasta
     '
 
 log_info Done.
