@@ -138,7 +138,7 @@ cat species-f.tsv |
         log_debug "{}"
 
         #cluster-representative cluster-member
-        mmseqs easy-cluster "{}"/rep_seq.fa.gz "{}"/f88 tmp \
+        mmseqs easy-cluster "{}"/rep_seq.fa.gz "{}"/f38 tmp \
             --threads 4 --remove-tmp-files -v 0 \
             --min-seq-id 0.3 -c 0.8
 
