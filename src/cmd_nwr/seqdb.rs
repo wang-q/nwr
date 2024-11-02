@@ -267,7 +267,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     }
 
     if !opt_rep.1.is_empty() {
-        info!("==> Loading `{}` to `ref.{}`", opt_rep.1, opt_rep.0);
+        info!("==> Loading `{}` to `rep.{}`", opt_rep.1, opt_rep.0);
         // family, rep
         let dmp = File::open(opt_rep.1)?;
         insert_rep(&dmp, &opt_rep.0, &conn)?;
