@@ -41,12 +41,15 @@ while read SPECIES; do
 .header ON
         SELECT
             '${SPECIES}' AS species,
-            COUNT(distinct asm_seq.asm_id) AS strain,
+            COUNT(DISTINCT asm_seq.asm_id) AS strain,
             COUNT(*) AS total,
-            COUNT(distinct rep_seq.seq_id) AS dedup,
-            COUNT(distinct rep_seq.rep_id) AS rep
+            COUNT(DISTINCT rep_seq.seq_id) AS dedup,
+            COUNT(DISTINCT rep.id) AS rep,
+            COUNT(DISTINCT rep.f1) AS fam88,
+            COUNT(DISTINCT rep.f2) AS fam38
         FROM asm_seq
         JOIN rep_seq ON asm_seq.seq_id = rep_seq.seq_id
+        JOIN rep ON rep_seq.rep_id = rep.id
         WHERE 1=1
         " |
         sqlite3 -tabs ${SPECIES}/seq.sqlite \

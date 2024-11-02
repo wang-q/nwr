@@ -67,7 +67,7 @@ while read SPECIES; do
         continue
     fi
 
-    if [[ ! -s "${SPECIES}"/res_cluster.tsv ]]; then
+    if [[ ! -s "${SPECIES}"/rep_cluster.tsv ]]; then
         continue
     fi
 
@@ -88,6 +88,10 @@ while read SPECIES; do
         --asmseq <(
             gzip -dcf "${SPECIES}"/asmseq.tsv.gz
         )
+
+    nwr seqdb -d ${SPECIES} --rep f1="${SPECIES}"/fam88_cluster.tsv
+    nwr seqdb -d ${SPECIES} --rep f2="${SPECIES}"/fam38_cluster.tsv
+
 done
 
 log_info Done.

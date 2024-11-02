@@ -21,7 +21,7 @@ the protein sequences are identical or highly similar
 
 * If `--strain` is called without specifying a path, it will load the default file under `--dir`
 
-* `--rep` requires two arguemnts, `--rep f1 file`
+* `--rep` requires key-value pair, `--rep f1=file`
 
 * The DDL
 
@@ -59,7 +59,7 @@ the protein sequences are identical or highly similar
             Arg::new("clust")
                 .long("clust")
                 .num_args(0..=1)
-                .help("Load res_cluster.tsv"),
+                .help("Load rep_cluster.tsv"),
         )
         .arg(
             Arg::new("anno")
@@ -76,11 +76,12 @@ the protein sequences are identical or highly similar
         .arg(
             Arg::new("rep")
                 .long("rep")
-                .num_args(2)
+                .num_args(1)
                 .help("Load features into rep"),
         )
 }
 
+// https://stackoverflow.com/questions/58684279/can-an-index-on-a-text-column-speed-up-prefix-based-like-queries
 static DDL_SEQ: &str = r###"
 CREATE TABLE rank (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -98,7 +99,7 @@ CREATE TABLE seq (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR NOT NULL UNIQUE,
     size INTEGER,
-    annotation TEXT
+    anno TEXT
 );
 -- representative
 CREATE TABLE rep (
@@ -106,12 +107,8 @@ CREATE TABLE rep (
     name VARCHAR NOT NULL UNIQUE,
     f1 TEXT,
     f2 TEXT,
-    f3 TEXT
-);
--- family
-CREATE TABLE fam (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name VARCHAR NOT NULL UNIQUE
+    f3 TEXT,
+    f4 TEXT
 );
 -- Junction table to associate rep with seq
 CREATE TABLE rep_seq (
@@ -129,14 +126,13 @@ CREATE TABLE asm_seq (
     FOREIGN KEY (asm_id) REFERENCES asm(id),
     FOREIGN KEY (seq_id) REFERENCES seq(id)
 );
--- Junction table to associate fam with rep
-CREATE TABLE fam_rep (
-    fam_id INTEGER NOT NULL,
-    rep_id INTEGER NOT NULL,
-    PRIMARY KEY (fam_id, rep_id),
-    FOREIGN KEY (fam_id) REFERENCES fam(id),
-    FOREIGN KEY (rep_id) REFERENCES rep(id)
-);
+-- Regular indecies
+CREATE INDEX rep_idx_f1 ON rep(f1);
+CREATE INDEX rep_idx_f2 ON rep(f2);
+CREATE INDEX rep_idx_f3 ON rep(f3);
+CREATE INDEX rep_idx_f4 ON rep(f4);
+-- Case-insensitive indecies for `like`
+CREATE INDEX seq_idx_anno ON seq(anno COLLATE NOCASE);
 
 "###;
 
@@ -167,7 +163,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let opt_clust = if args.contains_id("clust") {
         match args.get_one::<String>("clust") {
             Some(path) => PathBuf::from(path),
-            None => dir.join("res_cluster.tsv"),
+            None => dir.join("rep_cluster.tsv"),
         }
     } else {
         PathBuf::new()
@@ -187,6 +183,16 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
     } else {
         PathBuf::new()
+    };
+    let opt_rep = if args.contains_id("rep") {
+        let rep = args.get_one::<String>("rep").unwrap();
+        let pos = rep
+            .find('=')
+            .ok_or_else(|| format!("invalid KEY=value: no `=` found in `{rep}`"))
+            .unwrap();
+        (rep[..pos].to_string(), rep[pos + 1..].to_string())
+    } else {
+        (String::new(), String::new())
     };
 
     //----------------------------
@@ -257,7 +263,14 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         info!("==> Loading `{}` to `asm_seq`", opt_asmseq.display());
         // sequence name, asm
         let dmp = File::open(opt_asmseq)?;
-        insert_asmseq(&dmp, conn)?;
+        insert_asmseq(&dmp, &conn)?;
+    }
+
+    if !opt_rep.1.is_empty() {
+        info!("==> Loading `{}` to `ref.{}`", opt_rep.1, opt_rep.0);
+        // family, rep
+        let dmp = File::open(opt_rep.1)?;
+        insert_rep(&dmp, &opt_rep.0, &conn)?;
     }
 
     Ok(())
@@ -390,7 +403,7 @@ fn insert_anno(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
         stmts.push(format!(
             "
             UPDATE seq
-            SET annotation = '{}'
+            SET anno = '{}'
             WHERE seq.name = '{}';
             ",
             anno, name
@@ -404,7 +417,7 @@ fn insert_anno(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn insert_asmseq(dmp: &File, conn: Connection) -> anyhow::Result<()> {
+fn insert_asmseq(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
@@ -439,6 +452,35 @@ fn insert_asmseq(dmp: &File, conn: Connection) -> anyhow::Result<()> {
     Ok(())
 }
 
+fn insert_rep(dmp: &File, field: &str, conn: &Connection) -> anyhow::Result<()> {
+    let mut tsv_rdr = csv::ReaderBuilder::new()
+        .has_headers(false)
+        .delimiter(b'\t')
+        .from_reader(dmp);
+
+    let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
+    for (i, result) in tsv_rdr.records().enumerate() {
+        batch_exec(&conn, &mut stmts, i)?;
+
+        let record = result?;
+        let family: String = record[0].trim().parse()?;
+        let rep: String = record[1].trim().parse()?;
+
+        stmts.push(format!(
+            "
+            UPDATE rep
+            SET {} = '{}'
+            WHERE rep.name = '{}';
+            ",
+            field, family, rep
+        ));
+    }
+    // Records may be left in stmts
+    batch_exec(&conn, &mut stmts, usize::MAX)?;
+
+    Ok(())
+}
+
 fn batch_exec(
     conn: &Connection,
     stmts: &mut Vec<String>,
@@ -450,6 +492,12 @@ fn batch_exec(
         conn.execute_batch(stmt)?;
         stmts.clear();
         stmts.push(String::from("BEGIN;"));
+    }
+    if i == usize::MAX {
+        stmts.push(String::from("COMMIT;"));
+        let stmt = &stmts.join("\n");
+        conn.execute_batch(stmt)?;
+        debug!("Finished");
     }
     if i > 1 && i % 10000 == 0 {
         debug!("Read {} records", i);

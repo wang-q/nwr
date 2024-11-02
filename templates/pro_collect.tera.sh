@@ -104,6 +104,7 @@ while read SPECIES; do
     tsv-select -f 1,3 "${SPECIES}"/detail.tsv | tsv-uniq | gzip > "${SPECIES}"/anno.tsv.gz
     tsv-select -f 1,2 "${SPECIES}"/detail.tsv | tsv-uniq | gzip > "${SPECIES}"/asmseq.tsv.gz
     rm -f "${SPECIES}"/detail.tsv
+
 done
 
 log_info Done.

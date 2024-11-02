@@ -160,16 +160,25 @@ cargo run --bin nwr template tests/assembly/Trichoderma.assembly.tsv --ass -o st
 ### seqdb
 
 ```shell
-export SEQ_DIR="$HOME/data/Bacteria/Protein/Pseudomonas_fragi"
-export SEQ_DIR="$HOME/data/Bacteria/Protein/Escherichia_coli"
+export SPECIES="$HOME/data/Archaea/Protein/Sulfolobus_acidocaldarius"
 
-cargo run --bin nwr seqdb -d ${SEQ_DIR} --init --strain
+cargo run --bin nwr seqdb -d ${SPECIES} --init --strain
 
-cargo run --bin nwr seqdb -d ${SEQ_DIR} \
+cargo run --bin nwr seqdb -d ${SPECIES} \
     --size <(
-        hnsm size ${SEQ_DIR}/pro.fa.gz
+        hnsm size ${SPECIES}/pro.fa.gz
     ) \
     --clust
+
+cargo run --bin nwr seqdb -d ${SPECIES} \
+    --anno <(
+        gzip -dcf "${SPECIES}"/anno.tsv.gz
+    ) \
+    --asmseq <(
+        gzip -dcf "${SPECIES}"/asmseq.tsv.gz
+    )
+
+cargo run --bin nwr seqdb -d ${SPECIES} --rep f1="${SPECIES}"/fam88_cluster.tsv
 
 echo "
     SELECT
