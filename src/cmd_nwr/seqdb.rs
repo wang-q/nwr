@@ -60,7 +60,8 @@ the protein sequences are identical or highly similar
                 .long("clust")
                 .num_args(0..=1)
                 .help("Load res_cluster.tsv"),
-        )        .arg(
+        )
+        .arg(
             Arg::new("anno")
                 .long("anno")
                 .num_args(0..=1)
@@ -107,6 +108,11 @@ CREATE TABLE rep (
     f2 TEXT,
     f3 TEXT
 );
+-- family
+CREATE TABLE fam (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR NOT NULL UNIQUE
+);
 -- Junction table to associate rep with seq
 CREATE TABLE rep_seq (
     rep_id INTEGER NOT NULL,
@@ -123,6 +129,15 @@ CREATE TABLE asm_seq (
     FOREIGN KEY (asm_id) REFERENCES asm(id),
     FOREIGN KEY (seq_id) REFERENCES seq(id)
 );
+-- Junction table to associate fam with rep
+CREATE TABLE fam_rep (
+    fam_id INTEGER NOT NULL,
+    rep_id INTEGER NOT NULL,
+    PRIMARY KEY (fam_id, rep_id),
+    FOREIGN KEY (fam_id) REFERENCES fam(id),
+    FOREIGN KEY (rep_id) REFERENCES rep(id)
+);
+
 "###;
 
 // command implementation
