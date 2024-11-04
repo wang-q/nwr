@@ -5,7 +5,7 @@
 #----------------------------#
 log_warn nr.sh
 
-ANI_VALUE_THRESHOLD={{ mh_ani_nr }}
+ANI_VALUE={{ mh_ani_nr }}
 
 log_info Non-redundant strains
 
@@ -18,36 +18,20 @@ while read SPECIES; do
         continue
     fi
 
-    echo >&2 "    List NR"
+    echo >&2 "    Finding redundants"
     cat "${SPECIES}/mash.dist.tsv" |
-        tsv-filter --ff-str-ne 1:2 --le "3:${ANI_VALUE_THRESHOLD}" \
-        > "${SPECIES}/redundant.dist.tsv"
+        tsv-filter --ff-str-ne 1:2 --le "3:${ANI_VALUE}" |
+        hnsm cluster stdin --mode cc \
+        > "${SPECIES}/RED.cc.tsv"
 
-    echo >&2 "    Connected components"
-    cat "${SPECIES}/redundant.dist.tsv" |
-        perl -nla -F"\t" -MGraph::Undirected -e '
-            BEGIN {
-                our $g = Graph::Undirected->new;
-            }
-
-            $g->add_edge($F[0], $F[1]);
-
-            END {
-                for my $cc ( $g->connected_components ) {
-                    print join qq{\t}, sort @{$cc};
-                }
-            }
-        ' \
-        > "${SPECIES}/connected_components.tsv"
-
-    echo >&2 "    Scores based on rep.lst, omit.lst, and assembly_level"
+    echo >&2 "    Scoring based on rep.lst, omit.lst, and assembly_level"
     cat ${SPECIES}/assembly.lst |
         tsv-join -f ../ASSEMBLY/rep.lst -k 1 -a 1 --write-all "0" |
         tsv-join -f ../ASSEMBLY/omit.lst -k 1 -a 1 --write-all "0" |
         tsv-join -f species.tsv -k 1 -a 3 \
         > ${SPECIES}/scores.tsv
 
-    cat "${SPECIES}/connected_components.tsv" |
+    cat "${SPECIES}/RED.cc.tsv" |
         SPECIES=${SPECIES} perl -nla -MPath::Tiny -F"\t" -e '
             BEGIN {
                 our %rep_of = map { ($_, 1) } path( q(../ASSEMBLY/rep.lst) )->lines({chomp => 1});

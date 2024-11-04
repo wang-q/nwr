@@ -43,15 +43,16 @@ while read SPECIES; do
     fi
 
     echo >&2 "    mash distances"
+    cat "${SPECIES}/assembly.lst" |
+        parallel --no-run-if-empty --linebuffer -k -j 1 "
+            if [[ -e ${SPECIES}/msh/{}.msh ]]; then
+                echo ${SPECIES}/msh/{}.msh
+            fi
+        " \
+        > "${SPECIES}/msh.lst"
+
     if [[ ! -s "${SPECIES}/mash.dist.tsv" ]]; then
-        mash triangle -E -p 8 -l <(
-            cat "${SPECIES}/assembly.lst" |
-                parallel --no-run-if-empty --linebuffer -k -j 1 "
-                    if [[ -e ${SPECIES}/{}.msh ]]; then
-                        echo ${SPECIES}/{}.msh
-                    fi
-                "
-            ) \
+        mash triangle -E -p 8 -l "${SPECIES}/msh.lst" \
             > "${SPECIES}/mash.dist.tsv"
     fi
 done

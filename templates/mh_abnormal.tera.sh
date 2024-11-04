@@ -5,7 +5,7 @@
 #----------------------------#
 log_warn abnormal.sh
 
-ANI_VALUE_THRESHOLD={{ mh_ani_ab }}
+ANI_VALUE={{ mh_ani_ab }}
 
 log_info Abnormal strains
 
@@ -22,31 +22,20 @@ while read SPECIES; do
         cat "${SPECIES}/mash.dist.tsv" |
             tsv-summarize --max 3
     )
-    if (( $(echo "$D_MAX < $ANI_VALUE_THRESHOLD" | bc -l) )); then
+    if (( $(echo "$D_MAX < $ANI_VALUE" | bc -l) )); then
         continue
     fi
 
-    # "Link assemblies with median ANI"
+    # "Link assemblies with the median ANI"
     D_MEDIAN=$(
         cat "${SPECIES}/mash.dist.tsv" |
-            tsv-filter --lt "3:$ANI_VALUE_THRESHOLD" |
+            tsv-filter --lt "3:$ANI_VALUE" |
             tsv-summarize --median 3
     )
     cat "${SPECIES}/mash.dist.tsv" |
         tsv-filter --ff-str-ne 1:2 --le "3:$D_MEDIAN" |
-        perl -nla -F"\t" -MGraph::Undirected -e '
-            BEGIN {
-                our $g = Graph::Undirected->new;
-            }
-
-            $g->add_edge($F[0], $F[1]);
-
-            END {
-                for my $cc ( $g->connected_components ) {
-                    print join qq{\n}, sort @{$cc};
-                }
-            }
-        ' \
+        hnsm cluster stdin --mode cc |
+        tr '\t' '\n' \
         > "${SPECIES}/median.cc.lst"
 
     log_info "${SPECIES}\t${D_MEDIAN}\t${D_MAX}"
