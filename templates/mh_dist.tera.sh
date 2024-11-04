@@ -6,20 +6,21 @@
 log_warn dist.sh
 
 log_info Distances between assembly sketches
-mash triangle -E -p {{ parallel }} -l <(
-    cat species.tsv |
+cat species.tsv |
 {% for i in ins -%}
     tsv-join -f ../{{ i }} -k 1 |
 {% endfor -%}
 {% for i in not_ins -%}
     tsv-join -e -f ../{{ i }} -k 1 |
 {% endfor -%}
-        parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
-            if [[ -e "{2}/{1}.msh" ]]; then
-                echo "{2}/{1}.msh"
-            fi
-        '
-    ) \
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
+        if [[ -e "{2}/msh/{1}.msh" ]]; then
+            echo "{2}/msh/{1}.msh"
+        fi
+    ' \
+    > msh.lst
+
+mash triangle -E -p {{ parallel }} -l msh.lst \
     > mash.dist.tsv
 
 log_info Fill distance matrix with lower triangle
@@ -33,7 +34,7 @@ tsv-select -f 1-3 mash.dist.tsv |
     ) \
     > mash.dist_full.tsv
 
-log_info "Clusting via R hclust(), and grouping by cutree(h={{ mh_height }})"
+log_info "Clustering via R hclust(), and grouping by cutree(h={{ mh_height }})"
 cat mash.dist_full.tsv |
     Rscript -e '
         library(readr);
