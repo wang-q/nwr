@@ -49,7 +49,6 @@ Commands:
   common       Output the common tree of terms
   distance     Output a TSV/phylip file with distances between all named nodes
   download     Download the latest releases of `taxdump` and assembly reports
-  similarity   Similarity of vectors
   indent       Indent the Newick file
   info         Information of Taxonomy ID(s) or scientific name(s)
   kb           Prints docs (knowledge bases)
@@ -63,6 +62,7 @@ Commands:
   replace      Replace node names/comments in a Newick file
   reroot       Place the root in the middle of the desired node and its parent
   restrict     Restrict taxonomy terms to ancestral descendants
+  seqdb        Init the seq database
   subtree      Extract a subtree
   stat         Statistics about the Newick file
   template     Create dirs, data and scripts for a phylogenomic research
@@ -84,9 +84,6 @@ Subcommand groups:
 * Taxonomy
     * info / lineage / member / append / restrict / common
 
-* Vectors
-    * similarity: euclid/cosine/jaccard
-
 * Newick
     * Information
         * label / stat / distance
@@ -99,6 +96,7 @@ Subcommand groups:
 * Assembly
     * template
     * kb
+    * seqdb
 
 ```
 
