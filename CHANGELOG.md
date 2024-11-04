@@ -4,6 +4,8 @@
 
 * Add `nwr seqdb`
 
+* Tweak `nwr template` shell scripts
+
 ## 0.7.5 - 2024-09-20
 
 * Rewrite `nwr template --ass` scripts
