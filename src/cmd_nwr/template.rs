@@ -395,9 +395,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
         gen_mh_data(&context)?;
         gen_mh_compute(&context)?;
-        gen_mh_species(&context)?;
-        gen_mh_abnormal(&context)?;
         gen_mh_nr(&context)?;
+        gen_mh_abnormal(&context)?;
         gen_mh_dist(&context)?;
     }
 
@@ -771,10 +770,10 @@ fn gen_mh_compute(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// MinHash/species.sh
+// MinHash/nr.sh
 //----------------------------
-fn gen_mh_species(context: &Context) -> anyhow::Result<()> {
-    let outname = "species.sh";
+fn gen_mh_nr(context: &Context) -> anyhow::Result<()> {
+    let outname = "nr.sh";
     eprintln!("Create MinHash/{}", outname);
 
     let outdir = context.get("outdir").unwrap().as_str().unwrap();
@@ -788,7 +787,7 @@ fn gen_mh_species(context: &Context) -> anyhow::Result<()> {
     let mut tera = Tera::default();
     tera.add_raw_templates(vec![
         ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/mh_species.tera.sh")),
+        ("t", include_str!("../../templates/mh_nr.tera.sh")),
     ])
     .unwrap();
 
@@ -818,35 +817,7 @@ fn gen_mh_abnormal(context: &Context) -> anyhow::Result<()> {
         ("header", include_str!("../../templates/header.tera.sh")),
         ("t", include_str!("../../templates/mh_abnormal.tera.sh")),
     ])
-    .unwrap();
-
-    let rendered = tera.render("t", context).unwrap();
-    writer.write_all(rendered.as_ref())?;
-
-    Ok(())
-}
-
-//----------------------------
-// MinHash/nr.sh
-//----------------------------
-fn gen_mh_nr(context: &Context) -> anyhow::Result<()> {
-    let outname = "nr.sh";
-    eprintln!("Create MinHash/{}", outname);
-
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-
-    let mut writer = if outdir == "stdout" {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/MinHash/{}", outdir, outname).as_ref())
-    };
-
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/mh_nr.tera.sh")),
-    ])
-    .unwrap();
+        .unwrap();
 
     let rendered = tera.render("t", context).unwrap();
     writer.write_all(rendered.as_ref())?;
