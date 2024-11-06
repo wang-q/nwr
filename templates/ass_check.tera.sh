@@ -28,6 +28,7 @@ cat url.tsv |
                 grep -v "assembly_structure" |
                 grep -v "Evidence_alignments" |
                 grep -v "Gnomon_models" |
+                grep -v "RNASeq_coverage_graphs" |
                 grep -v "RefSeq_transcripts_alignments" |
                 grep -v "annotation_hashes.txt" |
                 grep -v "_ani_contam_ranges.tsv" |

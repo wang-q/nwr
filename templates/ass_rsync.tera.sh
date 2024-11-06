@@ -52,6 +52,7 @@ cat url.tsv |
             --exclude="*assembly_structure/*" \
             --exclude="*Evidence_alignments/*" \
             --exclude="*Gnomon_models/*" \
+            --exclude="*RNASeq_coverage_graphs/*" \
             --exclude="*RefSeq_transcripts_alignments/*" \
             --exclude="annotation_hashes.txt" \
             --exclude="*_ani_contam_ranges.tsv" \
