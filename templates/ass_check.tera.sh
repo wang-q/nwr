@@ -26,6 +26,9 @@ cat url.tsv |
         md5sum --check <(
             cat md5checksums.txt |
                 grep -v "assembly_structure" |
+                grep -v "Evidence_alignments" |
+                grep -v "Gnomon_models" |
+                grep -v "RefSeq_transcripts_alignments" |
                 grep -v "annotation_hashes.txt" |
                 grep -v "_ani_contam_ranges.tsv" |
                 grep -v "_ani_report.txt" |

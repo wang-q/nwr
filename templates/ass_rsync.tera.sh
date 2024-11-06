@@ -50,6 +50,9 @@ cat url.tsv |
         mkdir -p "{3}/{1}"
         rsync -avP --no-links {2}/ {3}/{1}/ \
             --exclude="*assembly_structure/*" \
+            --exclude="*Evidence_alignments/*" \
+            --exclude="*Gnomon_models/*" \
+            --exclude="*RefSeq_transcripts_alignments/*" \
             --exclude="annotation_hashes.txt" \
             --exclude="*_ani_contam_ranges.tsv" \
             --exclude="*_ani_report.txt" \
