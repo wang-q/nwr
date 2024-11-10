@@ -7,7 +7,7 @@ log_warn compute.sh
 
 {% set parallel2 = parallel | int / 2 -%}
 {% set parallel2 = parallel2 | round(method="floor") -%}
-{% if parallel2 < 2 %}{% set parallel2 = 2 %}{% endif -%}
+{% if parallel2 < 2 %}{% set parallel2 = 1 %}{% endif -%}
 
 cat species.tsv |
 {% for i in ins -%}
