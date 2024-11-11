@@ -132,12 +132,12 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
         if !is_style {
             let default_font = r"
-\setmainfont{texgyrepagella}[
-    Extension = .otf,
-    UprightFont = *-regular,
-    BoldFont = *-bold,
-    ItalicFont = *-italic,
-    BoldItalicFont = *-bolditalic,
+\setmainfont{NotoSans}[
+    Extension      = .ttf,
+    UprightFont    = *-Regular,
+    BoldFont       = *-Bold,
+    ItalicFont     = *-Italic,
+    BoldItalicFont = *-BoldItalic
 ]
 ";
 

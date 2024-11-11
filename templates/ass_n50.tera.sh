@@ -53,8 +53,7 @@ cat url.tsv |
 
         find "{3}/{1}" -type f -name "*_genomic.fna.gz" |
             grep -v "_from_" | # exclude CDS and rna
-            xargs cat |
-            hnsm n50 -H -N 50 -S -C stdin | # do not display header
+            xargs -I[] hnsm n50 -H -N 50 -S -C [] |
             (echo -e "{1}" && cat) |
             datamash transpose
     ' \
