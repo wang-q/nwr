@@ -817,7 +817,7 @@ fn gen_mh_abnormal(context: &Context) -> anyhow::Result<()> {
         ("header", include_str!("../../templates/header.tera.sh")),
         ("t", include_str!("../../templates/mh_abnormal.tera.sh")),
     ])
-        .unwrap();
+    .unwrap();
 
     let rendered = tera.render("t", context).unwrap();
     writer.write_all(rendered.as_ref())?;
