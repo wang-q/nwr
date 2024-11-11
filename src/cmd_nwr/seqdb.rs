@@ -453,6 +453,15 @@ fn insert_asmseq(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
 }
 
 fn insert_rep(dmp: &File, field: &str, conn: &Connection) -> anyhow::Result<()> {
+    // empty field before updating
+    conn.execute_batch(&format!(
+        "
+        UPDATE rep
+        SET {} = NULL;
+        ",
+        field
+    ))?;
+
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
