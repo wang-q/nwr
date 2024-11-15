@@ -71,7 +71,7 @@ find . -type f -name ".*" |
 log_info "List dirs (species/assembly) not in the list"
 cat url.tsv |
     tsv-select -f 3 |
-    tsv-uniq |
+    rgr dedup stdin |
 while read SPECIES; do
     find "./${SPECIES}" -maxdepth 1 -mindepth 1 -type d |
         tr "/" "\t" |

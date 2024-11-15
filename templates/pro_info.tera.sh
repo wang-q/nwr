@@ -44,7 +44,7 @@ cat species.tsv |
         # Execute the result string as a Bash command
         eval "$result"
     else
-        tsv-uniq
+        rgr dedup stdin
     fi |
 {% for i in ins -%}
     tsv-join -f ../{{ i }} -k 1 |
@@ -61,7 +61,7 @@ cat species.tsv |
 log_info "seq.sqlite"
 cat species-f.tsv |
     tsv-select -f 2 |
-    tsv-uniq |
+    rgr dedup stdin |
 while read SPECIES; do
     if [[ -f "${SPECIES}"/seq.sqlite ]]; then
         continue

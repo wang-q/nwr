@@ -36,7 +36,7 @@ touch n50.tsv
 log_info Keep only the results in the list
 cat n50.tsv |
     (echo -e "name\tN50\tS\tC" && cat) | # Headers
-    tsv-uniq | # keep the first header line
+    rgr dedup stdin | # keep the first header line
     tsv-filter -H --gt "N50:0" | # unfinished downloads
     keep-header -- tsv-join -f url.tsv -k 1 \
     > tmp.tsv
@@ -61,7 +61,7 @@ cat url.tsv |
 
 # Combine new results with the old ones
 cat n50.tsv tmp1.tsv |
-    tsv-uniq |
+    rgr dedup stdin |
     keep-header -- sort \
     > tmp2.tsv
 mv tmp2.tsv n50.tsv

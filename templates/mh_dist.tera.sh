@@ -28,7 +28,7 @@ tsv-select -f 1-3 mash.dist.tsv |
     (tsv-select -f 2,1,3 mash.dist.tsv && cat) |
     (
         cut -f 1 mash.dist.tsv |
-            tsv-uniq |
+            rgr dedup stdin |
             parallel -j 1 --keep-order 'echo -e "{}\t{}\t0"' &&
         cat
     ) \

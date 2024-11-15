@@ -10,7 +10,7 @@ touch check.lst
 # Keep only the results in the list
 cat check.lst |
     sort |
-    tsv-uniq |
+    rgr dedup stdin |
     tsv-join -f url.tsv -k 1 \
     > tmp.list
 mv tmp.list check.lst

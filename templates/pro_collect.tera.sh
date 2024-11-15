@@ -44,7 +44,7 @@ cat species.tsv |
         # Execute the result string as a Bash command
         eval "$result"
     else
-        tsv-uniq
+        rgr dedup stdin
     fi |
 {% for i in ins -%}
     tsv-join -f ../{{ i }} -k 1 |
@@ -61,7 +61,7 @@ cat species.tsv |
 log_info "Unique proteins"
 cat species-f.tsv |
     tsv-select -f 2 |
-    tsv-uniq |
+    rgr dedup stdin |
 while read SPECIES; do
     if [[ -s "${SPECIES}"/pro.fa.gz ]]; then
         continue
@@ -101,8 +101,8 @@ while read SPECIES; do
         hnsm filter stdin -u |
         hnsm gz stdin -p 4 -o "${SPECIES}"/pro.fa
 
-    tsv-select -f 1,3 "${SPECIES}"/detail.tsv | tsv-uniq | gzip > "${SPECIES}"/anno.tsv.gz
-    tsv-select -f 1,2 "${SPECIES}"/detail.tsv | tsv-uniq | gzip > "${SPECIES}"/asmseq.tsv.gz
+    tsv-select -f 1,3 "${SPECIES}"/detail.tsv | rgr dedup stdin | gzip > "${SPECIES}"/anno.tsv.gz
+    tsv-select -f 1,2 "${SPECIES}"/detail.tsv | rgr dedup stdin | gzip > "${SPECIES}"/asmseq.tsv.gz
     rm -f "${SPECIES}"/detail.tsv
 
 done

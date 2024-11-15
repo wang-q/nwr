@@ -17,7 +17,7 @@ cat species.tsv |
     tsv-join -e -f ../{{ i }} -k 1 |
 {% endfor -%}
     tsv-select -f 2 |
-    tsv-uniq \
+    rgr dedup stdin \
     > species.lst
 
 cat species.lst |

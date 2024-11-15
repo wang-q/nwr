@@ -15,7 +15,7 @@ cat url.tsv |
             echo {1}
         fi
     ' |
-    tsv-uniq \
+    rgr dedup stdin \
     > omit.lst
 
 log_info "ASMs passes the N50 check"

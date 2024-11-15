@@ -25,7 +25,7 @@ cat species.tsv |
 log_info "Count each species"
 cat species-f.tsv |
     tsv-select -f 2 |
-    tsv-uniq |
+    rgr dedup stdin |
 while read SPECIES; do
     if [[ -f "${SPECIES}"/counts.tsv ]]; then
         continue
@@ -63,7 +63,7 @@ done
 log_info "Count total"
 cat species-f.tsv |
     tsv-select -f 2 |
-    tsv-uniq |
+    rgr dedup stdin |
 while read SPECIES; do
     if [[ ! -f "${SPECIES}"/counts.tsv ]]; then
         continue
@@ -71,7 +71,7 @@ while read SPECIES; do
 
     cat "${SPECIES}"/counts.tsv
 done |
-    tsv-uniq \
+    rgr dedup stdin \
     > counts.tsv
 
 log_info Done.

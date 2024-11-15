@@ -42,7 +42,7 @@ cat url.tsv |
         # Execute the result string as a Bash command
         eval "$result"
     else
-        tsv-uniq
+        rgr dedup stdin
     fi |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
         echo >&2

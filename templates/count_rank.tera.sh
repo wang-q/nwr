@@ -11,7 +11,7 @@ log_info "Count {{ rank }}"
 log_debug "{{ rank }}.lst"
 cat strains.taxon.tsv |
     tsv-select -f {{ rank_col_of[rank] }} |
-    tsv-uniq |
+    rgr dedup stdin |
     grep -v "NA" |
     sort \
     > {{ rank }}.lst
@@ -23,7 +23,7 @@ cat {{ rank }}.lst |
             cat strains.taxon.tsv |
                 tsv-filter --str-eq "{{ rank_col_of[rank] }}:{}" |
                 tsv-select -f {{ rank_col_of[rank] }},2 |
-                tsv-uniq |
+                rgr dedup stdin |
                 wc -l
         )
 
@@ -31,7 +31,7 @@ cat {{ rank }}.lst |
             cat strains.taxon.tsv |
                 tsv-filter --str-eq "{{ rank_col_of[rank] }}:{}" |
                 tsv-select -f {{ rank_col_of[rank] }},1 |
-                tsv-uniq |
+                rgr dedup stdin |
                 wc -l
         )
 

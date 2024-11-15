@@ -48,7 +48,7 @@ cat species.tsv |
         # Execute the result string as a Bash command
         eval "$result"
     else
-        tsv-uniq
+        rgr dedup stdin
     fi |
 {% for i in ins -%}
     tsv-join -f ../{{ i }} -k 1 |
@@ -67,7 +67,7 @@ cat species.tsv |
 log_info "Clustering .95 .95"
 cat species-f.tsv |
     tsv-select -f 2 |
-    tsv-uniq |
+    rgr dedup stdin |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j {{ parallel2 }} '
         if [[ ! -s {}/pro.fa.gz ]]; then
             exit
@@ -94,7 +94,7 @@ cat species-f.tsv |
 log_info "Family .8 .8"
 cat species-f.tsv |
     tsv-select -f 2 |
-    tsv-uniq |
+    rgr dedup stdin |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j {{ parallel2 }} '
         if [[ ! -s {}/pro.fa.gz ]]; then
             exit
@@ -123,7 +123,7 @@ cat species-f.tsv |
 log_info "Family .3 .8"
 cat species-f.tsv |
     tsv-select -f 2 |
-    tsv-uniq |
+    rgr dedup stdin |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j {{ parallel2 }} '
         if [[ ! -s {}/pro.fa.gz ]]; then
             exit
