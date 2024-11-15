@@ -65,7 +65,7 @@ for FILE in \
     ; do
     cat ${FILE} |
         datamash check |
-        FILE=${FILE} perl -nl -MNumber::Format -e '
+        FILE=${FILE} perl -nl -e '
             m/(\d+)\s*lines?.+?(\d+)\s*fields?/ or next;
             printf qq($ENV{FILE}\t%s\t%s\n), $2, $1;
             ' \
