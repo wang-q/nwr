@@ -41,7 +41,7 @@ cat url.tsv |
                     print join(qq(\t), q({1}), @c);
                 }
             '\''
-    '
+    ' \
     >> collect.tsv
 
 log_info Done.
