@@ -67,9 +67,7 @@ for FILE in \
         datamash check |
         FILE=${FILE} perl -nl -MNumber::Format -e '
             m/(\d+)\s*lines?.+?(\d+)\s*fields?/ or next;
-            printf qq($ENV{FILE}\t%s\t%s\n),
-                Number::Format::format_number($2, 0,),
-                Number::Format::format_number($1, 0,);
+            printf qq($ENV{FILE}\t%s\t%s\n), $2, $1;
             ' \
         >> counts.tsv
 done
