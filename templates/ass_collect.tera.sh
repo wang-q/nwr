@@ -12,7 +12,7 @@ echo -e "#name\t{{ ass_columns | join(sep="\t") }}" \
 
 cat url.tsv |
     tsv-join -f check.lst -k 1 |
-    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
+    parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
         log_debug "{3}\t{1}"
         find "{3}/{1}" -type f -name "*_assembly_report.txt" |
             xargs cat |
@@ -40,9 +40,9 @@ cat url.tsv |
                     }
                     print join(qq(\t), q({1}), @c);
                 }
-            '\'' \
-            >> collect.tsv
+            '\''
     '
+    >> collect.tsv
 
 log_info Done.
 
