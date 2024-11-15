@@ -201,7 +201,7 @@ fn format_node(tree: &Tree, id: &NodeId, height: Edge) -> String {
         label = Some(name.clone().unwrap());
         name = None;
         // dot with default color
-        repr += " dot,";
+        repr += ", dot";
     }
 
     if let Some(cmt) = node.comment.clone() {
@@ -215,11 +215,11 @@ fn format_node(tree: &Tree, id: &NodeId, height: Edge) -> String {
             } else if pt.starts_with("label=") {
                 label = Some(pt.replace("label=", ""));
             } else if pt.starts_with("dot=") {
-                repr += &format!(" dot={{{}}},", pt.replace("dot=", ""));
+                repr += &format!(", dot={{{}}}", pt.replace("dot=", ""));
             } else if pt.starts_with("bar=") {
-                repr += &format!(" bar={{{}}},", pt.replace("bar=", ""));
+                repr += &format!(", bar={{{}}}", pt.replace("bar=", ""));
             } else if pt.starts_with("rec=") {
-                repr += &format!(" rec={{{}}},", pt.replace("rec=", ""));
+                repr += &format!(", rec={{{}}}", pt.replace("rec=", ""));
             } else if pt.starts_with("comment=") {
                 if !comment.is_empty() {
                     comment += " ";
@@ -254,21 +254,21 @@ fn format_node(tree: &Tree, id: &NodeId, height: Edge) -> String {
         }
 
         if !comment.is_empty() && node.is_tip() {
-            repr += &format!(" comment={{{}}},", &comment);
+            repr += &format!(", comment={{{}}}", &comment);
         }
     }
 
     if color.is_some() {
         if name.is_some() {
             repr = format!(
-                "\\color{{{}}}{{{}}},",
+                ", \\color{{{}}}{{{}}}",
                 color.clone().unwrap(),
                 name.clone().unwrap()
             ) + &repr;
         }
         if label.is_some() && !label.clone().unwrap().is_empty() {
             repr += &format!(
-                " label=\\color{{{}}}{{{}}},",
+                ", label=\\color{{{}}}{{{}}}",
                 color.clone().unwrap(),
                 label.clone().unwrap()
             );
@@ -278,7 +278,7 @@ fn format_node(tree: &Tree, id: &NodeId, height: Edge) -> String {
             repr = format!("{{{}}},", name.clone().unwrap()) + &repr;
         }
         if label.is_some() && !label.clone().unwrap().is_empty() {
-            repr += &format!(" label={{{}}},", label.clone().unwrap());
+            repr += &format!(", label={{{}}}", label.clone().unwrap());
         }
     }
 
@@ -296,15 +296,15 @@ fn format_node(tree: &Tree, id: &NodeId, height: Edge) -> String {
         } else {
             branch_depth(tree, id) - depth
         };
-        repr += &format!(" tier={},", tier);
+        repr += &format!(", tier={}", tier);
     } else {
         let edge = node.parent_edge.unwrap_or(0.0);
         let bl = calc_length(edge, height);
-        repr += &format!(" l={}mm, l sep=0,", bl);
+        repr += &format!(", l={}mm, l sep=0", bl);
 
         if node.is_tip() {
             // Add an invisible node to the rightmost to occupy spaces
-            repr += " [{~},tier=0,edge={draw=none}],";
+            repr += ", [{~},tier=0,edge={draw=none}]";
         }
     }
 
