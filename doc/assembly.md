@@ -5,21 +5,8 @@
 ```shell
 cat ~/.nwr/assembly_summary_refseq.txt |
     sed '1d' |
-    tsv-summarize -H --missing-count infraspecific_name --not-missing-count infraspecific_name |
-    mlr --itsv --omd cat |
-    sed 's/-\s*|/-:|/g'
-
-cat ~/.nwr/assembly_summary_refseq.txt |
-    sed '1d' |
-    tsv-summarize -H --missing-count isolate --not-missing-count isolate |
-    mlr --itsv --omd cat |
-    sed 's/-\s*|/-:|/g'
-
-cat ~/.nwr/assembly_summary_refseq.txt |
-    sed '1d' |
-    tsv-summarize -H --missing-count biosample --not-missing-count biosample |
-    mlr --itsv --omd cat |
-    sed 's/-\s*|/-:|/g'
+    tsv-summarize -H --missing-count infraspecific_name,isolate,biosample |
+    rgr md stdin --fmt
 
 # infraspecific_name
 cat ~/.nwr/assembly_summary_refseq.txt |
@@ -29,11 +16,11 @@ cat ~/.nwr/assembly_summary_refseq.txt |
     keep-header -- sort |
     uniq -c
 #      1 infraspecific_name
-#  25671
-#     42 breed
-#     87 cultivar
-#     58 ecotype
-# 279694 strain
+#     40 breed
+#     92 cultivar
+#     77 ecotype
+#  53829 na
+# 356287 strain
 
 cat ~/.nwr/assembly_summary_genbank.txt |
     sed '1d' |
@@ -42,11 +29,11 @@ cat ~/.nwr/assembly_summary_genbank.txt |
     keep-header -- sort |
     uniq -c
 #      1 infraspecific_name
-# 466618
-#    305 breed
-#   1024 cultivar
-#    469 ecotype
-#1209065 strain
+#    453 breed
+#   1886 cultivar
+#    802 ecotype
+# 876578 na
+#1759454 strain
 
 cat ~/.nwr/assembly_summary_refseq.txt ~/.nwr/assembly_summary_genbank.txt |
     grep -v "^#" |
@@ -56,16 +43,16 @@ cat ~/.nwr/assembly_summary_refseq.txt ~/.nwr/assembly_summary_genbank.txt |
     uniq -c |
     sort -nr |
     head
-# 492321
-#   1278 clinical isolate of L. monocytogenes
-#   1168 n/a
-#   1064 Neisseria meningitidis
-#    918 MSSA
-#    870 microbial
+# 930439
+#   2482 Human
+#   2451 clinical isolate of L. monocytogenes
+#   2362 MSSA
+#   1363 MRSA
+#    927 microbial
 #    814 Escherichia coli
 #    788 CT18
-#    587 Extraintestinal pathogenic Escherichia coli
-#    576 MRSA
+#    781 n/a
+#    710 ExPEC
 
 # String length
 cat ~/.nwr/assembly_summary_refseq.txt |
@@ -78,17 +65,9 @@ cat ~/.nwr/assembly_summary_refseq.txt |
 
 ```
 
-| infraspecific_name_missing_count | infraspecific_name_not_missing_count |
-|---------------------------------:|-------------------------------------:|
-|                            20303 |                               269834 |
-
-| isolate_missing_count | isolate_not_missing_count |
-|----------------------:|--------------------------:|
-|                270978 |                     19159 |
-
-| biosample_missing_count | biosample_not_missing_count |
-|------------------------:|----------------------------:|
-|                   11905 |                      278232 |
+| infraspecific_name_missing_count | isolate_missing_count | biosample_missing_count |
+|---------------------------------:|----------------------:|------------------------:|
+|                                0 |                     0 |                       0 |
 
 ## Reference genomes
 
@@ -116,7 +95,6 @@ FAMILY=$(
 
 echo "
 .headers ON
-
     SELECT
         *
     FROM ar
@@ -133,7 +111,7 @@ cat reference.tsv |
 
 cat raw.tsv |
     grep -v '^#' |
-    tsv-uniq |
+    rgr dedup stdin |
     perl ~/Scripts/withncbi/taxon/abbr_name.pl -c "1,2,3" -s '\t' -m 3 --shortsub |
     (echo -e '#name\tftp_path\torganism\tassembly_level' && cat ) |
     perl -nl -a -F"," -e '
