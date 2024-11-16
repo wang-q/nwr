@@ -1,15 +1,13 @@
 # NCBI Assembly Reports
 
 <!-- TOC -->
-
 * [NCBI Assembly Reports](#ncbi-assembly-reports)
-    * [Preparations](#preparations)
-    * [NCBI ASSEMBLY](#ncbi-assembly)
-    * [Example 1: count qualified assemblies of Eukaryote groups](#example-1-count-qualified-assemblies-of-eukaryote-groups)
-    * [Example 2: count qualified assemblies of Prokaryote groups](#example-2-count-qualified-assemblies-of-prokaryote-groups)
-    * [Example 3: find accessions of a species](#example-3-find-accessions-of-a-species)
-    * [Example 4: find model organisms in a family](#example-4-find-model-organisms-in-a-family)
-
+  * [Preparations](#preparations)
+  * [NCBI ASSEMBLY](#ncbi-assembly)
+  * [Example 1: count qualified assemblies of Eukaryote groups](#example-1-count-qualified-assemblies-of-eukaryote-groups)
+  * [Example 2: count qualified assemblies of Prokaryote groups](#example-2-count-qualified-assemblies-of-prokaryote-groups)
+  * [Example 3: find accessions of a species](#example-3-find-accessions-of-a-species)
+  * [Example 4: find model organisms in a family](#example-4-find-model-organisms-in-a-family)
 <!-- TOC -->
 
 Download date: Fri Nov 15 15:51:01 CST 2024
