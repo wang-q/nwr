@@ -1,17 +1,18 @@
 # NCBI Assembly Reports
 
-<!-- toc -->
+<!-- TOC -->
 
-- [Preparations](#preparations)
-- [NCBI ASSEMBLY](#ncbi-assembly)
-- [Example 1: count qualified assemblies of Eukaryote groups](#example-1-count-qualified-assemblies-of-eukaryote-groups)
-- [Example 2: count qualified assemblies of Prokaryote groups](#example-2-count-qualified-assemblies-of-prokaryote-groups)
-- [Example 3: find accessions of a species](#example-3-find-accessions-of-a-species)
-- [Example 4: find model organisms in a family](#example-4-find-model-organisms-in-a-family)
+* [NCBI Assembly Reports](#ncbi-assembly-reports)
+    * [Preparations](#preparations)
+    * [NCBI ASSEMBLY](#ncbi-assembly)
+    * [Example 1: count qualified assemblies of Eukaryote groups](#example-1-count-qualified-assemblies-of-eukaryote-groups)
+    * [Example 2: count qualified assemblies of Prokaryote groups](#example-2-count-qualified-assemblies-of-prokaryote-groups)
+    * [Example 3: find accessions of a species](#example-3-find-accessions-of-a-species)
+    * [Example 4: find model organisms in a family](#example-4-find-model-organisms-in-a-family)
 
-<!-- tocstop -->
+<!-- TOC -->
 
-Download date: Wed May 31 20:14:22 CST 2023
+Download date: Fri Nov 15 15:51:01 CST 2024
 
 ## Preparations
 
@@ -19,7 +20,6 @@ Download date: Wed May 31 20:14:22 CST 2023
 brew install wang-q/tap/nwr
 brew install wang-q/tap/tsv-utils
 brew install sqlite
-brew install miller
 
 # Download `taxdump.tar.gz` and assembly reports
 nwr download
@@ -45,8 +45,7 @@ for C in refseq genbank; do
         sed '1d' |
         tsv-summarize -H -g assembly_level,genome_rep --count |
         keep-header -- sort |
-        mlr --itsv --omd cat |
-        sed 's/-\s*|$/-:|/'
+        rgr md stdin --fmt
 
     echo -e "\nTable: ${C}\n\n"
 done
@@ -59,28 +58,28 @@ done
 
 ```
 
-| assembly_level  | genome_rep |  count |
-|-----------------|------------|-------:|
-| Chromosome      | Full       |   5636 |
-| Chromosome      | Partial    |    915 |
-| Complete Genome | Full       |  47949 |
-| Complete Genome | Partial    |     25 |
-| Contig          | Full       | 157438 |
-| Contig          | Partial    |      1 |
-| Scaffold        | Full       |  93588 |
+| assembly_level  | genome_rep |   count |
+|-----------------|------------|--------:|
+| Chromosome      | Full       |   6,754 |
+| Chromosome      | Partial    |     384 |
+| Complete Genome | Full       |  59,630 |
+| Complete Genome | Partial    |       7 |
+| Contig          | Full       | 214,418 |
+| Contig          | Partial    |       1 |
+| Scaffold        | Full       | 129,131 |
 
 Table: refseq
 
-| assembly_level  | genome_rep |   count |
-|-----------------|------------|--------:|
-| Chromosome      | Full       |   14687 |
-| Chromosome      | Partial    |    2139 |
-| Complete Genome | Full       |   95773 |
-| Complete Genome | Partial    |     911 |
-| Contig          | Full       | 1344663 |
-| Contig          | Partial    |     858 |
-| Scaffold        | Full       |  218122 |
-| Scaffold        | Partial    |     328 |
+| assembly_level  | genome_rep |     count |
+|-----------------|------------|----------:|
+| Chromosome      | Full       |    24,389 |
+| Chromosome      | Partial    |     1,150 |
+| Complete Genome | Full       |   232,696 |
+| Complete Genome | Partial    |       130 |
+| Contig          | Full       | 1,999,863 |
+| Contig          | Partial    |       880 |
+| Scaffold        | Full       |   379,706 |
+| Scaffold        | Partial    |       359 |
 
 Table: genbank
 
@@ -154,59 +153,59 @@ done \
     >> groups.tsv
 
 cat groups.tsv |
-    mlr --itsv --omd cat
+    rgr md stdin --num
 
 ```
 
 | GROUP_NAME     | SCI_NAME          | Complete Genome | Chromosome | Scaffold | Contig |
-|----------------|-------------------|-----------------|------------|----------|--------|
-| Flatworms      | Platyhelminthes   | 0               | 2          | 2        | 0      |
-| Roundworms     | Nematoda          | 1               | 3          | 4        | 0      |
-| Insects        | Hexapoda          | 0               | 128        | 97       | 23     |
-| Reptiles       | Testudines        | 0               | 10         | 3        | 0      |
-| Reptiles       | Lepidosauria      | 0               | 10         | 9        | 1      |
-| Reptiles       | Crocodylia        | 0               | 0          | 4        | 0      |
-| Fishes         | Chondrichthyes    | 0               | 8          | 1        | 0      |
-| Fishes         | Dipnoi            | 0               | 1          | 0        | 0      |
-| Fishes         | Actinopterygii    | 0               | 125        | 34       | 2      |
-| Fishes         | Hyperotreti       | 0               | 0          | 0        | 0      |
-| Fishes         | Hyperoartia       | 0               | 1          | 0        | 0      |
-| Fishes         | Coelacanthimorpha | 0               | 0          | 1        | 0      |
-| Mammals        | Mammalia          | 1               | 100        | 101      | 7      |
-| Birds          | Aves              | 0               | 47         | 60       | 3      |
-| Amphibians     | Amphibia          | 0               | 10         | 1        | 0      |
-| Ascomycetes    | Ascomycota        | 30              | 47         | 225      | 82     |
-| Basidiomycetes | Basidiomycota     | 4               | 9          | 48       | 25     |
-| Green Plants   | Viridiplantae     | 2               | 108        | 44       | 5      |
-| Land Plants    | Embryophyta       | 0               | 105        | 39       | 4      |
-| Apicomplexans  | Apicomplexa       | 4               | 21         | 14       | 2      |
-| Kinetoplasts   | Kinetoplastida    | 1               | 7          | 6        | 0      |
+|----------------|-------------------|----------------:|-----------:|---------:|-------:|
+| Flatworms      | Platyhelminthes   |               0 |          2 |        2 |      0 |
+| Roundworms     | Nematoda          |               1 |          4 |        3 |      0 |
+| Insects        | Hexapoda          |               1 |        164 |       96 |     32 |
+| Reptiles       | Testudines        |               0 |         11 |        3 |      1 |
+| Reptiles       | Lepidosauria      |               0 |         18 |        9 |      1 |
+| Reptiles       | Crocodylia        |               0 |          1 |        3 |      0 |
+| Fishes         | Chondrichthyes    |               0 |         13 |        1 |      0 |
+| Fishes         | Dipnoi            |               0 |          1 |        0 |      0 |
+| Fishes         | Actinopterygii    |               0 |        172 |       34 |      2 |
+| Fishes         | Hyperotreti       |               0 |          1 |        0 |      0 |
+| Fishes         | Hyperoartia       |               0 |          2 |        0 |      0 |
+| Fishes         | Coelacanthimorpha |               0 |          1 |        0 |      0 |
+| Mammals        | Mammalia          |               2 |        135 |       94 |      8 |
+| Birds          | Aves              |               0 |         78 |       58 |      5 |
+| Amphibians     | Amphibia          |               0 |         16 |        1 |      0 |
+| Ascomycetes    | Ascomycota        |              45 |         49 |      248 |    157 |
+| Basidiomycetes | Basidiomycota     |              17 |         13 |       45 |     28 |
+| Green Plants   | Viridiplantae     |               6 |        128 |       43 |      6 |
+| Land Plants    | Embryophyta       |               4 |        125 |       38 |      5 |
+| Apicomplexans  | Apicomplexa       |               4 |         23 |       21 |      3 |
+| Kinetoplasts   | Kinetoplastida    |               1 |         13 |        7 |      1 |
 
 Table: refseq - Eukaryotes
 
 | GROUP_NAME     | SCI_NAME          | Complete Genome | Chromosome | Scaffold | Contig |
-|----------------|-------------------|-----------------|------------|----------|--------|
-| Flatworms      | Platyhelminthes   | 0               | 29         | 60       | 11     |
-| Roundworms     | Nematoda          | 2               | 42         | 213      | 83     |
-| Insects        | Hexapoda          | 0               | 1078       | 1368     | 1602   |
-| Reptiles       | Testudines        | 0               | 15         | 28       | 3      |
-| Reptiles       | Lepidosauria      | 0               | 25         | 91       | 10     |
-| Reptiles       | Crocodylia        | 0               | 1          | 10       | 0      |
-| Fishes         | Chondrichthyes    | 0               | 11         | 17       | 2      |
-| Fishes         | Dipnoi            | 0               | 2          | 0        | 0      |
-| Fishes         | Actinopterygii    | 0               | 388        | 1439     | 113    |
-| Fishes         | Hyperotreti       | 0               | 0          | 2        | 0      |
-| Fishes         | Hyperoartia       | 0               | 3          | 8        | 0      |
-| Fishes         | Coelacanthimorpha | 0               | 0          | 2        | 0      |
-| Mammals        | Mammalia          | 1               | 438        | 1694     | 584    |
-| Birds          | Aves              | 0               | 147        | 953      | 59     |
-| Amphibians     | Amphibia          | 0               | 30         | 29       | 6      |
-| Ascomycetes    | Ascomycota        | 245             | 943        | 6940     | 3552   |
-| Basidiomycetes | Basidiomycota     | 49              | 83         | 1104     | 701    |
-| Green Plants   | Viridiplantae     | 11              | 1216       | 1250     | 674    |
-| Land Plants    | Embryophyta       | 5               | 1202       | 1131     | 599    |
-| Apicomplexans  | Apicomplexa       | 13              | 97         | 174      | 75     |
-| Kinetoplasts   | Kinetoplastida    | 12              | 43         | 66       | 51     |
+|----------------|-------------------|----------------:|-----------:|---------:|-------:|
+| Flatworms      | Platyhelminthes   |               0 |         34 |       77 |     21 |
+| Roundworms     | Nematoda          |               3 |        110 |      299 |    183 |
+| Insects        | Hexapoda          |               7 |       1971 |     2073 |   2280 |
+| Reptiles       | Testudines        |               0 |         25 |       41 |     13 |
+| Reptiles       | Lepidosauria      |               0 |         67 |      189 |     27 |
+| Reptiles       | Crocodylia        |               0 |          2 |       12 |      0 |
+| Fishes         | Chondrichthyes    |               0 |         33 |       34 |      5 |
+| Fishes         | Dipnoi            |               0 |          4 |        0 |      2 |
+| Fishes         | Actinopterygii    |               4 |        663 |     1703 |    240 |
+| Fishes         | Hyperotreti       |               0 |          4 |        3 |      0 |
+| Fishes         | Hyperoartia       |               0 |          4 |       12 |      2 |
+| Fishes         | Coelacanthimorpha |               0 |          1 |        3 |      0 |
+| Mammals        | Mammalia          |              63 |       1179 |     1923 |    755 |
+| Birds          | Aves              |               0 |        274 |     1409 |     99 |
+| Amphibians     | Amphibia          |               0 |         65 |      122 |     17 |
+| Ascomycetes    | Ascomycota        |             353 |       1119 |     9096 |   5059 |
+| Basidiomycetes | Basidiomycota     |              86 |        127 |     1588 |   1052 |
+| Green Plants   | Viridiplantae     |             104 |       2335 |     1998 |    997 |
+| Land Plants    | Embryophyta       |              90 |       2310 |     1805 |    836 |
+| Apicomplexans  | Apicomplexa       |              20 |        110 |      184 |     83 |
+| Kinetoplasts   | Kinetoplastida    |              14 |         65 |       97 |     97 |
 
 Table: genbank - Eukaryotes
 
@@ -267,60 +266,66 @@ done  \
     >> groups.tsv
 
 cat groups.tsv |
-    mlr --itsv --omd cat
+    rgr md stdin --right 2-5
 
 ```
 
 | GROUP_NAME              | Complete Genome | Chromosome | Scaffold | Contig |
-|-------------------------|-----------------|------------|----------|--------|
+|-------------------------|----------------:|-----------:|---------:|-------:|
 | Bacteria                |                 |            |          |        |
-| Abditibacteriota        | 0               | 0          | 0        | 1      |
-| Acidobacteriota         | 30              | 1          | 30       | 37     |
-| Actinomycetota          | 3116            | 592        | 10338    | 12291  |
-| Aquificota              | 15              | 2          | 9        | 11     |
-| Armatimonadota          | 1               | 1          | 4        | 0      |
-| Atribacterota           | 1               | 0          | 0        | 0      |
-| Bacillota               | 7518            | 1027       | 31252    | 41276  |
-| Bacteroidota            | 1192            | 197        | 3530     | 4749   |
-| Balneolota              | 1               | 0          | 6        | 17     |
-| Bdellovibrionota        | 19              | 2          | 9        | 11     |
-| Caldisericota           | 1               | 0          | 0        | 0      |
-| Calditrichota           | 1               | 1          | 0        | 0      |
-| Campylobacterota        | 969             | 100        | 1701     | 5275   |
-| Chlamydiota             | 192             | 82         | 31       | 121    |
-| Chlorobiota             | 16              | 1          | 7        | 11     |
-| Chloroflexota           | 40              | 0          | 22       | 39     |
-| Chrysiogenota           | 2               | 0          | 2        | 0      |
-| Coprothermobacterota    | 1               | 0          | 1        | 2      |
-| Cyanobacteriota         | 225             | 50         | 268      | 608    |
-| Deferribacterota        | 6               | 0          | 2        | 10     |
-| Deinococcota            | 79              | 3          | 61       | 142    |
-| Dictyoglomota           | 2               | 0          | 1        | 2      |
-| Elusimicrobiota         | 2               | 0          | 0        | 1      |
-| Fibrobacterota          | 2               | 0          | 11       | 31     |
-| Fusobacteriota          | 87              | 5          | 112      | 157    |
-| Gemmatimonadota         | 4               | 0          | 3        | 1      |
-| Ignavibacteriota        | 2               | 0          | 0        | 0      |
-| Kiritimatiellota        | 2               | 0          | 0        | 2      |
-| Lentisphaerota          | 1               | 0          | 2        | 8      |
-| Mycoplasmatota          | 522             | 33         | 175      | 540    |
-| Myxococcota             | 47              | 5          | 29       | 117    |
-| Nitrospinota            | 1               | 0          | 1        | 2      |
-| Nitrospirota            | 9               | 0          | 4        | 13     |
-| Planctomycetota         | 56              | 27         | 42       | 64     |
-| Pseudomonadota          | 18234           | 2422       | 44022    | 89395  |
-| Rhodothermota           | 12              | 2          | 37       | 88     |
-| Spirochaetota           | 364             | 184        | 271      | 968    |
-| Synergistota            | 7               | 4          | 14       | 32     |
-| Thermodesulfobacteriota | 116             | 9          | 129      | 145    |
-| Thermomicrobiota        | 2               | 0          | 1        | 4      |
-| Thermotogota            | 43              | 1          | 33       | 41     |
-| Verrucomicrobiota       | 117             | 9          | 166      | 108    |
+| Abditibacteriota        |               0 |          0 |        0 |      1 |
+| Acidobacteriota         |              40 |          4 |       34 |     51 |
+| Actinomycetota          |            4268 |        694 |    20248 |  16088 |
+| Aquificota              |              17 |          2 |       16 |     20 |
+| Armatimonadota          |               2 |          1 |        4 |      8 |
+| Atribacterota           |               2 |          0 |        1 |      1 |
+| Bacillota               |           10199 |       1259 |    37229 |  53350 |
+| Bacteroidota            |            1443 |        239 |     6589 |   7576 |
+| Balneolota              |               1 |          0 |       13 |     33 |
+| Bdellovibrionota        |              32 |         10 |       25 |     23 |
+| Caldisericota           |               1 |          0 |        0 |      0 |
+| Calditrichota           |               1 |          1 |        0 |      0 |
+| Campylobacterota        |            1232 |        100 |     2249 |   6825 |
+| Chlamydiota             |             219 |         78 |       50 |    182 |
+| Chlorobiota             |              16 |          1 |        9 |     22 |
+| Chloroflexota           |              46 |          1 |       44 |     86 |
+| Chrysiogenota           |               2 |          0 |        2 |      0 |
+| Coprothermobacterota    |               1 |          0 |        1 |      2 |
+| Cyanobacteriota         |             291 |         39 |      509 |   1056 |
+| Deferribacterota        |               6 |          0 |        2 |     14 |
+| Deinococcota            |              90 |          3 |       86 |    199 |
+| Dictyoglomota           |               2 |          0 |        2 |      2 |
+| Elusimicrobiota         |               2 |          0 |        0 |      1 |
+| Fibrobacterota          |               2 |          0 |       22 |     47 |
+| Fusobacteriota          |             212 |          8 |      146 |    343 |
+| Gemmatimonadota         |               6 |          0 |        5 |     30 |
+| Ignavibacteriota        |               3 |          0 |        2 |      8 |
+| Kiritimatiellota        |               2 |          0 |        0 |      6 |
+| Lentisphaerota          |               1 |          0 |        2 |     13 |
+| Mycoplasmatota          |             700 |         66 |      194 |    841 |
+| Myxococcota             |              63 |          5 |       31 |    133 |
+| Nitrospinota            |               1 |          0 |        1 |      2 |
+| Nitrospirota            |              15 |          0 |        6 |     16 |
+| Planctomycetota         |              59 |         28 |       48 |     94 |
+| Pseudomonadota          |           24186 |       2819 |    56463 | 118746 |
+| Rhodothermota           |              13 |          3 |       38 |     94 |
+| Spirochaetota           |             456 |        227 |      318 |   1103 |
+| Synergistota            |               9 |          4 |       34 |     71 |
+| Thermodesulfobacteriota |             133 |          9 |      162 |    300 |
+| Thermodesulfobiota      |               2 |          0 |        0 |      1 |
+| Thermomicrobiota        |               2 |          0 |        2 |      7 |
+| Thermosulfidibacterota  |               1 |          0 |        0 |      0 |
+| Thermotogota            |              43 |          1 |       65 |     60 |
+| Verrucomicrobiota       |             136 |          8 |      205 |    144 |
+| Vulcanimicrobiota       |               1 |          0 |        0 |      0 |
 | Archaea                 |                 |            |          |        |
-| Euryarchaeota           | 376             | 13         | 307      | 501    |
-| Nanoarchaeota           | 1               | 0          | 0        | 0      |
-| Nitrososphaerota        | 13              | 0          | 4        | 10     |
-| Thermoproteota          | 96              | 9          | 15       | 80     |
+| Methanobacteriota       |             421 |         15 |      468 |    843 |
+| Microcaldota            |               0 |          0 |        0 |      0 |
+| Nanobdellota            |               1 |          0 |        0 |      0 |
+| Nitrososphaerota        |              19 |          2 |       11 |     18 |
+| Promethearchaeota       |               1 |          0 |        0 |      0 |
+| Thermoplasmatota        |              16 |          0 |        6 |     73 |
+| Thermoproteota          |             110 |          5 |       98 |    113 |
 
 Table: refseq - Prokaryotes
 
@@ -338,34 +343,33 @@ nwr member 29388
 ```shell
 echo '
 .headers ON
-
-SELECT
-    organism_name,
-    species,
-    genus,
-    ftp_path,
-    assembly_level
-FROM ar
-WHERE 1=1
-    AND tax_id != species_id    -- with strain ID
-    AND species_id IN (29388)
-' |
+    SELECT
+        organism_name,
+        species,
+        genus,
+        ftp_path,
+        assembly_level
+    FROM ar
+    WHERE 1=1
+        AND tax_id != species_id    -- with strain ID
+        AND species_id IN (29388)
+    ' |
     sqlite3 -tabs ~/.nwr/ar_refseq.sqlite \
     > Scap.assembly.tsv
 
 echo '
-SELECT
-    species || " " || REPLACE(assembly_accession, ".", "_") AS organism_name,
-    species,
-    genus,
-    ftp_path,
-    assembly_level
-FROM ar
-WHERE 1=1
-    AND tax_id = species_id     -- no strain ID
-    AND assembly_level IN ("Chromosome", "Complete Genome")
-    AND species_id IN (29388)
-' |
+    SELECT
+        species || " " || REPLACE(assembly_accession, ".", "_") AS organism_name,
+        species,
+        genus,
+        ftp_path,
+        assembly_level
+    FROM ar
+    WHERE 1=1
+        AND tax_id = species_id     -- no strain ID
+        AND assembly_level IN ("Chromosome", "Complete Genome")
+        AND species_id IN (29388)
+    ' |
     sqlite3 -tabs ~/.nwr/ar_refseq.sqlite \
     >> Scap.assembly.tsv
 
@@ -376,7 +380,6 @@ WHERE 1=1
 ```shell
 echo "
 .headers ON
-
     SELECT
         tax_id,
         organism_name
@@ -387,7 +390,7 @@ echo "
     " |
     sqlite3 -tabs ~/.nwr/ar_refseq.sqlite |
     sed '1s/^/#/' |
-    mlr --itsv --omd cat
+    rgr md stdin
 
 ```
 
