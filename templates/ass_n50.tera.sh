@@ -37,6 +37,7 @@ log_info Keep only the results in the list
 cat n50.tsv |
     (echo -e "name\tN50\tS\tC" && cat) | # Headers
     rgr dedup stdin | # keep the first header line
+    tsv-filter -H --not-blank "N50" |
     tsv-filter -H --gt "N50:0" | # unfinished downloads
     keep-header -- tsv-join -f url.tsv -k 1 \
     > tmp.tsv
