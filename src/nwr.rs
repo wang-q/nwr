@@ -66,18 +66,22 @@ Subcommand groups:
 
     // Check which subcomamnd the user ran...
     match app.get_matches().subcommand() {
+        // Database
         Some(("download", sub_matches)) => cmd_nwr::download::execute(sub_matches),
         Some(("txdb", sub_matches)) => cmd_nwr::txdb::execute(sub_matches),
         Some(("ardb", sub_matches)) => cmd_nwr::ardb::execute(sub_matches),
+        // Taxonomy
         Some(("info", sub_matches)) => cmd_nwr::info::execute(sub_matches),
         Some(("lineage", sub_matches)) => cmd_nwr::lineage::execute(sub_matches),
         Some(("member", sub_matches)) => cmd_nwr::member::execute(sub_matches),
         Some(("append", sub_matches)) => cmd_nwr::append::execute(sub_matches),
         Some(("restrict", sub_matches)) => cmd_nwr::restrict::execute(sub_matches),
         Some(("common", sub_matches)) => cmd_nwr::common::execute(sub_matches),
+        // Newick Information
         Some(("label", sub_matches)) => cmd_nwr::label::execute(sub_matches),
         Some(("stat", sub_matches)) => cmd_nwr::stat::execute(sub_matches),
         Some(("distance", sub_matches)) => cmd_nwr::distance::execute(sub_matches),
+        // Newick Manipulation
         Some(("order", sub_matches)) => cmd_nwr::order::execute(sub_matches),
         Some(("rename", sub_matches)) => cmd_nwr::rename::execute(sub_matches),
         Some(("replace", sub_matches)) => cmd_nwr::replace::execute(sub_matches),
@@ -86,9 +90,11 @@ Subcommand groups:
         Some(("prune", sub_matches)) => cmd_nwr::prune::execute(sub_matches),
         Some(("reroot", sub_matches)) => cmd_nwr::reroot::execute(sub_matches),
         Some(("pl-condense", sub_matches)) => cmd_nwr::pl_condense::execute(sub_matches),
+        // Newick Visualization
         Some(("indent", sub_matches)) => cmd_nwr::indent::execute(sub_matches),
         Some(("comment", sub_matches)) => cmd_nwr::comment::execute(sub_matches),
         Some(("tex", sub_matches)) => cmd_nwr::tex::execute(sub_matches),
+        // Assembly
         Some(("template", sub_matches)) => cmd_nwr::template::execute(sub_matches),
         Some(("kb", sub_matches)) => cmd_nwr::kb::execute(sub_matches),
         Some(("seqdb", sub_matches)) => cmd_nwr::seqdb::execute(sub_matches),
