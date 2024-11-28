@@ -135,6 +135,10 @@ CREATE INDEX rep_idx_f1 ON rep(f1);
 CREATE INDEX rep_idx_f2 ON rep(f2);
 CREATE INDEX rep_idx_f3 ON rep(f3);
 CREATE INDEX rep_idx_f4 ON rep(f4);
+CREATE INDEX rep_idx_f5 ON rep(f5);
+CREATE INDEX rep_idx_f6 ON rep(f6);
+CREATE INDEX rep_idx_f7 ON rep(f7);
+CREATE INDEX rep_idx_f8 ON rep(f8);
 -- Case-insensitive indecies for `like`
 CREATE INDEX seq_idx_anno ON seq(anno COLLATE NOCASE);
 
