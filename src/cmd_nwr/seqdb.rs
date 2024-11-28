@@ -108,7 +108,11 @@ CREATE TABLE rep (
     f1 TEXT,
     f2 TEXT,
     f3 TEXT,
-    f4 TEXT
+    f4 TEXT,
+    f5 TEXT,
+    f6 TEXT,
+    f7 TEXT,
+    f8 TEXT
 );
 -- Junction table to associate rep with seq
 CREATE TABLE rep_seq (
