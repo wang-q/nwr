@@ -239,6 +239,15 @@ tectonic tex/chordates.trans.tex --outdir pdf
 
 ```
 
+### Vertebrate
+
+```shell
+nwr tex forest/Vertebrate.forest --forest -s -o tex/Vertebrate.tex
+
+tectonic tex/Vertebrate.tex --outdir pdf
+
+```
+
 ## Taxonomy
 
 ## Translation

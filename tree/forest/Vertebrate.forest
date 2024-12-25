@@ -1,0 +1,19 @@
+[
+    [{八目鳗}]
+    [, label={颚}, bar=purple
+        [{鳟鱼}]
+        [, label={肺}, bar=purple
+            [{肺鱼}]
+            [, label={四肢}, bar=purple
+                [{龟}]
+                [, label={毛发}, bar=purple
+                    [{猫}]
+                    [, label={无尾}, bar=purple
+                        [{大猩猩}]
+                        [{人}]
+                    ]
+                ]
+            ]
+        ]
+    ]
+]
