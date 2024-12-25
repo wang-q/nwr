@@ -248,6 +248,20 @@ tectonic tex/Vertebrate.tex --outdir pdf
 
 ```
 
+## From seqs
+
+```shell
+iqtree2 -s seqs/vet.fa -st MORPH -m TEST -bb 1000 -alrt 1000
+
+nw_reroot seqs/vet.fa.contree Lamprey |
+    nwr tex stdin --bl -s -o tex/vet.fa.tex
+
+tectonic tex/vet.fa.tex --outdir pdf
+
+tectonic tex/Opisthokonta.tex --outdir pdf
+
+```
+
 ## Taxonomy
 
 ## Translation

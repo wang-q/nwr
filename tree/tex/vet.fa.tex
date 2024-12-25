@@ -1,0 +1,99 @@
+\documentclass[tikz, crop, border=5pt]{standalone}
+\usetikzlibrary{positioning,backgrounds,fit}
+\usepackage{forest}
+
+\usepackage{fontspec,xltxtra,xunicode}
+
+%STYLE_BEGIN%
+% English Fonts
+\setmainfont[BoldFont={Fira Sans}]{Fira Sans Light}
+
+% 中文字体
+\usepackage{xeCJK}
+\setCJKmainfont[BoldFont=Source Han Sans SC Medium]{Source Han Sans SC Normal}
+\xeCJKsetup{CJKecglue = {\hskip 0pt plus 0.08\baselineskip}, xCJKecglue = {false}}
+\punctstyle{plain}
+\defaultfontfeatures{Mapping=tex-text,Scale=MatchLowercase}
+%STYLE_END%
+
+% Avoid using xcolor dvipsnames
+% https://en.wikibooks.org/wiki/LaTeX/Colors
+% https://www.color-hex.com/
+\definecolor{black}{RGB}{26,25,25}
+\definecolor{grey}{RGB}{129,130,132}
+\definecolor{red}{RGB}{188,36,46}
+\definecolor{brown}{RGB}{121,37,0}
+\definecolor{green}{RGB}{32,128,108}
+\definecolor{purple}{RGB}{160,90,150}
+\definecolor{blue}{RGB}{0,103,149} % MidnightBlue
+% Upper case colors for backgrounds
+% https://coolors.co/palette/fbf8cc-fde4cf-ffcfd2-f1c0e8-cfbaf0-a3c4f3-90dbf4-8eecf5-98f5e1-b9fbc0
+\definecolor{LemonChiffon}{RGB}{251, 248, 204}
+\definecolor{ChampagnePink}{RGB}{253, 228, 207}
+\definecolor{TeaRose}{RGB}{255, 207, 210}
+\definecolor{PinkLavender}{RGB}{241, 192, 232}
+\definecolor{Mauve}{RGB}{207, 186, 240}
+\definecolor{JordyBlue}{RGB}{163, 196, 243}
+\definecolor{NonPhotoBlue}{RGB}{144, 219, 244}
+\definecolor{ElectricBlue}{RGB}{142, 236, 245}
+\definecolor{Aquamarine}{RGB}{152, 245, 225}
+\definecolor{Celadon}{RGB}{185, 251, 192}
+
+\tikzset{
+    comment/.append  style={label={[font=\small]0:#1}},
+}
+\forestset{
+    /tikz/label position=below left,
+    /tikz/label distance=.1em,
+    dot/.style={tikz+={\fill[fill=#1] (.child anchor) circle[radius=2pt];}},
+    dot/.default=black,
+    bar/.style={tikz+={\draw[color=#1,line width=2pt] let \p1 = (!u.parent anchor), \p2 = (.child anchor) in ($(\x1, \y2 - 0.5em)!0.5!(\x2, \y2)$) -- ($(\x1, \y2 + 0.5em)!0.5!(\x2, \y2)$);}},
+    bar/.default=black,
+    rec/.style={tikz+={\scoped[on background layer]{ \node[draw=none, fill=#1, rectangle, fit to=tree, inner sep=-2pt, ] {};} }},
+    rec/.default=Thistle,
+}
+
+\begin{document}
+
+\begin{forest}
+    where n children=0{tier=word}{},
+    for tree={
+        s sep=-4pt, % make siblings closer
+        grow=0, % 0 degrees is to the right
+        reversed, % tree_direction
+        align=left,
+        parent anchor=east,
+        child anchor=west,
+        anchor=west,
+        edge path={
+            \noexpand\path[draw, grey, line width=1pt, \forestoption{edge}]
+                (!u.parent anchor) |- (.child anchor)\forestoption{edge label};
+        },
+        before typesetting nodes={
+            if content={}{shape=coordinate}{}
+        },
+    }
+[, l=0mm, l sep=0,
+  [{Lamprey}, l=11mm, l sep=0, [{~},tier=0,edge={draw=none}],]
+  [, l=11mm, l sep=0,
+    [{Trout}, l=0mm, l sep=0, [{~},tier=0,edge={draw=none}],]
+    [, dot, label={79}, l=22mm, l sep=0,
+      [{Lungfish}, l=0mm, l sep=0, [{~},tier=0,edge={draw=none}],]
+      [, dot, label={74}, l=22mm, l sep=0,
+        [{Turtle}, l=0mm, l sep=0, [{~},tier=0,edge={draw=none}],]
+        [, dot, label={74}, l=22mm, l sep=0,
+          [{Cat}, l=0mm, l sep=0, [{~},tier=0,edge={draw=none}],]
+          [, dot, label={83}, l=22mm, l sep=0,
+            [{Gorilla}, l=0mm, l sep=0, [{~},tier=0,edge={draw=none}],]
+            [{Human}, l=0mm, l sep=0, [{~},tier=0,edge={draw=none}],]
+          ]
+        ]
+      ]
+    ]
+  ]
+]
+\draw[-, grey, line width=1pt] ($(current bounding box.south east)+(-10mm,-2mm)$) --++ (-10mm,0mm) node[midway, below]{\scriptsize{0.002}};
+%FOREST_END%
+\end{forest}
+
+\end{document}
