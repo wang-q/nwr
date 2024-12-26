@@ -251,12 +251,13 @@ tectonic tex/Vertebrate.tex --outdir pdf
 ## From seqs
 
 ```shell
-iqtree2 -s seqs/vet.fa -st MORPH -m TEST -bb 1000 -alrt 1000
+iqtree2 -s seqs/vet.fa -st MORPH -m MK -b 100
 
-nw_reroot seqs/vet.fa.contree Lamprey |
-    nwr tex stdin --bl -s -o tex/vet.fa.tex
+nwr reroot seqs/vet.fa.contree -n Lamprey |
+    nwr tex stdin -s |
+    tectonic - --outdir pdf
 
-tectonic tex/vet.fa.tex --outdir pdf
+mv pdf/texput.pdf pdf/vet.fa.pdf
 
 ```
 
