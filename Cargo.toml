@@ -1,6 +1,6 @@
 [package]
 name = "nwr"
-version = "0.7.5"
+version = "0.7.6"
 authors = ["wang-q <wang-q@outlook.com>"]
 description = "`nwr` is a command line tool for newick and taxonomy"
 documentation = "https://github.com/wang-q/nwr"
