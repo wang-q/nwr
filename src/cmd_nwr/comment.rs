@@ -117,9 +117,7 @@ pub fn make_subcommand() -> Command {
                 .long("tri")
                 .num_args(0..=1)
                 .default_missing_value("white")
-                .help(
-                    "Place a triangle at the end of the branch; value as color",
-                ),
+                .help("Place a triangle at the end of the branch; value as color"),
         )
         .arg(
             Arg::new("outfile")

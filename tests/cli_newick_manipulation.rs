@@ -1,5 +1,5 @@
 use assert_cmd::prelude::*;
-use std::process::{Command, Stdio};
+use std::process::Command;
 
 #[test]
 fn command_order() -> anyhow::Result<()> {
