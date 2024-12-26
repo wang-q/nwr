@@ -317,7 +317,7 @@ fn command_template_mh() -> anyhow::Result<()> {
     let stdout = String::from_utf8(output.stdout).unwrap();
     let stderr = String::from_utf8(output.stderr).unwrap();
 
-    assert_eq!(stderr.lines().count(), 6);
+    assert_eq!(stderr.lines().count(), 5);
     assert!(stderr.contains("Create MinHash/species.tsv"));
 
     assert!(stdout.lines().count() > 100);

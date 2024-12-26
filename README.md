@@ -22,6 +22,9 @@ brew install wang-q/tap/nwr
 
 cargo install --path . --force # --offline
 
+# Concurrent tests may trigger sqlite locking
+cargo test -- --test-threads=1
+
 # build under WSL 2
 mkdir -p /tmp/cargo
 export CARGO_TARGET_DIR=/tmp/cargo
@@ -136,9 +139,6 @@ nwr common "Escherichia coli" 4932 Drosophila_melanogaster 9606 "Mus musculus"
 ### Development
 
 ```shell
-# Concurrent tests may trigger sqlite locking
-cargo test -- --test-threads=1
-
 cargo test --color=always --package nwr --test cli_nwr command_template -- --show-output
 
 # debug mode has a slow connection

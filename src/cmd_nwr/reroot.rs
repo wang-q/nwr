@@ -8,9 +8,9 @@ pub fn make_subcommand() -> Command {
         .about("Place the root in the middle of the desired node and its parent")
         .after_help(
             r###"
-This tool doesn't provide a complex name matching mechanism, as we expect you
-to already have an overview of the tree topology through other tools and
-understand your desired outcome
+This tool does not implement a complex name matching mechanism.
+It is assumed that you have a general understanding of the tree topology through other tools
+and know your desired outcome.
 
 * The node can be either terminal (leaves) or internal
 * If multiple nodes are provided, the nodes will be specified as their lowest

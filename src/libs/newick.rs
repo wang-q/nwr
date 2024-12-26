@@ -1,5 +1,5 @@
 use intspan::IntSpan;
-use phylotree::tree::{Edge, Node, NodeId, Tree};
+use phylotree::tree::{EdgeLength, Node, NodeId, Tree};
 use regex::RegexBuilder;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 
@@ -273,8 +273,8 @@ pub fn insert_parent(tree: &mut Tree, id: &NodeId) -> NodeId {
 pub fn swap_parent(
     tree: &mut Tree,
     id: &NodeId,
-    prev_edge: Option<Edge>,
-) -> Option<Edge> {
+    prev_edge: Option<EdgeLength>,
+) -> Option<EdgeLength> {
     let parent = tree.get(id).unwrap().parent.unwrap();
 
     tree.get_mut(id).unwrap().parent = None;

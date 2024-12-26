@@ -24,7 +24,7 @@ tera = "1.19.1"
 
 flate2 = "1.0.27"
 itertools = "0.11.0"
-phylotree = "0.1.1"
+phylotree = "0.1.3"
 crossbeam = "0.8.2"
 
 intspan = "0.7.5"

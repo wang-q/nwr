@@ -1,5 +1,5 @@
 use clap::*;
-use phylotree::tree::{Edge, NodeId, Tree};
+use phylotree::tree::{EdgeLength, NodeId, Tree};
 
 // Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
@@ -153,12 +153,12 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn format_forest(tree: &Tree, height: Edge) -> String {
+fn format_forest(tree: &Tree, height: EdgeLength) -> String {
     let root = tree.get_root().unwrap();
     format_sub_forest(tree, &root, height)
 }
 
-fn format_sub_forest(tree: &Tree, id: &NodeId, height: Edge) -> String {
+fn format_sub_forest(tree: &Tree, id: &NodeId, height: EdgeLength) -> String {
     let node = tree.get(id).unwrap();
     let indent = "  ";
 
@@ -186,7 +186,7 @@ fn format_sub_forest(tree: &Tree, id: &NodeId, height: Edge) -> String {
 }
 
 // almost all the operations in here
-fn format_node(tree: &Tree, id: &NodeId, height: Edge) -> String {
+fn format_node(tree: &Tree, id: &NodeId, height: EdgeLength) -> String {
     let node = tree.get(id).unwrap();
     let depth = node.get_depth();
 
@@ -322,6 +322,6 @@ fn branch_depth(tree: &Tree, id: &NodeId) -> usize {
 }
 
 // relative length
-fn calc_length(edge: Edge, height: Edge) -> i32 {
+fn calc_length(edge: EdgeLength, height: EdgeLength) -> i32 {
     (edge * 100.0 / height).round() as i32
 }
