@@ -473,6 +473,18 @@ fn command_reroot() -> anyhow::Result<()> {
 
     assert!(stdout.contains("(B:0.5,(A:1,C:2)D:0.5);"));
 
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("reroot")
+        .arg("tests/newick/bs.nw")
+        .arg("-n")
+        .arg("C")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert!(stdout.contains("(C,(B,(A,(((D,E)86,F)93,(G,(H,I))100)100)41)61);"));
+
     Ok(())
 }
 

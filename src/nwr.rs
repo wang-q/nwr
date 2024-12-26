@@ -110,6 +110,4 @@ Subcommand groups:
 //      nw_match
 //      nw_trim
 // TODO:
-//      Fix `reroot`: bootstrap values
-// TODO:
 //      Heatmap

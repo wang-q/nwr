@@ -274,6 +274,13 @@ echo "((A:1,B:1)D:1,C:1)E;" |
     nwr reroot stdin -n B
 nwr reroot tests/newick/catarrhini_wrong.nwk -n Cebus
 
+nwr reroot tests/newick/bs.nw -n C
+
+nwr tex tests/newick/bs.nw | tectonic -
+mv texput.pdf bs.pdf
+nwr reroot tests/newick/bs.nw -n C | nwr tex stdin | tectonic -
+mv texput.pdf bs.reroot.pdf
+
 cargo run --bin nwr pl-condense tests/newick/catarrhini.nwk -r family
 
 ```
