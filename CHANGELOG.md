@@ -6,6 +6,7 @@
 
 * Tweak `nwr template` shell scripts
 
+* Avoid last `,` in tex
 * Add `tri` to `template.tex`
 
 ## 0.7.5 - 2024-09-20
