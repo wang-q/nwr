@@ -396,7 +396,7 @@ fn command_subtree() -> anyhow::Result<()> {
         .unwrap();
     let stdout = String::from_utf8(output.stdout).unwrap();
 
-    assert!(stdout.contains("Primates:0.11[member=3]"));
+    assert!(stdout.contains("Primates:0.11[member=3:tri=white]"));
 
     Ok(())
 }

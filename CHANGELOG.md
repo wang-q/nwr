@@ -6,6 +6,8 @@
 
 * Tweak `nwr template` shell scripts
 
+* Add `tri` to `template.tex`
+
 ## 0.7.5 - 2024-09-20
 
 * Rewrite `nwr template --ass` scripts

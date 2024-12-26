@@ -113,6 +113,15 @@ pub fn make_subcommand() -> Command {
                 ),
         )
         .arg(
+            Arg::new("tri")
+                .long("tri")
+                .num_args(0..=1)
+                .default_missing_value("white")
+                .help(
+                    "Place a triangle at the end of the branch; value as color",
+                ),
+        )
+        .arg(
             Arg::new("outfile")
                 .short('o')
                 .long("outfile")
@@ -132,9 +141,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let color = args.get_one::<String>("color");
     let comment = args.get_one::<String>("comment");
 
-    let dot = args.get_one::<String>("dot");
-    let bar = args.get_one::<String>("bar");
-    let rec = args.get_one::<String>("rec");
+    let opt_dot = args.get_one::<String>("dot");
+    let opt_bar = args.get_one::<String>("bar");
+    let opt_rec = args.get_one::<String>("rec");
+    let opt_tri = args.get_one::<String>("tri");
 
     let infile = args.get_one::<String>("infile").unwrap();
     let mut tree = nwr::read_newick(infile);
@@ -193,14 +203,17 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             nwr::add_comment_kv(node, "comment", x);
         }
 
-        if let Some(x) = dot {
+        if let Some(x) = opt_dot {
             nwr::add_comment_kv(node, "dot", x);
         }
-        if let Some(x) = bar {
+        if let Some(x) = opt_bar {
             nwr::add_comment_kv(node, "bar", x);
         }
-        if let Some(x) = rec {
+        if let Some(x) = opt_rec {
             nwr::add_comment_kv(node, "rec", x);
+        }
+        if let Some(x) = opt_tri {
+            nwr::add_comment_kv(node, "tri", x);
         }
     }
 

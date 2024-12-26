@@ -183,6 +183,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             // new_node.comment = sub_root.comment.clone();
 
             nwr::add_comment_kv(&mut new_node, "member", ids.len().to_string().as_str());
+            nwr::add_comment_kv(&mut new_node, "tri", "white");
             let edge = sub_root.parent_edge;
 
             // remove sub_root

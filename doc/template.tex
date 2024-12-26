@@ -19,6 +19,7 @@
 % Avoid using xcolor dvipsnames
 % https://en.wikibooks.org/wiki/LaTeX/Colors
 % https://www.color-hex.com/
+\usepackage{color}
 \definecolor{black}{RGB}{26,25,25}
 \definecolor{grey}{RGB}{129,130,132}
 \definecolor{red}{RGB}{188,36,46}
@@ -45,12 +46,28 @@
 \forestset{
     /tikz/label position=below left,
     /tikz/label distance=.1em,
-    dot/.style={tikz+={\fill[fill=#1] (.child anchor) circle[radius=2pt];}},
+    dot/.style={tikz+={%
+        \fill[fill=#1] (.child anchor) circle[radius=2pt];
+    }},
     dot/.default=black,
-    bar/.style={tikz+={\draw[color=#1,line width=2pt] let \p1 = (!u.parent anchor), \p2 = (.child anchor) in ($(\x1, \y2 - 0.5em)!0.5!(\x2, \y2)$) -- ($(\x1, \y2 + 0.5em)!0.5!(\x2, \y2)$);}},
+    bar/.style={tikz+={%
+        \draw[color=#1, line width=2pt]
+        let \p1 = (!u.parent anchor), \p2 = (.child anchor) in
+        ($(\x1, \y2 - 0.5em)!0.5!(\x2, \y2)$) -- ($(\x1, \y2 + 0.5em)!0.5!(\x2, \y2)$);
+    }},
     bar/.default=black,
-    rec/.style={tikz+={\scoped[on background layer]{ \node[draw=none, fill=#1, rectangle, fit to=tree, inner sep=-2pt, ] {};} }},
+    rec/.style={tikz+={%
+        \scoped[on background layer]{%
+            \node[draw=none, fill=#1, rectangle, fit to=tree, inner sep=-2pt, ] {};
+        }
+    }},
     rec/.default=Thistle,
+    tri/.style={tikz+={%
+        \draw[color=gray, fill=#1, line width=1pt, rounded corners=1pt]
+        let \p1 = (!u.parent anchor), \p2 = (.child anchor) in
+        ($({max(\x1 + (\x2 - \x1) * 3/4, \x2 - 1.212em)}, \y2)$) -- ($(\x2, \y2 + 0.7em)$) -- ($(\x2, \y2 - 0.7em)$) -- cycle;
+    }},
+    tri/.default=white,
 }
 
 \begin{document}
@@ -77,12 +94,12 @@
 [, label=Animalia, dot
     [Ctenophora, comment=192]
     [, label=NOTE, bar=purple
-        [\color{green}{Porifera}, comment=8579]
+        [\color{green}{Porifera}, tri, comment=8579]
         [, label=\color{green}{Parahoxozoa}, dot=red
             [Placozoa, comment=1]
             [, label=Planulozoa, dot=red, rec={LemonChiffon},
                 [Bilateria]
-                [Cnidaria, comment=13138]
+                [Cnidaria, tri, comment=13138]
             ]
         ]
     ]
