@@ -258,8 +258,6 @@ nw_reroot seqs/vet.fa.contree Lamprey |
 
 tectonic tex/vet.fa.tex --outdir pdf
 
-tectonic tex/Opisthokonta.tex --outdir pdf
-
 ```
 
 ## Taxonomy
