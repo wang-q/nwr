@@ -220,6 +220,8 @@ fn format_node(tree: &Tree, id: &NodeId, height: EdgeLength) -> String {
                 repr += &format!(", bar={{{}}}", pt.replace("bar=", ""));
             } else if pt.starts_with("rec=") {
                 repr += &format!(", rec={{{}}}", pt.replace("rec=", ""));
+            } else if pt.starts_with("tri=") {
+                repr += &format!(", tri={{{}}}", pt.replace("tri=", ""));
             } else if pt.starts_with("comment=") {
                 if !comment.is_empty() {
                     comment += " ";
