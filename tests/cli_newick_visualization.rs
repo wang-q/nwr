@@ -70,10 +70,7 @@ fn command_comment_remove() -> anyhow::Result<()> {
         .unwrap();
     let stdout = String::from_utf8(output.stdout).unwrap();
 
-    assert_eq!(
-        stdout.lines().next().unwrap(),
-        "((A,B)[dot=black],C);"
-    );
+    assert_eq!(stdout.lines().next().unwrap(), "((A,B)[dot=black],C);");
 
     Ok(())
 }

@@ -124,7 +124,6 @@ pub fn make_subcommand() -> Command {
                 .long("remove")
                 .short('r')
                 .num_args(1)
-                .action(ArgAction::Append)
                 .help("Scan all nodes and remove parts of comments matching the regex"),
         )
         .arg(
@@ -238,26 +237,25 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     // ids matched with --remove
     if args.contains_id("remove") {
-        for regex in args.get_many::<String>("remove").unwrap() {
-            let re = regex::RegexBuilder::new(regex)
-                .case_insensitive(true)
-                .unicode(false)
-                .build()
-                .unwrap();
-            for (id, comment) in comment_of.iter() {
-                let parts: Vec<_> = comment.split(':').collect();
-                let new = parts
-                    .iter()
-                    .filter(|e| !re.is_match(e))
-                    .map(|e| *e)
-                    .collect::<Vec<_>>()
-                    .join(":");
-                let node = tree.get_mut(id).unwrap();
-                if new.is_empty() {
-                    node.comment = None;
-                } else {
-                    node.comment = Some(new);
-                }
+        let regex = args.get_one::<String>("remove").unwrap();
+        let re = regex::RegexBuilder::new(regex)
+            .case_insensitive(true)
+            .unicode(false)
+            .build()
+            .unwrap();
+        for (id, comment) in comment_of.iter() {
+            let parts: Vec<_> = comment.split(':').collect();
+            let new = parts
+                .iter()
+                .filter(|e| !re.is_match(e))
+                .map(|e| *e)
+                .collect::<Vec<_>>()
+                .join(":");
+            let node = tree.get_mut(id).unwrap();
+            if new.is_empty() {
+                node.comment = None;
+            } else {
+                node.comment = Some(new);
             }
         }
     }
