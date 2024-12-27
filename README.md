@@ -296,6 +296,9 @@ echo "((A,B),C);" |
 
 tectonic doc/template.tex
 
+echo "((A[color=green],B)[dot=black],C[color=green]);" |
+    cargo run --bin nwr comment stdin -r "color="
+
 nwr tex tests/newick/catarrhini.nwk -o output.tex
 tectonic output.tex
 

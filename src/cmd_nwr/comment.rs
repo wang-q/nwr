@@ -120,6 +120,14 @@ pub fn make_subcommand() -> Command {
                 .help("Place a triangle at the end of the branch; value as color"),
         )
         .arg(
+            Arg::new("remove")
+                .long("remove")
+                .short('r')
+                .num_args(1)
+                .action(ArgAction::Append)
+                .help("Scan all nodes and remove parts of comments matching the regex"),
+        )
+        .arg(
             Arg::new("outfile")
                 .short('o')
                 .long("outfile")
@@ -131,13 +139,16 @@ pub fn make_subcommand() -> Command {
 
 // command implementation
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
+    //----------------------------
+    // Args
+    //----------------------------
     let mut writer = intspan::writer(args.get_one::<String>("outfile").unwrap());
 
-    let string = args.get_one::<String>("string");
+    let opt_string = args.get_one::<String>("string");
 
-    let label = args.get_one::<String>("label");
-    let color = args.get_one::<String>("color");
-    let comment = args.get_one::<String>("comment");
+    let opt_label = args.get_one::<String>("label");
+    let opt_color = args.get_one::<String>("color");
+    let opt_comment = args.get_one::<String>("comment");
 
     let opt_dot = args.get_one::<String>("dot");
     let opt_bar = args.get_one::<String>("bar");
@@ -145,9 +156,13 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let opt_tri = args.get_one::<String>("tri");
 
     let infile = args.get_one::<String>("infile").unwrap();
+
+    //----------------------------
+    // Ops
+    //----------------------------
     let mut tree = nwr::read_newick(infile);
 
-    // ids with names
+    // ids with names, name => id
     let id_of: BTreeMap<_, _> = nwr::get_name_id(&tree);
 
     // all IDs to be modified
@@ -187,17 +202,17 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     for id in &ids {
         let node = tree.get_mut(id).unwrap();
 
-        if let Some(x) = string {
+        if let Some(x) = opt_string {
             nwr::add_comment(node, x);
         }
 
-        if let Some(x) = label {
+        if let Some(x) = opt_label {
             nwr::add_comment_kv(node, "label", x);
         }
-        if let Some(x) = color {
+        if let Some(x) = opt_color {
             nwr::add_comment_kv(node, "color", x);
         }
-        if let Some(x) = comment {
+        if let Some(x) = opt_comment {
             nwr::add_comment_kv(node, "comment", x);
         }
 
@@ -215,6 +230,41 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
     }
 
+    //----------------------------
+    // Remove parts of comments
+    //----------------------------
+    // ids with comments, id => comment
+    let comment_of: BTreeMap<_, _> = nwr::get_id_comment(&tree);
+
+    // ids matched with --remove
+    if args.contains_id("remove") {
+        for regex in args.get_many::<String>("remove").unwrap() {
+            let re = regex::RegexBuilder::new(regex)
+                .case_insensitive(true)
+                .unicode(false)
+                .build()
+                .unwrap();
+            for (id, comment) in comment_of.iter() {
+                let parts: Vec<_> = comment.split(':').collect();
+                let new = parts
+                    .iter()
+                    .filter(|e| !re.is_match(e))
+                    .map(|e| *e)
+                    .collect::<Vec<_>>()
+                    .join(":");
+                let node = tree.get_mut(id).unwrap();
+                if new.is_empty() {
+                    node.comment = None;
+                } else {
+                    node.comment = Some(new);
+                }
+            }
+        }
+    }
+
+    //----------------------------
+    // Output
+    //----------------------------
     let out_string = nwr::format_tree(&tree, "");
     writer.write_all((out_string + "\n").as_ref())?;
 

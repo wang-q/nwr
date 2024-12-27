@@ -217,6 +217,29 @@ pub fn get_comment_k(node: &Node, key: &str) -> Option<String> {
     value
 }
 
+/// Get hash of id-comment
+///
+/// ```
+/// use phylotree::tree::Tree;
+///
+/// let newick = "((A[S=Human],B),C);";
+/// let tree = Tree::from_newick(newick).unwrap();
+/// let comment_of = nwr::get_id_comment(&tree);
+/// assert_eq!(comment_of.get(&2usize).unwrap(), "S=Human");
+/// ```
+pub fn get_id_comment(tree: &Tree) -> BTreeMap<usize, String> {
+    let mut comment_of = BTreeMap::new();
+    for id in tree.preorder(&tree.get_root().unwrap()).unwrap().iter() {
+        let node = tree.get(id).unwrap();
+        let comment = node.comment.clone();
+        if let Some(x) = comment {
+            comment_of.insert(*id, x);
+        }
+    }
+
+    comment_of
+}
+
 /// Insert a node in the middle of the desired node and its parent
 ///
 /// ```

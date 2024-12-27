@@ -11,6 +11,8 @@
 * Avoid last `,` in tex
 * Add `tri` to `template.tex`
 
+* Add `--remove` to `nwr comment`
+
 ## 0.7.5 - 2024-09-20
 
 * Rewrite `nwr template --ass` scripts
