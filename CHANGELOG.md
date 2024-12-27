@@ -2,8 +2,6 @@
 
 ## Unreleased - ReleaseDate
 
-## 0.7.6 - 2024-12-26
-
 * Add `nwr seqdb`
 
 * Tweak `nwr template` shell scripts
