@@ -11,6 +11,7 @@
 * Avoid last `,` in tex
 * Add `tri` to `template.tex`
 
+* Add `abbr` to `nwr kb`
 * Add `--remove` to `nwr comment`
 
 ## 0.7.5 - 2024-09-20

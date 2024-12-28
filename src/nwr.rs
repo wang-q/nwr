@@ -105,9 +105,4 @@ Subcommand groups:
     Ok(())
 }
 
-// TODO: abbr_name.pl
 // TODO: `compgen -c nw_`
-//      nw_match
-//      nw_trim
-// TODO:
-//      Heatmap

@@ -10,6 +10,7 @@ pub fn make_subcommand() -> Command {
         .after_help(
             r###"
 * formats - File formats
+* abbr    - A Perl script for generating abbreviated names
 
 * bac120  - 120 bacterial marker genes
 * ar53    - 53 archaeal marker genes
@@ -38,11 +39,16 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let outfile = args.get_one::<String>("outfile").unwrap();
 
     static FILE_FORMATS: &str = include_str!("../../doc/formats.md");
+    static FILE_ABBR: &str = include_str!("../../doc/abbr.pl");
     static FILE_BAC: &[u8] = include_bytes!("../../doc/bac120.tar.gz");
     static FILE_AR: &[u8] = include_bytes!("../../doc/ar53.tar.gz");
 
     match args.get_one::<String>("infile").unwrap().as_ref() {
         "formats" => {
+            let mut writer = intspan::writer(outfile);
+            writer.write_all(FILE_FORMATS.as_ref())?;
+        }
+        "abbr" => {
             let mut writer = intspan::writer(outfile);
             writer.write_all(FILE_FORMATS.as_ref())?;
         }

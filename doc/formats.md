@@ -1,9 +1,5 @@
 # File formats alongside `nwr template`
 
-<!-- toc -->
-
-<!-- tocstop -->
-
 ## Starting point: `.assembly.tsv`
 
 A TAB-delimited file to guide downloading and processing of files.
