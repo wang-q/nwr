@@ -50,7 +50,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
         "abbr" => {
             let mut writer = intspan::writer(outfile);
-            writer.write_all(FILE_FORMATS.as_ref())?;
+            writer.write_all(FILE_ABBR.as_ref())?;
         }
         "bac120" => {
             fs::create_dir_all(outfile)?;
