@@ -58,7 +58,7 @@
     bar/.default=black,
     rec/.style={tikz+={%
         \scoped[on background layer]{%
-            \node[draw=none, fill=#1, rectangle, fit to=tree, inner sep=-2pt, ] {};
+            \node[draw=none, fill=#1, rectangle, fit to=tree, inner sep=-2pt] {};
         }
     }},
     rec/.default=Thistle,
@@ -97,7 +97,7 @@
         [\color{green}{Porifera}, tri, comment=8579]
         [, label=\color{green}{Parahoxozoa}, dot=red
             [Placozoa, comment=1]
-            [, label=Planulozoa, dot=red, rec={LemonChiffon},
+            [, label=Planulozoa, dot=red, rec={LemonChiffon}
                 [Bilateria]
                 [Cnidaria, tri, comment=13138]
             ]
