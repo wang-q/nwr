@@ -82,7 +82,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     };
     let file = nwrdir.join("taxonomy.sqlite");
     if file.exists() {
-        std::fs::remove_file(&file).unwrap();
+        std::fs::remove_file(&file)?;
     }
 
     info!("==> Opening database");
@@ -110,7 +110,6 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             .from_reader(dmp);
 
         let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
-
         for result in tsv_rdr.records() {
             let record = result?;
             let id: i64 = record[0].trim().parse()?;
@@ -122,10 +121,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 name.replace('\'', "''")
             ));
         }
-
         stmts.push(String::from("COMMIT;"));
         let stmt = &stmts.join("\n");
         conn.execute_batch(stmt)?;
+
         debug!("Done inserting divisions");
     }
 
@@ -140,16 +139,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
         let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
         for (i, result) in tsv_rdr.records().enumerate() {
-            if i > 1 && i % 1000 == 0 {
-                stmts.push(String::from("COMMIT;"));
-                let stmt = &stmts.join("\n");
-                conn.execute_batch(stmt)?;
-                stmts.clear();
-                stmts.push(String::from("BEGIN;"));
-            }
-            if i > 1 && i % 100000 == 0 {
-                debug!("Read {} records", i);
-            }
+            nwr::batch_exec(&conn, &mut stmts, i)?;
 
             let record = result?;
 
@@ -168,11 +158,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 name_class.trim().replace('\'', "''")
             ));
         }
-
-        // There could left records in stmts
-        stmts.push(String::from("COMMIT;"));
-        let stmt = &stmts.join("\n");
-        conn.execute_batch(stmt)?;
+        // Records may be left in stmts
+        nwr::batch_exec(&conn, &mut stmts, usize::MAX)?;
 
         debug!("Creating indexes for name");
         conn.execute("CREATE INDEX idx_name_tax_id ON name(tax_id);", [])?;
@@ -189,18 +176,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             .from_reader(dmp);
 
         let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
-
         for (i, result) in tsv_rdr.records().enumerate() {
-            if i > 1 && i % 1000 == 0 {
-                stmts.push(String::from("COMMIT;"));
-                let stmt = &stmts.join("\n");
-                conn.execute_batch(stmt)?;
-                stmts.clear();
-                stmts.push(String::from("BEGIN;"));
-            }
-            if i > 1 && i % 100000 == 0 {
-                debug!("Read {} records", i);
-            }
+            nwr::batch_exec(&conn, &mut stmts, i)?;
 
             let record = result?;
 
@@ -216,11 +193,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 tax_id, parent_tax_id, rank, division_id, comments
             ));
         }
-
-        // There could left records in stmts
-        stmts.push(String::from("COMMIT;"));
-        let stmt = &stmts.join("\n");
-        conn.execute_batch(stmt)?;
+        // Records may be left in stmts
+        nwr::batch_exec(&conn, &mut stmts, usize::MAX)?;
 
         debug!("Creating indexes for node");
         conn.execute(

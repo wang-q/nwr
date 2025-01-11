@@ -1,9 +1,7 @@
 use clap::*;
 use itertools::Itertools;
 use log::{debug, info};
-use rusqlite::Connection;
 use simplelog::*;
-use std::fs::File;
 use std::path::PathBuf;
 
 // Create clap subcommand arguments
@@ -210,7 +208,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     let db = dir.join("seq.sqlite");
     if is_init && db.exists() {
-        std::fs::remove_file(&db).unwrap();
+        std::fs::remove_file(&db)?;
     }
 
     info!("==> Opening database `{}`", db.display());
@@ -239,14 +237,14 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     if !opt_strain.as_os_str().is_empty() {
         info!("==> Loading `{}` to `rank` and `asm`", opt_strain.display());
         // strain, rank
-        let dmp = File::open(opt_strain)?;
+        let dmp = std::fs::File::open(opt_strain)?;
         insert_strain(&dmp, &conn)?;
     }
 
     if !opt_size.as_os_str().is_empty() {
         info!("==> Loading `{}` to `seq`", opt_size.display());
         // sequence name, size
-        let dmp = File::open(opt_size)?;
+        let dmp = std::fs::File::open(opt_size)?;
         insert_size(&dmp, &conn)?;
     }
 
@@ -256,35 +254,38 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             opt_clust.display()
         );
         // rep, seq
-        let dmp = File::open(opt_clust)?;
+        let dmp = std::fs::File::open(opt_clust)?;
         insert_clust(&dmp, &conn)?;
     }
 
     if !opt_anno.as_os_str().is_empty() {
         info!("==> Loading `{}` to `seq`", opt_anno.display());
         // rep, seq
-        let dmp = File::open(opt_anno)?;
+        let dmp = std::fs::File::open(opt_anno)?;
         insert_anno(&dmp, &conn)?;
     }
 
     if !opt_asmseq.as_os_str().is_empty() {
         info!("==> Loading `{}` to `asm_seq`", opt_asmseq.display());
         // sequence name, asm
-        let dmp = File::open(opt_asmseq)?;
+        let dmp = std::fs::File::open(opt_asmseq)?;
         insert_asmseq(&dmp, &conn)?;
     }
 
     if !opt_rep.1.is_empty() {
         info!("==> Loading `{}` to `rep.{}`", opt_rep.1, opt_rep.0);
         // family, rep
-        let dmp = File::open(opt_rep.1)?;
+        let dmp = std::fs::File::open(opt_rep.1)?;
         insert_rep(&dmp, &opt_rep.0, &conn)?;
     }
 
     Ok(())
 }
 
-fn insert_strain(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
+fn insert_strain(
+    dmp: &std::fs::File,
+    conn: &rusqlite::Connection,
+) -> anyhow::Result<()> {
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
@@ -322,7 +323,7 @@ fn insert_strain(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn insert_size(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
+fn insert_size(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Result<()> {
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
@@ -330,7 +331,7 @@ fn insert_size(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
 
     let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
     for (i, result) in tsv_rdr.records().enumerate() {
-        batch_exec(&conn, &mut stmts, i)?;
+        nwr::batch_exec(&conn, &mut stmts, i)?;
 
         let record = result?;
         let name: String = record[0].trim().parse()?;
@@ -346,13 +347,12 @@ fn insert_size(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
     }
 
     // Records may be left in stmts
-    stmts.push(String::from("COMMIT;"));
-    let stmt = &stmts.join("\n");
-    conn.execute_batch(stmt)?;
+    nwr::batch_exec(&conn, &mut stmts, usize::MAX)?;
+
     Ok(())
 }
 
-fn insert_clust(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
+fn insert_clust(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Result<()> {
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
@@ -360,7 +360,7 @@ fn insert_clust(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
 
     let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
     for (i, result) in tsv_rdr.records().enumerate() {
-        batch_exec(&conn, &mut stmts, i)?;
+        nwr::batch_exec(&conn, &mut stmts, i)?;
 
         let record = result?;
         let rep: String = record[0].trim().parse()?;
@@ -387,14 +387,12 @@ fn insert_clust(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
     }
 
     // Records may be left in stmts
-    stmts.push(String::from("COMMIT;"));
-    let stmt = &stmts.join("\n");
-    conn.execute_batch(stmt)?;
+    nwr::batch_exec(&conn, &mut stmts, usize::MAX)?;
 
     Ok(())
 }
 
-fn insert_anno(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
+fn insert_anno(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Result<()> {
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
@@ -402,7 +400,7 @@ fn insert_anno(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
 
     let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
     for (i, result) in tsv_rdr.records().enumerate() {
-        batch_exec(&conn, &mut stmts, i)?;
+        nwr::batch_exec(&conn, &mut stmts, i)?;
 
         let record = result?;
         let name: String = record[0].trim().parse()?;
@@ -419,13 +417,15 @@ fn insert_anno(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
     }
 
     // Records may be left in stmts
-    stmts.push(String::from("COMMIT;"));
-    let stmt = &stmts.join("\n");
-    conn.execute_batch(stmt)?;
+    nwr::batch_exec(&conn, &mut stmts, usize::MAX)?;
+
     Ok(())
 }
 
-fn insert_asmseq(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
+fn insert_asmseq(
+    dmp: &std::fs::File,
+    conn: &rusqlite::Connection,
+) -> anyhow::Result<()> {
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
@@ -433,7 +433,7 @@ fn insert_asmseq(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
 
     let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
     for (i, result) in tsv_rdr.records().enumerate() {
-        batch_exec(&conn, &mut stmts, i)?;
+        nwr::batch_exec(&conn, &mut stmts, i)?;
 
         let record = result?;
 
@@ -454,13 +454,16 @@ fn insert_asmseq(dmp: &File, conn: &Connection) -> anyhow::Result<()> {
     }
 
     // Records may be left in stmts
-    stmts.push(String::from("COMMIT;"));
-    let stmt = &stmts.join("\n");
-    conn.execute_batch(stmt)?;
+    nwr::batch_exec(&conn, &mut stmts, usize::MAX)?;
+
     Ok(())
 }
 
-fn insert_rep(dmp: &File, field: &str, conn: &Connection) -> anyhow::Result<()> {
+fn insert_rep(
+    dmp: &std::fs::File,
+    field: &str,
+    conn: &rusqlite::Connection,
+) -> anyhow::Result<()> {
     // empty field before updating
     conn.execute_batch(&format!(
         "
@@ -477,7 +480,7 @@ fn insert_rep(dmp: &File, field: &str, conn: &Connection) -> anyhow::Result<()> 
 
     let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
     for (i, result) in tsv_rdr.records().enumerate() {
-        batch_exec(&conn, &mut stmts, i)?;
+        nwr::batch_exec(&conn, &mut stmts, i)?;
 
         let record = result?;
         let family: String = record[0].trim().parse()?;
@@ -493,31 +496,7 @@ fn insert_rep(dmp: &File, field: &str, conn: &Connection) -> anyhow::Result<()> 
         ));
     }
     // Records may be left in stmts
-    batch_exec(&conn, &mut stmts, usize::MAX)?;
+    nwr::batch_exec(&conn, &mut stmts, usize::MAX)?;
 
-    Ok(())
-}
-
-fn batch_exec(
-    conn: &Connection,
-    stmts: &mut Vec<String>,
-    i: usize,
-) -> anyhow::Result<()> {
-    if i > 1 && i % 1000 == 0 {
-        stmts.push(String::from("COMMIT;"));
-        let stmt = &stmts.join("\n");
-        conn.execute_batch(stmt)?;
-        stmts.clear();
-        stmts.push(String::from("BEGIN;"));
-    }
-    if i == usize::MAX {
-        stmts.push(String::from("COMMIT;"));
-        let stmt = &stmts.join("\n");
-        conn.execute_batch(stmt)?;
-        debug!("Finished");
-    }
-    if i > 1 && i % 10000 == 0 {
-        debug!("Read {} records", i);
-    }
     Ok(())
 }

@@ -179,23 +179,13 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
     for (i, line) in rdr.lines().map_while(Result::ok).enumerate() {
+        nwr::batch_exec(&conn, &mut stmts, i)?;
+
         if line.starts_with('#') {
             continue;
         }
 
-        if i > 1 && i % 1000 == 0 {
-            stmts.push(String::from("COMMIT;"));
-            let stmt = &stmts.join("\n");
-            conn.execute_batch(stmt)?;
-            stmts.clear();
-            stmts.push(String::from("BEGIN;"));
-        }
-        if i > 1 && i % 100000 == 0 {
-            debug!("Read {} records", i);
-        }
-
         let fields: Vec<String> = line.split('\t').map(|s| s.to_string()).collect();
-
         if fields.len() < 19 {
             continue;
         }
@@ -292,9 +282,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     }
 
     // There could left records in stmts
-    stmts.push(String::from("COMMIT;"));
-    let stmt = &stmts.join("\n");
-    conn.execute_batch(stmt)?;
+    nwr::batch_exec(&conn, &mut stmts, usize::MAX)?;
 
     debug!("Creating indexes for ar");
     conn.execute("CREATE INDEX idx_ar_tax_id ON ar(tax_id);", [])?;

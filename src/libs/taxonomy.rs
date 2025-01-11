@@ -1,5 +1,6 @@
 use itertools::Itertools;
 use std::collections::HashMap;
+use std::io::Write;
 use std::path::Path;
 
 #[derive(Debug, Clone, Default)]
@@ -397,4 +398,30 @@ pub fn find_rank(lineage: &[Taxon], rank: String) -> (i64, String) {
     }
 
     (tax_id, sci_name)
+}
+
+/// Helper function to handle batch execution of SQL statements
+pub fn batch_exec(
+    conn: &rusqlite::Connection,
+    stmts: &mut Vec<String>,
+    i: usize,
+) -> anyhow::Result<()> {
+    if i > 1 && i % 1000 == 0 {
+        stmts.push(String::from("COMMIT;"));
+        let stmt = &stmts.join("\n");
+        conn.execute_batch(stmt)?;
+        stmts.clear();
+        stmts.push(String::from("BEGIN;"));
+    }
+    if i == usize::MAX {
+        stmts.push(String::from("COMMIT;"));
+        let stmt = &stmts.join("\n");
+        conn.execute_batch(stmt)?;
+        println!("\n    Finished");
+    }
+    if i > 1 && i % 10000 == 0 {
+        print!(".");
+        std::io::stdout().flush()?; // Ensure the dot is printed immediately
+    }
+    Ok(())
 }
