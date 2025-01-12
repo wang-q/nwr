@@ -2,14 +2,14 @@
 \usetikzlibrary{positioning,backgrounds,fit}
 \usepackage{forest}
 
-\usepackage{fontspec,xltxtra,xunicode}
+\usepackage{fontspec}
+\usepackage{xeCJK}
 
 %STYLE_BEGIN%
 % English Fonts
 \setmainfont[BoldFont={Fira Sans}]{Fira Sans Light}
 
 % 中文字体
-\usepackage{xeCJK}
 \setCJKmainfont[BoldFont=Source Han Sans SC Medium]{Source Han Sans SC Normal}
 \xeCJKsetup{CJKecglue = {\hskip 0pt plus 0.08\baselineskip}, xCJKecglue = {false}}
 \punctstyle{plain}
@@ -46,26 +46,33 @@
 \forestset{
     /tikz/label position=below left,
     /tikz/label distance=.1em,
+    % Define the 'dot' style: Draws a filled circle at the child anchor
     dot/.style={tikz+={%
         \fill[fill=#1] (.child anchor) circle[radius=2pt];
     }},
     dot/.default=black,
+    % Define the 'bar' style: Draws a vertical bar between parent and child nodes
     bar/.style={tikz+={%
         \draw[color=#1, line width=2pt]
         let \p1 = (!u.parent anchor), \p2 = (.child anchor) in
-        ($(\x1, \y2 - 0.5em)!0.5!(\x2, \y2)$) -- ($(\x1, \y2 + 0.5em)!0.5!(\x2, \y2)$);
+        ($(\x1, \y2 - 0.5em)!0.5!(\x2, \y2)$) --
+        ($(\x1, \y2 + 0.5em)!0.5!(\x2, \y2)$);
     }},
     bar/.default=black,
+    % Define the 'rec' style: Draws a background rectangle around a subtree
     rec/.style={tikz+={%
         \scoped[on background layer]{%
             \node[draw=none, fill=#1, rectangle, fit to=tree, inner sep=-2pt] {};
         }
     }},
     rec/.default=Thistle,
+    % Define the 'tri' style: Draws a triangle to the right of the child node
     tri/.style={tikz+={%
         \draw[color=gray, fill=#1, line width=1pt, rounded corners=1pt]
         let \p1 = (!u.parent anchor), \p2 = (.child anchor) in
-        ($({max(\x1 + (\x2 - \x1) * 3/4, \x2 - 1.212em)}, \y2)$) -- ($(\x2, \y2 + 0.7em)$) -- ($(\x2, \y2 - 0.7em)$) -- cycle;
+        ($({max(\x1 + (\x2 - \x1) * 3/4, \x2 - 1.212em)}, \y2)$) --
+        ($(\x2, \y2 + 0.7em)$) --
+        ($(\x2, \y2 - 0.7em)$) -- cycle;
     }},
     tri/.default=white,
 }
@@ -73,7 +80,9 @@
 \begin{document}
 
 \begin{forest}
+    % Align all leaf nodes to a specific tier (alignment group) named "word"
     where n children=0{tier=word}{},
+    % Global settings: Applied to all nodes
     for tree={
         s sep=-4pt, % make siblings closer
         grow=0, % 0 degrees is to the right
