@@ -327,6 +327,65 @@ cat groups.tsv |
 
 Table: refseq - Prokaryotes
 
+| GROUP_NAME              | Complete Genome | Chromosome | Scaffold |  Contig |
+|-------------------------|----------------:|-----------:|---------:|--------:|
+| Bacteria                |                 |            |          |         |
+| Abditibacteriota        |               0 |          0 |        1 |       8 |
+| Acidobacteriota         |              41 |          4 |      112 |     383 |
+| Actinomycetota          |            4645 |        760 |    26912 |   25594 |
+| Aquificota              |              17 |          2 |       57 |      74 |
+| Armatimonadota          |               3 |          1 |       28 |      45 |
+| Atribacterota           |               2 |          0 |        3 |       3 |
+| Bacillota               |           12851 |       1491 |    73555 |  340521 |
+| Bacteroidota            |            1590 |        270 |    14467 |   20398 |
+| Balneolota              |               1 |          2 |       37 |      88 |
+| Bdellovibrionota        |              35 |         10 |      117 |     174 |
+| Caldisericota           |               1 |          0 |        8 |       2 |
+| Calditrichota           |               1 |          1 |        7 |      15 |
+| Campylobacterota        |            2494 |        145 |     5123 |  123072 |
+| Chlamydiota             |             375 |         79 |      122 |     211 |
+| Chlorobiota             |              16 |          1 |       30 |      58 |
+| Chloroflexota           |              50 |          1 |      244 |     294 |
+| Chrysiogenota           |               2 |          0 |        2 |       0 |
+| Coprothermobacterota    |               1 |          0 |       14 |       7 |
+| Cyanobacteriota         |             341 |         80 |     1185 |    2784 |
+| Deferribacterota        |               6 |          0 |      512 |     256 |
+| Deinococcota            |              96 |          3 |      128 |     243 |
+| Dictyoglomota           |               2 |          0 |        5 |       5 |
+| Elusimicrobiota         |               2 |          0 |        7 |      47 |
+| Fibrobacterota          |               2 |          0 |      105 |     157 |
+| Fusobacteriota          |             240 |         14 |      215 |     606 |
+| Gemmatimonadota         |               6 |          0 |       27 |     127 |
+| Ignavibacteriota        |               3 |          1 |       51 |      37 |
+| Kiritimatiellota        |               2 |          0 |        4 |      25 |
+| Lentisphaerota          |               1 |          0 |       11 |      26 |
+| Mycoplasmatota          |             761 |        173 |      278 |    1263 |
+| Myxococcota             |              68 |          5 |       69 |     308 |
+| Nitrospinota            |               1 |          0 |       13 |      63 |
+| Nitrospirota            |              20 |          5 |      283 |     381 |
+| Planctomycetota         |              62 |         29 |      125 |     548 |
+| Pseudomonadota          |           30023 |       3604 |    96906 | 1175916 |
+| Rhodothermota           |              14 |          3 |       49 |     246 |
+| Spirochaetota           |             491 |        647 |      599 |    2236 |
+| Synergistota            |              10 |          4 |      103 |     143 |
+| Thermodesulfobacteriota |             138 |         11 |      569 |    1098 |
+| Thermodesulfobiota      |               2 |          0 |        4 |       5 |
+| Thermomicrobiota        |               2 |          0 |        6 |      27 |
+| Thermosulfidibacterota  |               1 |          0 |        1 |       1 |
+| Thermotogota            |              44 |          1 |      192 |     145 |
+| Verrucomicrobiota       |             143 |          9 |     1262 |    1259 |
+| Vulcanimicrobiota       |               1 |          0 |        0 |       0 |
+| Archaea                 |                 |            |          |         |
+| Methanobacteriota       |             449 |         19 |     1158 |    1763 |
+| Microcaldota            |               0 |          0 |        0 |       0 |
+| Nanobdellota            |               2 |          0 |        0 |       1 |
+| Nitrososphaerota        |              21 |          5 |      145 |     548 |
+| Promethearchaeota       |               1 |          0 |        0 |       6 |
+| Thermoplasmatota        |              17 |          0 |       41 |     196 |
+| Thermoproteota          |             120 |          5 |      431 |     325 |
+
+Table: genbank - Prokaryotes
+
 ## Example 3: find accessions of a species
 
 Staphylococcus capitis - 29388 - 头状葡萄球菌
