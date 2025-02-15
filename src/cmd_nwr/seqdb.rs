@@ -331,7 +331,7 @@ fn insert_size(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Resu
 
     let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
     for (i, result) in tsv_rdr.records().enumerate() {
-        nwr::batch_exec(&conn, &mut stmts, i)?;
+        nwr::batch_exec(conn, &mut stmts, i)?;
 
         let record = result?;
         let name: String = record[0].trim().parse()?;
@@ -347,7 +347,7 @@ fn insert_size(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Resu
     }
 
     // Records may be left in stmts
-    nwr::batch_exec(&conn, &mut stmts, usize::MAX)?;
+    nwr::batch_exec(conn, &mut stmts, usize::MAX)?;
 
     Ok(())
 }
@@ -360,7 +360,7 @@ fn insert_clust(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Res
 
     let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
     for (i, result) in tsv_rdr.records().enumerate() {
-        nwr::batch_exec(&conn, &mut stmts, i)?;
+        nwr::batch_exec(conn, &mut stmts, i)?;
 
         let record = result?;
         let rep: String = record[0].trim().parse()?;
@@ -387,7 +387,7 @@ fn insert_clust(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Res
     }
 
     // Records may be left in stmts
-    nwr::batch_exec(&conn, &mut stmts, usize::MAX)?;
+    nwr::batch_exec(conn, &mut stmts, usize::MAX)?;
 
     Ok(())
 }
@@ -400,7 +400,7 @@ fn insert_anno(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Resu
 
     let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
     for (i, result) in tsv_rdr.records().enumerate() {
-        nwr::batch_exec(&conn, &mut stmts, i)?;
+        nwr::batch_exec(conn, &mut stmts, i)?;
 
         let record = result?;
         let name: String = record[0].trim().parse()?;
@@ -417,7 +417,7 @@ fn insert_anno(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Resu
     }
 
     // Records may be left in stmts
-    nwr::batch_exec(&conn, &mut stmts, usize::MAX)?;
+    nwr::batch_exec(conn, &mut stmts, usize::MAX)?;
 
     Ok(())
 }
@@ -433,7 +433,7 @@ fn insert_asmseq(
 
     let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
     for (i, result) in tsv_rdr.records().enumerate() {
-        nwr::batch_exec(&conn, &mut stmts, i)?;
+        nwr::batch_exec(conn, &mut stmts, i)?;
 
         let record = result?;
 
@@ -454,7 +454,7 @@ fn insert_asmseq(
     }
 
     // Records may be left in stmts
-    nwr::batch_exec(&conn, &mut stmts, usize::MAX)?;
+    nwr::batch_exec(conn, &mut stmts, usize::MAX)?;
 
     Ok(())
 }
@@ -480,7 +480,7 @@ fn insert_rep(
 
     let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
     for (i, result) in tsv_rdr.records().enumerate() {
-        nwr::batch_exec(&conn, &mut stmts, i)?;
+        nwr::batch_exec(conn, &mut stmts, i)?;
 
         let record = result?;
         let family: String = record[0].trim().parse()?;
@@ -496,7 +496,7 @@ fn insert_rep(
         ));
     }
     // Records may be left in stmts
-    nwr::batch_exec(&conn, &mut stmts, usize::MAX)?;
+    nwr::batch_exec(conn, &mut stmts, usize::MAX)?;
 
     Ok(())
 }

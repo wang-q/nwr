@@ -99,8 +99,7 @@ Subcommand groups:
         Some(("kb", sub_matches)) => cmd_nwr::kb::execute(sub_matches),
         Some(("seqdb", sub_matches)) => cmd_nwr::seqdb::execute(sub_matches),
         _ => unreachable!(),
-    }
-    .unwrap();
+    }?;
 
     Ok(())
 }
