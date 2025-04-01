@@ -4,8 +4,6 @@
 
 ## 0.8.2 - 2025-04-01
 
-## 0.8.1 - 2025-04-01
-
 * Add `nwr seqdb`
 * Reorganize commands into groups
     * `nwr data` - Labels, statistics and distances
