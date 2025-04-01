@@ -5,32 +5,31 @@ on:
     tags:
       - '*'
 
+# We need this to be able to create releases.
+permissions:
+  contents: write
+
 jobs:
   linux-gnu:
     runs-on: ubuntu-latest
-    # Use a container with GLIBC 2.17
-    # container: quay.io/pypa/manylinux2014_x86_64
     steps:
-      - name: Show GLIBC
-        run: ldd --version
-
-      - name: Checkout sources
-        uses: actions/checkout@v2
-
-      - name: Install stable toolchain
-        uses: actions-rs/toolchain@v1
+      - uses: hecrj/setup-rust-action@v1
         with:
-          profile: minimal
-          toolchain: stable
-          override: true
-
+          rust-version: stable
+          targets: x86_64-unknown-linux-musl
+      - uses: goto-bus-stop/setup-zig@v2
+      - name: Install cargo-zigbuild
+        run: cargo install cargo-zigbuild
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Build
-        run: cargo build --verbose --release
+        run: cargo zigbuild --verbose --release --target x86_64-unknown-linux-gnu.2.17
       - name: Create tarball
-        run: tar cvfz nwr.tar.gz target/release/nwr
+        run: tar cvfz nwr.tar.gz target/x86_64-unknown-linux-musl/release/nwr
         shell: bash
       - name: Upload binaries to releases
-        uses: svenstaro/upload-release-action@v1-release
+        uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: nwr.tar.gz
@@ -51,7 +50,7 @@ jobs:
         run: tar cvfz nwr.tar.gz target/release/nwr
         shell: bash
       - name: Upload binaries to releases
-        uses: svenstaro/upload-release-action@v1-release
+        uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: nwr.tar.gz
@@ -75,7 +74,7 @@ jobs:
         run: Compress-Archive -DestinationPath ./nwr.zip -Path ./target/release/nwr.exe
         shell: powershell
       - name: Upload binaries to releases
-        uses: svenstaro/upload-release-action@v1-release
+        uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: nwr.zip

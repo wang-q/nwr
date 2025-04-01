@@ -25,8 +25,8 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::seqdb::make_subcommand())
         .subcommand(cmd_nwr::data::make_subcommand())
         .subcommand(cmd_nwr::ops::make_subcommand())
-        .subcommand(cmd_nwr::pl_condense::make_subcommand())
         .subcommand(cmd_nwr::viz::make_subcommand())
+        .subcommand(cmd_nwr::pl_condense::make_subcommand())
         .after_help(
             r###"
 Subcommand groups:
@@ -38,18 +38,16 @@ Subcommand groups:
     * info / lineage / member / append / restrict / common
 
 * Assembly
-    * template
-    * kb
-    * seqdb
+    * template / kb / seqdb
 
 * Newick
     * data
         * label / stat / distance
     * ops (operation)
         * order / rename / replace / topo / subtree / prune / reroot
-        * pl-condense
     * viz (visualization)
         * indent / comment / tex
+    * pl-condense
 
 "###,
         );
@@ -75,9 +73,10 @@ Subcommand groups:
         Some(("data", sub_matches)) => cmd_nwr::data::execute(sub_matches),
         // Newick operation
         Some(("ops", sub_matches)) => cmd_nwr::ops::execute(sub_matches),
-        Some(("pl-condense", sub_matches)) => cmd_nwr::pl_condense::execute(sub_matches),
         // Newick visualization
         Some(("viz", sub_matches)) => cmd_nwr::viz::execute(sub_matches),
+        // Pipeline
+        Some(("pl-condense", sub_matches)) => cmd_nwr::pl_condense::execute(sub_matches),
         _ => unreachable!(),
     }?;
 
