@@ -1,6 +1,6 @@
 use clap::*;
 use itertools::Itertools;
-use log::{debug, info};
+use log::info;
 use simplelog::*;
 use std::path::PathBuf;
 

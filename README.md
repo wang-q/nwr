@@ -38,7 +38,8 @@ ll $CARGO_TARGET_DIR/x86_64-unknown-linux-gnu/release/
 
 ## `nwr help`
 
-```text
+```console
+$ nwr help
 `nwr` is a command line tool for working with NCBI taxonomy, Newick files and assembly reports
 
 Usage: nwr [COMMAND]
@@ -88,6 +89,55 @@ Subcommand groups:
         * pl-condense
     * viz (visualization)
         * indent / comment / tex
+
+$ nwr data help
+Newick data commands
+
+Usage: nwr data <COMMAND>
+
+Commands:
+  label     Labels in the Newick file
+  stat      Statistics about the Newick file
+  distance  Output a TSV/phylip file with distances between all named nodes
+  help      Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help     Print help
+  -V, --version  Print version
+
+$ nwr ops help
+Newick operation commands
+
+Usage: nwr ops <COMMAND>
+
+Commands:
+  order    Order nodes in a Newick file
+  rename   Rename named/unnamed nodes in a Newick file
+  replace  Replace node names/comments in a Newick file
+  subtree  Extract a subtree
+  topo     Topological information of the Newick file
+  prune    Remove nodes from the Newick file
+  reroot   Place the root in the middle of the desired node and its parent
+  help     Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help     Print help
+  -V, --version  Print version
+
+$ nwr viz help
+Newick visualization commands
+
+Usage: nwr viz <COMMAND>
+
+Commands:
+  indent   Indent the Newick file
+  comment  Add comments to node(s) in a Newick file
+  tex      Visualize the Newick tree via LaTeX
+  help     Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help     Print help
+  -V, --version  Print version
 
 ```
 
@@ -240,6 +290,8 @@ nwr data distance -m phylip tests/newick/catarrhini.nwk
 ```shell
 echo "((A,B),C);" | nwr ops order --ndr stdin
 nwr ops order --nd tests/newick/hg38.7way.nwk
+
+nwr ops order --list tests/newick/abcde.list tests/newick/abcde.nwk
 
 nwr ops rename tests/newick/abc.nwk -n C -r F -l A,B -r D
 
