@@ -10,6 +10,12 @@ pub fn make_subcommand() -> Command {
 * Sort the children of each node without changing the topology
 
 * `--an` and `--nd` can be enabled at the same time, sorted first by `--an` and then by `--nd`
+* `--list` will be processed before `--an` and `--nd`
+
+* Sort orders:
+    * `--list`: By a list of names in the file, one name per line
+    * `--an/--anr`: By alphanumeric order of labels
+    * `--nd/--ndr`: By number of descendants
 
 "###,
         )
@@ -26,6 +32,12 @@ pub fn make_subcommand() -> Command {
         .arg(arg!(--an  "By alphanumeric order of labels"))
         .arg(arg!(--anr "By alphanumeric order of labels, reversely"))
         .group(ArgGroup::new("alphanumeric").args(["an", "anr"]))
+        .arg(
+            Arg::new("list")
+                .long("list")
+                .num_args(1)
+                .help("Order by a list of names in the file"),
+        )
         .arg(
             Arg::new("outfile")
                 .short('o')
@@ -52,6 +64,11 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let infile = args.get_one::<String>("infile").unwrap();
     let mut tree = nwr::read_newick(infile);
 
+    if args.contains_id("list") {
+        let list_file = args.get_one::<String>("list").unwrap();
+        let names: Vec<String> = intspan::read_first_column(list_file);
+        nwr::order_tree_list(&mut tree, &names);
+    }
     if !opt_an.is_empty() {
         nwr::order_tree_an(&mut tree, opt_an);
     }

@@ -102,6 +102,57 @@ pub fn order_tree_nd(tree: &mut Tree, opt: &str) {
     }
 }
 
+/// Sort the children of each node by a list of names
+///
+/// ```
+/// use phylotree::tree::Tree;
+///
+/// let newick = "(A,B,C);";
+/// let mut tree = Tree::from_newick(newick).unwrap();
+/// nwr::order_tree_list(&mut tree, &["C".to_string(), "B".to_string(), "A".to_string()]);
+/// assert_eq!(tree.to_newick().unwrap(), "(C,B,A);".to_string());
+/// ```
+pub fn order_tree_list(tree: &mut Tree, opt: &[String]) {
+    let root = tree.get_root().unwrap();
+    let ids = tree.levelorder(&root).unwrap().to_vec();
+
+    // Create a mapping from name to position
+    let mut pos_of: HashMap<String, usize> = HashMap::new();
+    for (idx, name) in opt.iter().enumerate() {
+        pos_of.insert(name.clone(), idx);
+    }
+
+    // Create a mapping from node ID to sort position
+    let mut order_of: HashMap<NodeId, usize> = HashMap::new();
+    for id in &ids {
+        let node = tree.get(id).unwrap();
+        let name = &node.name;
+        if let Some(name) = name {
+            if let Some(&pos) = pos_of.get(name) {
+                order_of.insert(*id, pos);
+            } else {
+                order_of.insert(*id, opt.len()); // Put names not in list at the end
+            }
+        } else {
+            order_of.insert(*id, opt.len()); // Put unnamed nodes at the end
+        }
+    }
+
+    // Sort children of each node
+    for id in &ids {
+        let node = tree.get_mut(id).unwrap();
+        let children = &mut node.children;
+        if !children.is_empty() {
+            children.sort_by(|a, b| {
+                order_of
+                    .get(a)
+                    .unwrap_or(&usize::MAX)
+                    .cmp(order_of.get(b).unwrap_or(&usize::MAX))
+            });
+        }
+    }
+}
+
 /// Get node names
 ///
 /// ```

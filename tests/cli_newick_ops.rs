@@ -63,6 +63,23 @@ fn command_order() -> anyhow::Result<()> {
 }
 
 #[test]
+fn command_order_list() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("ops")
+        .arg("order")
+        .arg("tests/newick/abcde.nwk")
+        .arg("--list")
+        .arg("tests/newick/abcde.list")
+        .output()?;
+    let stdout = String::from_utf8(output.stdout)?;
+
+    assert!(stdout.contains("(C:1,(B:1,A:1)D:1)E;"));
+
+    Ok(())
+}
+
+#[test]
 fn command_rename() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
