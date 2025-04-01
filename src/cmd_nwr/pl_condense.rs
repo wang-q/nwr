@@ -118,25 +118,25 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     run_cmd!(info "==> Start")?;
     run_cmd!(
-        ${nwr} indent ${abs_infile} -o start.nwk
+        ${nwr} viz indent ${abs_infile} -o start.nwk
     )?;
 
     run_cmd!(info "==> Labels in the file")?;
     run_cmd!(
-        ${nwr} label start.nwk -o labels.lst
+        ${nwr} data label start.nwk -o labels.lst
     )?;
 
     if abs_replace == *"dup" {
         run_cmd!(info "==> Create replace.tsv from leaf labels")?;
         run_cmd!(
-            ${nwr} label start.nwk -I -c dup -o replace.tsv
+            ${nwr} data label start.nwk -I -c dup -o replace.tsv
         )?;
         abs_replace = "replace.tsv".to_string();
     }
 
     run_cmd!(info "==> Add taxonomy info to the tree")?;
     run_cmd!(
-        ${nwr} replace --mode species -I start.nwk ${abs_replace} -o commented.nwk
+        ${nwr} ops replace --mode species -I start.nwk ${abs_replace} -o commented.nwk
     )?;
 
     run_cmd!(info "==> Build groups")?;
@@ -182,7 +182,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut condensed = vec![];
     for group in groups.iter() {
         let labels: Vec<String> = run_fun!(
-            ${nwr} label ${cur_tree} -t ${group} --mode species -M
+            ${nwr} data label ${cur_tree} -t ${group} --mode species -M
         )
         .unwrap()
         .split('\n')
@@ -201,7 +201,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             .for_each(|e| condensed.push(format!("{}\t{}", e, new_label)));
 
         run_cmd!(
-            ${nwr} subtree ${cur_tree} -t ${group} --mode species -M -c ${new_label} -o condense.${group}.nwk
+            ${nwr} ops subtree ${cur_tree} -t ${group} --mode species -M -c ${new_label} -o condense.${group}.nwk
         )?;
 
         cur_tree = format!("condense.{}.nwk", group);

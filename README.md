@@ -248,35 +248,35 @@ nwr data distance -m phylip tests/newick/catarrhini.nwk
 #### Manipulation of the tree
 
 ```shell
-echo "((A,B),C);" | nwr order --ndr stdin
-nwr order --nd tests/newick/hg38.7way.nwk
+echo "((A,B),C);" | nwr ops order --ndr stdin
+nwr ops order --nd tests/newick/hg38.7way.nwk
 
-nwr rename tests/newick/abc.nwk -n C -r F -l A,B -r D
+nwr ops rename tests/newick/abc.nwk -n C -r F -l A,B -r D
 
-nwr replace tests/newick/abc.nwk tests/newick/abc.replace.tsv
-nwr replace tests/newick/abc.nwk tests/newick/abc3.replace.tsv
+nwr ops replace tests/newick/abc.nwk tests/newick/abc.replace.tsv
+nwr ops replace tests/newick/abc.nwk tests/newick/abc3.replace.tsv
 
-nwr topo tests/newick/catarrhini.nwk
+nwr ops topo tests/newick/catarrhini.nwk
 
 # The behavior is very similar to `nwr label`, but outputs a subtree instead of labels
-nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -M
+nwr ops subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -M
 
 # Condense the subtree to a node
-nwr subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -M -c Primates
+nwr ops subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -M -c Primates
 
-nwr subtree tests/newick/catarrhini.nwk -t Hominidae
+nwr ops subtree tests/newick/catarrhini.nwk -t Hominidae
 
-nwr prune tests/newick/catarrhini.nwk -n Homo -n Pan
+nwr ops prune tests/newick/catarrhini.nwk -n Homo -n Pan
 
 echo "((A:1,B:1)D:1,C:1)E;" |
-    nwr reroot stdin -n B
-nwr reroot tests/newick/catarrhini_wrong.nwk -n Cebus
+    nwr ops reroot stdin -n B
+nwr ops reroot tests/newick/catarrhini_wrong.nwk -n Cebus
 
-nwr reroot tests/newick/bs.nw -n C
+nwr ops reroot tests/newick/bs.nw -n C
 
-nwr tex tests/newick/bs.nw | tectonic -
+nwr viz tex tests/newick/bs.nw | tectonic -
 mv texput.pdf bs.pdf
-nwr reroot tests/newick/bs.nw -n C | nwr tex stdin | tectonic -
+nwr ops reroot tests/newick/bs.nw -n C | nwr viz tex stdin | tectonic -
 mv texput.pdf bs.reroot.pdf
 
 cargo run --bin nwr pl-condense tests/newick/catarrhini.nwk -r family

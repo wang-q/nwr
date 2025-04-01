@@ -143,7 +143,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     }
 
     for (k, v) in &rename_of {
-        let node = tree.get_mut(k).unwrap();
+        let node = tree.get_mut(k)?;
         node.set_name(v.to_string());
     }
 
