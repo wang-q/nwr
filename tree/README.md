@@ -24,7 +24,7 @@ cat <<'EOF' > newick/example.nwk
 (Ctenophora,(Porifera,(Placozoa,(Bilateria,Cnidaria))))Animalia;
 EOF
 
-nwr indent --text '.   ' newick/example.nwk
+nwr viz indent --text '.   ' newick/example.nwk
 
 ```
 
@@ -51,14 +51,14 @@ nwr indent --text '.   ' newick/example.nwk
 
 ```shell
 cat newick/example.nwk |
-    nwr comment stdin --node Ctenophora --comment 192  |
-    nwr comment stdin --node Porifera --color green --comment 8579 |
-    nwr comment stdin --node Placozoa --comment 1 |
-    nwr comment stdin --node Cnidaria --comment 13138 |
-    nwr comment stdin --lca Bilateria,Cnidaria --label Planulozoa --dot red --rec LemonChiffon |
-    nwr comment stdin --lca Bilateria,Placozoa --label Parahoxozoa --color green --dot red |
-    nwr comment stdin --lca Bilateria,Porifera --label NOTE --bar purple |
-    nwr indent stdin |
+    nwr viz comment stdin --node Ctenophora --comment 192  |
+    nwr viz comment stdin --node Porifera --color green --comment 8579 |
+    nwr viz comment stdin --node Placozoa --comment 1 |
+    nwr viz comment stdin --node Cnidaria --comment 13138 |
+    nwr viz comment stdin --lca Bilateria,Cnidaria --label Planulozoa --dot red --rec LemonChiffon |
+    nwr viz comment stdin --lca Bilateria,Placozoa --label Parahoxozoa --color green --dot red |
+    nwr viz comment stdin --lca Bilateria,Porifera --label NOTE --bar purple |
+    nwr viz indent stdin |
     tee newick/example.comment.nwk
 #(
 #  Ctenophora[comment=192],
@@ -79,7 +79,7 @@ cat newick/example.nwk |
 * Newick file is converted to `forest` codes
 
 ```shell
-nwr tex newick/example.comment.nwk --bare
+nwr viz tex newick/example.comment.nwk --bare
 #[, dot, label={Animalia}, tier=4,
 #  [{Ctenophora}, comment={192}, tier=0,]
 #  [, bar={purple}, label={NOTE}, tier=3,
@@ -100,7 +100,7 @@ nwr tex newick/example.comment.nwk --bare
     * Edit the .tex file as you wish
 
 ```shell
-nwr tex newick/example.comment.nwk -s -o tex/example.tex
+nwr viz tex newick/example.comment.nwk -s -o tex/example.tex
 
 tectonic tex/example.tex --outdir pdf
 
@@ -115,10 +115,10 @@ curl -L https://hgdownload.cse.ucsc.edu/goldenpath/hg38/multiz30way/hg38.30way.s
     > newick/hg38.30way.nwk
 
 cat newick/hg38.30way.nwk |
-    nwr comment stdin --lca Homo_sapiens,Nomascus_leucogenys --label Hominoidea --dot --rec LemonChiffon |
-    nwr comment stdin --lca Macaca_mulatta,Rhinopithecus_roxellana --label Cercopithecidae  --dot --rec TeaRose |
-    nwr comment stdin --lca Callithrix_jacchus,Aotus_nancymaae --label Cebidae --dot --rec Celadon |
-    nwr tex stdin --bl -s -o tex/hg38.30way.tex
+    nwr viz comment stdin --lca Homo_sapiens,Nomascus_leucogenys --label Hominoidea --dot --rec LemonChiffon |
+    nwr viz comment stdin --lca Macaca_mulatta,Rhinopithecus_roxellana --label Cercopithecidae  --dot --rec TeaRose |
+    nwr viz comment stdin --lca Callithrix_jacchus,Aotus_nancymaae --label Cebidae --dot --rec Celadon |
+    nwr viz tex stdin --bl -s -o tex/hg38.30way.tex
 
 tectonic tex/hg38.30way.tex --outdir pdf
 
@@ -130,10 +130,10 @@ Create `Opisthokonta.nwk` manually
 
 ```shell
 cat newick/Opisthokonta.nwk |
-    nwr comment stdin -n Fungi -n Metazoa --color red |
-    nwr comment stdin -n Holomycota --rec TeaRose |
-    nwr comment stdin -n Choanozoa --rec ElectricBlue |
-    nwr tex stdin -s -o tex/Opisthokonta.tex
+    nwr viz comment stdin -n Fungi -n Metazoa --color red |
+    nwr viz comment stdin -n Holomycota --rec TeaRose |
+    nwr viz comment stdin -n Choanozoa --rec ElectricBlue |
+    nwr viz tex stdin -s -o tex/Opisthokonta.tex
 
 tectonic tex/Opisthokonta.tex --outdir pdf
 
@@ -146,7 +146,7 @@ tectonic tex/Opisthokonta.tex --outdir pdf
 ```shell
 cd ~/Scripts/nwr/tree/
 
-nwr common \
+nwr viz common \
     "Cyanobacteria" \
     "Euglenida" \
     "Kinetoplastea" \
@@ -162,7 +162,7 @@ nwr common \
     "Phaeophyceae" |
     sed 's/cellular organisms//g' |
     sed 's/\broot\b//g' |
-    nwr tex stdin -s -o tex/Algae.tex
+    nwr viz tex stdin -s -o tex/Algae.tex
 
 tectonic tex/Algae.tex --outdir pdf
 
@@ -173,7 +173,7 @@ tectonic tex/Algae.tex --outdir pdf
 ```shell
 cd ~/Scripts/nwr/tree/
 
-nwr common \
+nwr viz common \
     "Anthocerotophyta" \
     "Bryophyta" \
     "Marchantiophyta" \
@@ -201,7 +201,7 @@ nwr common \
     "asterids" \
     "rosids" |
     sed 's/\broot\b//g' |
-    nwr tex stdin -s -o tex/Plants.tex
+    nwr viz tex stdin -s -o tex/Plants.tex
 
 tectonic tex/Plants.tex --outdir pdf
 
@@ -213,7 +213,7 @@ tectonic tex/Plants.tex --outdir pdf
 
 ```shell
 # animals-simple
-nwr tex forest/animals-simple.forest --forest -s -o tex/animals-simple.tex
+nwr viz tex forest/animals-simple.forest --forest -s -o tex/animals-simple.tex
 
 tectonic tex/animals-simple.tex --outdir pdf
 
@@ -229,7 +229,7 @@ tectonic tex/animals-simple.trans.tex --outdir pdf
 ### chordates
 
 ```shell
-nwr tex forest/chordates.forest --forest -s -o tex/chordates.tex
+nwr viz tex forest/chordates.forest --forest -s -o tex/chordates.tex
 
 cat tex/chordates.tex |
     sed -f translation.sed \
@@ -242,7 +242,7 @@ tectonic tex/chordates.trans.tex --outdir pdf
 ### Vertebrate
 
 ```shell
-nwr tex forest/Vertebrate.forest --forest -s -o tex/Vertebrate.tex
+nwr viz tex forest/Vertebrate.forest --forest -s -o tex/Vertebrate.tex
 
 tectonic tex/Vertebrate.tex --outdir pdf
 
@@ -253,8 +253,8 @@ tectonic tex/Vertebrate.tex --outdir pdf
 ```shell
 iqtree2 -s seqs/vet.fa -st MORPH -m MK -b 100
 
-nwr reroot seqs/vet.fa.contree -n Lamprey |
-    nwr tex stdin -s |
+nwr viz reroot seqs/vet.fa.contree -n Lamprey |
+    nwr viz tex stdin -s |
     tectonic - --outdir pdf
 
 mv pdf/texput.pdf pdf/vet.fa.pdf

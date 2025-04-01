@@ -44,32 +44,22 @@ ll $CARGO_TARGET_DIR/x86_64-unknown-linux-gnu/release/
 Usage: nwr [COMMAND]
 
 Commands:
-  append       Append fields of higher ranks to a TSV file
-  ardb         Init the assembly database
-  comment      Add comments to node(s) in a Newick file
-  common       Output the common tree of terms
-  distance     Output a TSV/phylip file with distances between all named nodes
   download     Download the latest releases of `taxdump` and assembly reports
-  indent       Indent the Newick file
+  txdb         Init the taxonomy database
+  ardb         Init the assembly database
+  append       Append fields of higher ranks to a TSV file
+  common       Output the common tree of terms
   info         Information of Taxonomy ID(s) or scientific name(s)
   kb           Prints docs (knowledge bases)
-  label        Labels in the Newick file
   lineage      Output the lineage of the term
   member       List members (of certain ranks) under ancestral term(s)
-  order        Order nodes in a Newick file
   pl-condense  Pipeline - condense subtrees based on taxonomy
-  prune        Remove nodes from the Newick file
-  rename       Rename named/unnamed nodes in a Newick file
-  replace      Replace node names/comments in a Newick file
-  reroot       Place the root in the middle of the desired node and its parent
   restrict     Restrict taxonomy terms to ancestral descendants
   seqdb        Init the seq database
-  subtree      Extract a subtree
-  stat         Statistics about the Newick file
   template     Create dirs, data and scripts for a phylogenomic research
-  tex          Visualize the Newick tree via LaTeX
-  topo         Topological information of the Newick file
-  txdb         Init the taxonomy database
+  data         Newick data commands
+  ops          Newick operation commands
+  viz          Newick visualization commands
   help         Print this message or the help of the given subcommand(s)
 
 Options:
@@ -85,19 +75,19 @@ Subcommand groups:
 * Taxonomy
     * info / lineage / member / append / restrict / common
 
-* Newick
-    * Information
-        * label / stat / distance
-    * Manipulation
-        * order / rename / replace / topo / subtree / prune / reroot
-        * pl-condense
-    * Visualization
-        * indent / comment / tex
-
 * Assembly
     * template
     * kb
     * seqdb
+
+* Newick
+    * data
+        * label / stat / distance
+    * ops (operation)
+        * order / rename / replace / topo / subtree / prune / reroot
+        * pl-condense
+    * viz (visualization)
+        * indent / comment / tex
 
 ```
 
@@ -128,7 +118,7 @@ nwr append tests/nwr/taxon.tsv -c 2 -r species -r family --id
 nwr ardb
 nwr ardb --genbank
 
-nwr common "Escherichia coli" 4932 Drosophila_melanogaster 9606 "Mus musculus"
+nwr common "Escherichia coli" 4932 Drosophila_melanogaster 9606 Mus_musculus
 
 # rm ~/.nwr/*.dmp
 
@@ -213,7 +203,7 @@ echo "
 
 For more detailed usages, check [this file](tree/README.md).
 
-#### Get information from the tree
+#### Get data from the tree
 
 ```shell
 # List all names
@@ -245,7 +235,7 @@ nwr data distance -m phylip tests/newick/catarrhini.nwk
 
 ```
 
-#### Manipulation of the tree
+#### Operations of the tree
 
 ```shell
 echo "((A,B),C);" | nwr ops order --ndr stdin
