@@ -3,14 +3,17 @@
 ## Unreleased - ReleaseDate
 
 * Add `nwr seqdb`
+* Reorganize commands into groups
+    * `nwr data` - Labels, statistics and distances
+    * `nwr ops` - Tree operations
+    * `nwr viz` - Tree visualization
 
 * Tweak `nwr template` shell scripts
-
 * Avoid last `,` in tex
 * Add `tri` to `template.tex`
-
 * Add `abbr` to `nwr kb`
 * Add `--remove` to `nwr comment`
+* Add `--list` to `nwr ops order`
 
 ## 0.7.5 - 2024-09-20
 
