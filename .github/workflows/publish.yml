@@ -5,8 +5,11 @@ permissions:
 
 on:
   push:
+    paths:
+      - '.github/workflows/publish.yml'
     tags:
       - v[0-9]+.*
+  workflow_dispatch:
 
 env:
   CARGO_INCREMENTAL: 0
@@ -22,7 +25,6 @@ defaults:
 
 jobs:
   create-release:
-    if: github.repository_owner == 'wang-q'
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v3
@@ -45,7 +47,6 @@ jobs:
 
   upload-assets:
     name: ${{ matrix.target }}
-    if: github.repository_owner == 'wang-q'
     needs:
       - create-release
     strategy:
