@@ -35,6 +35,7 @@ pub fn make_subcommand() -> Command {
         .arg(
             Arg::new("list")
                 .long("list")
+                .short('l')
                 .num_args(1)
                 .help("Order by a list of names in the file"),
         )
