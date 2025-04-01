@@ -18,8 +18,6 @@ Current release: 0.7.7
 cargo install nwr
 
 # or
-brew install wang-q/tap/nwr
-
 cargo install --path . --force # --offline
 
 # Concurrent tests may trigger sqlite locking
@@ -288,26 +286,26 @@ cargo run --bin nwr pl-condense tests/newick/catarrhini.nwk -r family
 #### Visualization of the tree
 
 ```shell
-nwr indent tests/newick/hg38.7way.nwk --text ".   "
+nwr viz indent tests/newick/hg38.7way.nwk --text ".   "
 
 echo "((A,B),C);" |
-    nwr comment stdin -n A -n C --color green |
-    nwr comment stdin -l A,B --dot
+    nwr viz comment stdin -n A -n C --color green |
+    nwr viz comment stdin -l A,B --dot
 
 tectonic doc/template.tex
 
 echo "((A[color=green],B)[dot=black],C[color=green]);" |
-    cargo run --bin nwr comment stdin -r "color="
+    cargo run --bin nwr viz comment stdin -r "color="
 
-nwr tex tests/newick/catarrhini.nwk -o output.tex
+nwr viz tex tests/newick/catarrhini.nwk -o output.tex
 tectonic output.tex
 
-nwr tex --bl tests/newick/hg38.7way.nwk
+nwr viz tex --bl tests/newick/hg38.7way.nwk
 
-nwr tex --forest --bare tests/newick/test.forest
+nwr viz tex --forest --bare tests/newick/test.forest
 
-nwr common "Escherichia coli" 4932 Drosophila_melanogaster 9606 "Mus musculus" |
-    nwr tex --bare stdin
+nwr viz common "Escherichia coli" 4932 Drosophila_melanogaster 9606 "Mus musculus" |
+    nwr viz tex --bare stdin
 
 ```
 

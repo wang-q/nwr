@@ -120,7 +120,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     if is_bare {
         writer.write_all((out_string + "\n").as_ref())?;
     } else {
-        static FILE_TEMPLATE: &str = include_str!("../../doc/template.tex");
+        static FILE_TEMPLATE: &str = include_str!("../../../doc/template.tex");
         let mut template = FILE_TEMPLATE.to_string();
 
         {

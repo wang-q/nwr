@@ -1,7 +1,7 @@
 extern crate clap;
 use clap::*;
 
-mod cmd_nwr;
+pub mod cmd_nwr;
 
 fn main() -> anyhow::Result<()> {
     let app = Command::new("nwr")
@@ -11,13 +11,12 @@ fn main() -> anyhow::Result<()> {
         .propagate_version(true)
         .arg_required_else_help(true)
         .color(ColorChoice::Auto)
-        .subcommand(cmd_nwr::append::make_subcommand())
+        .subcommand(cmd_nwr::download::make_subcommand())
+        .subcommand(cmd_nwr::txdb::make_subcommand())
         .subcommand(cmd_nwr::ardb::make_subcommand())
-        .subcommand(cmd_nwr::comment::make_subcommand())
+        .subcommand(cmd_nwr::append::make_subcommand())
         .subcommand(cmd_nwr::common::make_subcommand())
         .subcommand(cmd_nwr::distance::make_subcommand())
-        .subcommand(cmd_nwr::download::make_subcommand())
-        .subcommand(cmd_nwr::indent::make_subcommand())
         .subcommand(cmd_nwr::info::make_subcommand())
         .subcommand(cmd_nwr::kb::make_subcommand())
         .subcommand(cmd_nwr::label::make_subcommand())
@@ -34,9 +33,8 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::subtree::make_subcommand())
         .subcommand(cmd_nwr::stat::make_subcommand())
         .subcommand(cmd_nwr::template::make_subcommand())
-        .subcommand(cmd_nwr::tex::make_subcommand())
         .subcommand(cmd_nwr::topo::make_subcommand())
-        .subcommand(cmd_nwr::txdb::make_subcommand())
+        .subcommand(cmd_nwr::viz::make_subcommand())
         .after_help(
             r###"
 Subcommand groups:
@@ -47,19 +45,19 @@ Subcommand groups:
 * Taxonomy
     * info / lineage / member / append / restrict / common
 
-* Newick
-    * Information
-        * label / stat / distance
-    * Manipulation
-        * order / rename / replace / topo / subtree / prune / reroot
-        * pl-condense
-    * Visualization
-        * indent / comment / tex
-
 * Assembly
     * template
     * kb
     * seqdb
+
+* Newick
+    * data
+        * label / stat / distance
+    * mod (Modification)
+        * order / rename / replace / topo / subtree / prune / reroot
+        * pl-condense
+    * viz (Visualization)
+        * indent / comment / tex
 
 "###,
         );
@@ -91,9 +89,7 @@ Subcommand groups:
         Some(("reroot", sub_matches)) => cmd_nwr::reroot::execute(sub_matches),
         Some(("pl-condense", sub_matches)) => cmd_nwr::pl_condense::execute(sub_matches),
         // Newick Visualization
-        Some(("indent", sub_matches)) => cmd_nwr::indent::execute(sub_matches),
-        Some(("comment", sub_matches)) => cmd_nwr::comment::execute(sub_matches),
-        Some(("tex", sub_matches)) => cmd_nwr::tex::execute(sub_matches),
+        Some(("viz", sub_matches)) => cmd_nwr::viz::execute(sub_matches),
         // Assembly
         Some(("template", sub_matches)) => cmd_nwr::template::execute(sub_matches),
         Some(("kb", sub_matches)) => cmd_nwr::kb::execute(sub_matches),
