@@ -14,18 +14,18 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::download::make_subcommand())
         .subcommand(cmd_nwr::txdb::make_subcommand())
         .subcommand(cmd_nwr::ardb::make_subcommand())
-        .subcommand(cmd_nwr::append::make_subcommand())
-        .subcommand(cmd_nwr::common::make_subcommand())
         .subcommand(cmd_nwr::info::make_subcommand())
-        .subcommand(cmd_nwr::kb::make_subcommand())
         .subcommand(cmd_nwr::lineage::make_subcommand())
         .subcommand(cmd_nwr::member::make_subcommand())
-        .subcommand(cmd_nwr::pl_condense::make_subcommand())
+        .subcommand(cmd_nwr::append::make_subcommand())
         .subcommand(cmd_nwr::restrict::make_subcommand())
-        .subcommand(cmd_nwr::seqdb::make_subcommand())
+        .subcommand(cmd_nwr::common::make_subcommand())
         .subcommand(cmd_nwr::template::make_subcommand())
+        .subcommand(cmd_nwr::kb::make_subcommand())
+        .subcommand(cmd_nwr::seqdb::make_subcommand())
         .subcommand(cmd_nwr::data::make_subcommand())
         .subcommand(cmd_nwr::ops::make_subcommand())
+        .subcommand(cmd_nwr::pl_condense::make_subcommand())
         .subcommand(cmd_nwr::viz::make_subcommand())
         .after_help(
             r###"
@@ -67,6 +67,10 @@ Subcommand groups:
         Some(("append", sub_matches)) => cmd_nwr::append::execute(sub_matches),
         Some(("restrict", sub_matches)) => cmd_nwr::restrict::execute(sub_matches),
         Some(("common", sub_matches)) => cmd_nwr::common::execute(sub_matches),
+        // Assembly
+        Some(("template", sub_matches)) => cmd_nwr::template::execute(sub_matches),
+        Some(("kb", sub_matches)) => cmd_nwr::kb::execute(sub_matches),
+        Some(("seqdb", sub_matches)) => cmd_nwr::seqdb::execute(sub_matches),
         // Newick data
         Some(("data", sub_matches)) => cmd_nwr::data::execute(sub_matches),
         // Newick operation
@@ -74,10 +78,6 @@ Subcommand groups:
         Some(("pl-condense", sub_matches)) => cmd_nwr::pl_condense::execute(sub_matches),
         // Newick visualization
         Some(("viz", sub_matches)) => cmd_nwr::viz::execute(sub_matches),
-        // Assembly
-        Some(("template", sub_matches)) => cmd_nwr::template::execute(sub_matches),
-        Some(("kb", sub_matches)) => cmd_nwr::kb::execute(sub_matches),
-        Some(("seqdb", sub_matches)) => cmd_nwr::seqdb::execute(sub_matches),
         _ => unreachable!(),
     }?;
 
