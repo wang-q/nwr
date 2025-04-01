@@ -1,7 +1,7 @@
 use clap::*;
 
-pub mod indent;
 pub mod comment;
+pub mod indent;
 pub mod tex;
 
 /// Create clap subcommand arguments

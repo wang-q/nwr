@@ -217,31 +217,31 @@ For more detailed usages, check [this file](tree/README.md).
 
 ```shell
 # List all names
-nwr label tests/newick/hg38.7way.nwk
+nwr data label tests/newick/hg38.7way.nwk
 
 # The intersection between the nodes in the tree and the provided
-nwr label tests/newick/hg38.7way.nwk -r "^ch" -n Mouse -n foo
-nwr label tests/newick/catarrhini.nwk -n Homo -n Pan -n Gorilla -M
+nwr data label tests/newick/hg38.7way.nwk -r "^ch" -n Mouse -n foo
+nwr data label tests/newick/catarrhini.nwk -n Homo -n Pan -n Gorilla -M
 # Is Pongo the sibling of Homininae?
-nwr label tests/newick/catarrhini.nwk -n Homininae -n Pongo -DM
+nwr data label tests/newick/catarrhini.nwk -n Homininae -n Pongo -DM
 # All leaves belong to Hominidae
-nwr label tests/newick/catarrhini.nwk -t Hominidae -I
+nwr data label tests/newick/catarrhini.nwk -t Hominidae -I
 
-nwr label tests/newick/catarrhini.nwk -c dup
-nwr label tests/newick/catarrhini.comment.nwk -c full
+nwr data label tests/newick/catarrhini.nwk -c dup
+nwr data label tests/newick/catarrhini.comment.nwk -c full
 
-nwr stat tests/newick/hg38.7way.nwk
+nwr data stat tests/newick/hg38.7way.nwk
 
 # Various distances
-nwr distance -m root -I tests/newick/catarrhini.nwk
-nwr distance -m parent -I tests/newick/catarrhini.nwk
-nwr distance -m pairwise -I tests/newick/catarrhini.nwk
-nwr distance -m lca -I tests/newick/catarrhini.nwk
+nwr data distance -m root -I tests/newick/catarrhini.nwk
+nwr data distance -m parent -I tests/newick/catarrhini.nwk
+nwr data distance -m pairwise -I tests/newick/catarrhini.nwk
+nwr data distance -m lca -I tests/newick/catarrhini.nwk
 
-nwr distance -m root -L tests/newick/catarrhini_topo.nwk
+nwr data distance -m root -L tests/newick/catarrhini_topo.nwk
 
 # Phylip distance matrix
-nwr distance -m phylip tests/newick/catarrhini.nwk
+nwr data distance -m phylip tests/newick/catarrhini.nwk
 
 ```
 

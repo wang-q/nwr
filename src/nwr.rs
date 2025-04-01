@@ -16,10 +16,8 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::ardb::make_subcommand())
         .subcommand(cmd_nwr::append::make_subcommand())
         .subcommand(cmd_nwr::common::make_subcommand())
-        .subcommand(cmd_nwr::distance::make_subcommand())
         .subcommand(cmd_nwr::info::make_subcommand())
         .subcommand(cmd_nwr::kb::make_subcommand())
-        .subcommand(cmd_nwr::label::make_subcommand())
         .subcommand(cmd_nwr::lineage::make_subcommand())
         .subcommand(cmd_nwr::member::make_subcommand())
         .subcommand(cmd_nwr::order::make_subcommand())
@@ -31,9 +29,9 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::restrict::make_subcommand())
         .subcommand(cmd_nwr::seqdb::make_subcommand())
         .subcommand(cmd_nwr::subtree::make_subcommand())
-        .subcommand(cmd_nwr::stat::make_subcommand())
         .subcommand(cmd_nwr::template::make_subcommand())
         .subcommand(cmd_nwr::topo::make_subcommand())
+        .subcommand(cmd_nwr::data::make_subcommand())
         .subcommand(cmd_nwr::viz::make_subcommand())
         .after_help(
             r###"
@@ -75,10 +73,6 @@ Subcommand groups:
         Some(("append", sub_matches)) => cmd_nwr::append::execute(sub_matches),
         Some(("restrict", sub_matches)) => cmd_nwr::restrict::execute(sub_matches),
         Some(("common", sub_matches)) => cmd_nwr::common::execute(sub_matches),
-        // Newick Information
-        Some(("label", sub_matches)) => cmd_nwr::label::execute(sub_matches),
-        Some(("stat", sub_matches)) => cmd_nwr::stat::execute(sub_matches),
-        Some(("distance", sub_matches)) => cmd_nwr::distance::execute(sub_matches),
         // Newick Manipulation
         Some(("order", sub_matches)) => cmd_nwr::order::execute(sub_matches),
         Some(("rename", sub_matches)) => cmd_nwr::rename::execute(sub_matches),
@@ -88,6 +82,8 @@ Subcommand groups:
         Some(("prune", sub_matches)) => cmd_nwr::prune::execute(sub_matches),
         Some(("reroot", sub_matches)) => cmd_nwr::reroot::execute(sub_matches),
         Some(("pl-condense", sub_matches)) => cmd_nwr::pl_condense::execute(sub_matches),
+        // Newick Information
+        Some(("data", sub_matches)) => cmd_nwr::data::execute(sub_matches),
         // Newick Visualization
         Some(("viz", sub_matches)) => cmd_nwr::viz::execute(sub_matches),
         // Assembly
