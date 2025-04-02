@@ -2,8 +2,6 @@
 
 ## Unreleased - ReleaseDate
 
-## 0.8.2 - 2025-04-01
-
 * Add `nwr seqdb`
 * Reorganize commands into groups
     * `nwr data` - Labels, statistics and distances
@@ -16,6 +14,12 @@
 * Add `abbr` to `nwr kb`
 * Add `--remove` to `nwr comment`
 * Add `--list` to `nwr ops order`
+    * Support ordering gene tree by species tree
+    * Add unit tests for tree operations
+
+* Optimize CI workflow
+    * Use `cargo-zigbuild` for Linux builds
+    * Target GLIBC 2.17
 
 ## 0.7.5 - 2024-09-20
 
