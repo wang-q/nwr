@@ -50,7 +50,9 @@ jobs:
           MACOSX_DEPLOYMENT_TARGET: 10.12
         run: cargo build --verbose --release
       - name: Create tarball
-        run: tar cvfz nwr.tar.gz --transform 's|.*/||' target/release/nwr
+        run: |
+          cd target/release
+          tar cvfz ../../nwr.tar.gz nwr
         shell: bash
       - name: Upload binaries to releases
         uses: svenstaro/upload-release-action@v2
