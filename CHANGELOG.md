@@ -2,6 +2,8 @@
 
 ## Unreleased - ReleaseDate
 
+## 0.8.3 - 2025-04-02
+
 * Add `nwr seqdb`
 * Reorganize commands into groups
     * `nwr data` - Labels, statistics and distances
