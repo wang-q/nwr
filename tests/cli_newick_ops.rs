@@ -80,6 +80,71 @@ fn command_order_list() -> anyhow::Result<()> {
 }
 
 #[test]
+fn command_order_species() -> anyhow::Result<()> {
+    // Create a temporary directory for testing
+    let tempdir = tempfile::tempdir()?;
+    let temp_path = tempdir.path();
+
+    std::fs::copy(
+        "tests/newick/species.nwk",
+        temp_path.join("species.nwk"),
+    )?;
+
+    // Generate a list of labels from the tree
+    let mut cmd = Command::cargo_bin("nwr")?;
+    cmd.arg("data")
+        .arg("label")
+        .arg("species.nwk")
+        .arg("-o")
+        .arg("species.list")
+        .current_dir(temp_path)
+        .output()?;
+
+    // Order the tree using the generated list
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("ops")
+        .arg("order")
+        .arg("species.nwk")
+        .arg("--list")
+        .arg("species.list")
+        .current_dir(temp_path)
+        .output()?;
+    let stdout = String::from_utf8(output.stdout)?;
+
+    // Compare the ordered tree with the original one
+    // They should be identical as the list was generated from the original order
+    let original = std::fs::read_to_string("tests/newick/species.nwk")?;
+    assert_eq!(stdout.trim(), original.trim());
+
+    // gene tree
+    std::fs::copy(
+        "tests/newick/pmxc.nwk",
+        temp_path.join("pmxc.nwk"),
+    )?;
+
+    // Order pmxc.nwk using the generated list
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("ops")
+        .arg("order")
+        .arg("pmxc.nwk")
+        .arg("--list")
+        .arg("species.list")
+        .current_dir(temp_path)
+        .output()?;
+    let stdout = String::from_utf8(output.stdout)?;
+
+    // Read the original pmxc.nwk file
+    let original = std::fs::read_to_string("tests/newick/pmxc.nwk")?;
+
+    // The ordered tree should be different from the original one
+    assert_ne!(stdout.trim(), original.trim());
+
+    Ok(())
+}
+
+#[test]
 fn command_rename() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd

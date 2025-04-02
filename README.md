@@ -293,6 +293,10 @@ nwr ops order --nd tests/newick/hg38.7way.nwk
 
 nwr ops order --list tests/newick/abcde.list tests/newick/abcde.nwk
 
+# gene tree as the order of species tree
+nwr ops order tests/newick/pmxc.nwk \
+    --list <(nwr data label tests/newick/species.nwk)
+
 nwr ops rename tests/newick/abc.nwk -n C -r F -l A,B -r D
 
 nwr ops replace tests/newick/abc.nwk tests/newick/abc.replace.tsv

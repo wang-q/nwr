@@ -107,10 +107,29 @@ pub fn order_tree_nd(tree: &mut Tree, opt: &str) {
 /// ```
 /// use phylotree::tree::Tree;
 ///
+/// // Simple case with only leaf nodes
 /// let newick = "(A,B,C);";
 /// let mut tree = Tree::from_newick(newick).unwrap();
 /// nwr::order_tree_list(&mut tree, &["C".to_string(), "B".to_string(), "A".to_string()]);
 /// assert_eq!(tree.to_newick().unwrap(), "(C,B,A);".to_string());
+///
+/// // Case with internal nodes
+/// let newick = "((A,B),(C,D));";
+/// let mut tree = Tree::from_newick(newick).unwrap();
+/// nwr::order_tree_list(&mut tree, &["C".to_string(), "B".to_string(), "A".to_string()]);
+/// assert_eq!(tree.to_newick().unwrap(), "((C,D),(B,A));".to_string());
+///
+/// // Case with internal nodes and names
+/// let newick = "((A,B)X,(C,D)Y);";
+/// let mut tree = Tree::from_newick(newick).unwrap();
+/// nwr::order_tree_list(&mut tree, &["C".to_string(), "B".to_string(), "A".to_string()]);
+/// assert_eq!(tree.to_newick().unwrap(), "((C,D)Y,(B,A)X);".to_string());
+///
+/// // Case with unlisted nodes
+/// let newick = "((A,B),(C,E));";
+/// let mut tree = Tree::from_newick(newick).unwrap();
+/// nwr::order_tree_list(&mut tree, &["C".to_string(), "B".to_string()]);
+/// assert_eq!(tree.to_newick().unwrap(), "((C,E),(B,A));".to_string());
 /// ```
 pub fn order_tree_list(tree: &mut Tree, opt: &[String]) {
     let root = tree.get_root().unwrap();
@@ -124,17 +143,28 @@ pub fn order_tree_list(tree: &mut Tree, opt: &[String]) {
 
     // Create a mapping from node ID to sort position
     let mut order_of: HashMap<NodeId, usize> = HashMap::new();
+
+    // First pass: assign positions to named nodes that are in the list
     for id in &ids {
         let node = tree.get(id).unwrap();
-        let name = &node.name;
-        if let Some(name) = name {
+        if let Some(name) = &node.name {
             if let Some(&pos) = pos_of.get(name) {
                 order_of.insert(*id, pos);
-            } else {
-                order_of.insert(*id, opt.len()); // Put names not in list at the end
             }
-        } else {
-            order_of.insert(*id, opt.len()); // Put unnamed nodes at the end
+        }
+    }
+
+    // Second pass: assign positions to all other nodes based on their children
+    for id in &ids {
+        if !order_of.contains_key(id) {
+            let default_pos = opt.len();
+            let descendants = tree.get_descendants(id).unwrap();
+            let min_child_pos = descendants
+                .iter()
+                .map(|child_id| *order_of.get(child_id).unwrap_or(&default_pos))
+                .min()
+                .unwrap_or(default_pos);
+            order_of.insert(*id, min_child_pos);
         }
     }
 
@@ -144,10 +174,14 @@ pub fn order_tree_list(tree: &mut Tree, opt: &[String]) {
         let children = &mut node.children;
         if !children.is_empty() {
             children.sort_by(|a, b| {
-                order_of
-                    .get(a)
-                    .unwrap_or(&usize::MAX)
-                    .cmp(order_of.get(b).unwrap_or(&usize::MAX))
+                let pos_a = order_of.get(a).unwrap_or(&usize::MAX);
+                let pos_b = order_of.get(b).unwrap_or(&usize::MAX);
+
+                if pos_a == pos_b {
+                    a.cmp(b)
+                } else {
+                    pos_a.cmp(pos_b)
+                }
             });
         }
     }
