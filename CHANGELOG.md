@@ -2,6 +2,17 @@
 
 ## Unreleased - ReleaseDate
 
+* Add matrix operations commands
+    * `nwr mat` - Distance matrix operations
+    * Support various similarity metrics and matrix formats
+
+* Add linear algebra functions
+    * Basic vector operations
+    * Distance and similarity metrics
+
+* Optimize CI workflow
+    * Improve release process
+
 ## 0.8.4 - 2025-04-02
 
 * Add `nwr seqdb`
