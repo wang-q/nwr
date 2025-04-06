@@ -2,6 +2,8 @@
 
 ## Unreleased - ReleaseDate
 
+## 0.8.5 - 2025-04-06
+
 * Add matrix operations commands
     * `nwr mat` - Distance matrix operations
     * Support various similarity metrics and matrix formats
