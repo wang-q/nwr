@@ -48,19 +48,20 @@ Commands:
   download     Download the latest releases of `taxdump` and assembly reports
   txdb         Init the taxonomy database
   ardb         Init the assembly database
-  append       Append fields of higher ranks to a TSV file
-  common       Output the common tree of terms
   info         Information of Taxonomy ID(s) or scientific name(s)
-  kb           Prints docs (knowledge bases)
   lineage      Output the lineage of the term
   member       List members (of certain ranks) under ancestral term(s)
-  pl-condense  Pipeline - condense subtrees based on taxonomy
+  append       Append fields of higher ranks to a TSV file
   restrict     Restrict taxonomy terms to ancestral descendants
-  seqdb        Init the seq database
+  common       Output the common tree of terms
   template     Create dirs, data and scripts for a phylogenomic research
+  kb           Prints docs (knowledge bases)
+  seqdb        Init the seq database
   data         Newick data commands
   ops          Newick operation commands
   viz          Newick visualization commands
+  mat          Distance matrix commands
+  pl-condense  Pipeline - condense subtrees based on taxonomy
   help         Print this message or the help of the given subcommand(s)
 
 Options:
@@ -72,23 +73,20 @@ Subcommand groups:
 
 * Database
     * download / txdb / ardb
-
 * Taxonomy
     * info / lineage / member / append / restrict / common
-
 * Assembly
-    * template
-    * kb
-    * seqdb
-
+    * template / kb / seqdb
 * Newick
-    * data
-        * label / stat / distance
-    * ops (operation)
-        * order / rename / replace / topo / subtree / prune / reroot
-        * pl-condense
-    * viz (visualization)
-        * indent / comment / tex
+    * data label / data stat / data distance
+    * Operations
+        * ops order / ops rename / ops replace / ops topo / ops subtree /
+          ops prune / ops  reroot
+    * Visualization
+        * viz indent / viz comment / viz tex
+    * pl-condense
+* Distance matrix
+    * mat pair / mat phylip / mat format / mat subset / mat compare
 
 $ nwr data help
 Newick data commands
@@ -133,6 +131,23 @@ Commands:
   indent   Indent the Newick file
   comment  Add comments to node(s) in a Newick file
   tex      Visualize the Newick tree via LaTeX
+  help     Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help     Print help
+  -V, --version  Print version
+
+$ nwr mat help
+Distance matrix commands
+
+Usage: nwr mat <COMMAND>
+
+Commands:
+  compare  Compare two distance matrices
+  format   Convert between different PHYLIP matrix formats
+  pair     Convert a PHYLIP distance matrix to pairwise distances
+  phylip   Convert pairwise distances to a phylip distance matrix
+  subset   Extract a submatrix from a PHYLIP matrix using a list of names
   help     Print this message or the help of the given subcommand(s)
 
 Options:
@@ -354,7 +369,6 @@ nwr viz common "Escherichia coli" 4932 Drosophila_melanogaster 9606 "Mus musculu
     nwr viz tex --bare stdin
 
 ```
-
 
 ### Matrix commands
 

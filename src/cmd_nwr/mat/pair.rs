@@ -4,10 +4,11 @@ use std::io::Write;
 // Create clap subcommand arguments
 pub fn make_subcommand() -> clap::Command {
     clap::Command::new("pair")
-        .about("Convert a (lower-triangular) relaxed PHYLIP distance matrix to pairwise distances")
+        .about("Convert a PHYLIP distance matrix to pairwise distances")
         .after_help(
             r###"
-This command converts a PHYLIP-format distance matrix to pairwise distances.
+This command converts a (relaxed lower-triangular) PHYLIP-format distance matrix
+to pairwise distances.
 
 Input format:
 * PHYLIP distance matrix (full or lower-triangular)

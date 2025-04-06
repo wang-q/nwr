@@ -42,21 +42,20 @@ Subcommand groups:
 
 * Database
     * download / txdb / ardb
-
 * Taxonomy
     * info / lineage / member / append / restrict / common
-
 * Assembly
     * template / kb / seqdb
-
 * Newick
-    * data
-        * label / stat / distance
-    * ops (operation)
-        * order / rename / replace / topo / subtree / prune / reroot
-    * viz (visualization)
-        * indent / comment / tex
+    * data label / data stat / data distance
+    * Operations
+        * ops order / ops rename / ops replace / ops topo / ops subtree /
+          ops prune / ops  reroot
+    * Visualization
+        * viz indent / viz comment / viz tex
     * pl-condense
+* Distance matrix
+    * mat pair / mat phylip / mat format / mat subset / mat compare
 
 "###,
         );
