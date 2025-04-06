@@ -57,7 +57,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     // Ops
     //----------------------------
     // Load matrix from PHYLIP format
-    let matrix = nwr::NamedMatrix::from_relaxed_phylip(infile);
+    let matrix = intspan::NamedMatrix::from_relaxed_phylip(infile);
     let names = matrix.get_names();
 
     // Output pairwise distances (lower triangle only)

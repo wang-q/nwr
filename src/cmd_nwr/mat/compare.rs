@@ -74,8 +74,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut writer = intspan::writer(args.get_one::<String>("outfile").unwrap());
 
     // Load matrices
-    let matrix1 = nwr::NamedMatrix::from_relaxed_phylip(matrix1_file);
-    let matrix2 = nwr::NamedMatrix::from_relaxed_phylip(matrix2_file);
+    let matrix1 = intspan::NamedMatrix::from_relaxed_phylip(matrix1_file);
+    let matrix2 = intspan::NamedMatrix::from_relaxed_phylip(matrix2_file);
 
     // Get common sequence names
     let names1 = matrix1.get_names();
@@ -121,12 +121,12 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     // Calculate and output metrics
     for method in methods.split(',') {
         let result = match method {
-            "pearson" => nwr::pearson_correlation(&values1, &values2),
+            "pearson" => intspan::pearson_correlation(&values1, &values2),
             "spearman" => spearman_correlation(&values1, &values2),
             "mae" => mean_absolute_error(&values1, &values2),
-            "cosine" => nwr::cosine_similarity(&values1, &values2),
-            "jaccard" => nwr::weighted_jaccard_similarity(&values1, &values2),
-            "euclid" => nwr::euclidean_distance(&values1, &values2),
+            "cosine" => intspan::cosine_similarity(&values1, &values2),
+            "jaccard" => intspan::weighted_jaccard_similarity(&values1, &values2),
+            "euclid" => intspan::euclidean_distance(&values1, &values2),
             _ => unreachable!(),
         };
         writer.write_fmt(format_args!("{}\t{:.6}\n", method, result))?;
@@ -153,7 +153,7 @@ fn spearman_correlation(x: &[f32], y: &[f32]) -> f32 {
         y_ranks[i] = rank as f32;
     }
 
-    nwr::pearson_correlation(&x_ranks, &y_ranks)
+    intspan::pearson_correlation(&x_ranks, &y_ranks)
 }
 
 // Calculate mean absolute error

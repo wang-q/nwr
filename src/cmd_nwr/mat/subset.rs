@@ -52,7 +52,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     //----------------------------
     // Load and process matrix
     //----------------------------
-    let matrix = nwr::NamedMatrix::from_relaxed_phylip(infile);
+    let matrix = intspan::NamedMatrix::from_relaxed_phylip(infile);
     let all_names = matrix.get_names();
     let mut indices = Vec::new();
 

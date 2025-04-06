@@ -62,7 +62,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     // Ops
     //----------------------------
     // Load matrix from pairwise distances
-    let matrix = nwr::NamedMatrix::from_pair_scores(infile, opt_same, opt_missing);
+    let matrix = intspan::NamedMatrix::from_pair_scores(infile, opt_same, opt_missing);
     let names = matrix.get_names();
     let size = matrix.size();
 
