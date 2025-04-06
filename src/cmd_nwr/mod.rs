@@ -8,6 +8,7 @@ pub mod download;
 pub mod info;
 pub mod kb;
 pub mod lineage;
+pub mod mat;
 pub mod member;
 pub mod ops;
 pub mod pl_condense;

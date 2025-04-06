@@ -85,10 +85,7 @@ fn command_order_species() -> anyhow::Result<()> {
     let tempdir = tempfile::tempdir()?;
     let temp_path = tempdir.path();
 
-    std::fs::copy(
-        "tests/newick/species.nwk",
-        temp_path.join("species.nwk"),
-    )?;
+    std::fs::copy("tests/newick/species.nwk", temp_path.join("species.nwk"))?;
 
     // Generate a list of labels from the tree
     let mut cmd = Command::cargo_bin("nwr")?;
@@ -118,10 +115,7 @@ fn command_order_species() -> anyhow::Result<()> {
     assert_eq!(stdout.trim(), original.trim());
 
     // gene tree
-    std::fs::copy(
-        "tests/newick/pmxc.nwk",
-        temp_path.join("pmxc.nwk"),
-    )?;
+    std::fs::copy("tests/newick/pmxc.nwk", temp_path.join("pmxc.nwk"))?;
 
     // Order pmxc.nwk using the generated list
     let mut cmd = Command::cargo_bin("nwr")?;

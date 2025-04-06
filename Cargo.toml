@@ -27,7 +27,10 @@ itertools = "0.11.0"
 phylotree = "0.1.3"
 crossbeam = "0.8.2"
 
-intspan = "0.7.5"
+intspan = "0.8.6"
+# data structure
+petgraph = "0.7.1"
+indexmap = "2.7.0"
 
 ftp = "3.0.1"
 tar = "0.4.40"
