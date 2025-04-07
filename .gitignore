@@ -137,3 +137,4 @@ Cargo.lock
 *.sqlite
 *.dmp
 *.tsv
+/doc/src/

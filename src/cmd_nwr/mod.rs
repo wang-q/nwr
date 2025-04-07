@@ -2,6 +2,7 @@
 
 pub mod append;
 pub mod ardb;
+pub mod build;
 pub mod common;
 pub mod data;
 pub mod download;

@@ -373,18 +373,18 @@ nwr viz common "Escherichia coli" 4932 Drosophila_melanogaster 9606 "Mus musculu
 ### Matrix commands
 
 ```bash
-hnsm mat phylip tests/clust/IBPA.fa.tsv
+nwr mat phylip tests/clust/IBPA.fa.tsv
 
-hnsm mat pair tests/clust/IBPA.phy
+nwr mat pair tests/clust/IBPA.phy
 
-cargo run --bin hnsm mat format tests/clust/IBPA.phy
+cargo run --bin nwr mat format tests/clust/IBPA.phy
 
-cargo run --bin hnsm mat subset tests/clust/IBPA.phy tests/clust/IBPA.list
+cargo run --bin nwr mat subset tests/clust/IBPA.phy tests/clust/IBPA.list
 
 hnsm distance tests/clust/IBPA.fa -k 7 -w 1 |
-    hnsm mat phylip stdin -o tests/clust/IBPA.71.phy
+    nwr mat phylip stdin -o tests/clust/IBPA.71.phy
 
-cargo run --bin hnsm mat compare tests/clust/IBPA.phy tests/clust/IBPA.71.phy --method all
+cargo run --bin nwr mat compare tests/clust/IBPA.phy tests/clust/IBPA.71.phy --method all
 # Sequences in matrices: 10 and 10
 # Common sequences: 10
 # Method  Score
@@ -394,6 +394,27 @@ cargo run --bin hnsm mat compare tests/clust/IBPA.phy tests/clust/IBPA.71.phy --
 # cosine  0.978731
 # jaccard 0.759106
 # euclid  1.229844
+
+```
+
+### Build tree from distance matrix
+
+```shell
+cargo run --bin nwr build upgma tests/build/human.phy |
+    nwr viz tex stdin --bl |
+    tectonic - &&
+    mv texput.pdf human.upgma.pdf
+
+neighbor
+# tests/build/human.phy
+# r
+# y
+# r
+
+cargo run --bin nwr build upgma tests/build/wiki.phy |
+    nwr viz tex stdin --bl |
+    tectonic - &&
+    mv texput.pdf wiki.upgma.pdf
 
 ```
 

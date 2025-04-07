@@ -398,6 +398,167 @@ pub fn swap_parent(
     edge
 }
 
+/// Insert a new parent node for a pair of nodes
+///
+/// ```
+/// use phylotree::tree::Tree;
+///
+/// // Simple case
+/// let newick = "((A,B),C);";
+/// let mut tree = Tree::from_newick(newick).unwrap();
+/// let id_a = tree.get_by_name("A").unwrap().id;
+/// let id_b = tree.get_by_name("B").unwrap().id;
+///
+/// nwr::insert_parent_pair(&mut tree, &id_a, &id_b);
+///
+/// assert_eq!(tree.to_newick().unwrap(), "(((A,B)),C);".to_string());
+///
+/// // Case with edge lengths
+/// let newick = "((A:1,B:1):1,C:1);";
+/// let mut tree = Tree::from_newick(newick).unwrap();
+/// let id_a = tree.get_by_name("A").unwrap().id;
+/// let id_b = tree.get_by_name("B").unwrap().id;
+///
+/// nwr::insert_parent_pair(&mut tree, &id_a, &id_b);
+///
+/// assert_eq!(tree.to_newick().unwrap(), "(((A:1,B:1)):1,C:1);".to_string());
+/// ```
+pub fn insert_parent_pair(tree: &mut Tree, id1: &NodeId, id2: &NodeId) -> NodeId {
+    let old = tree.get_common_ancestor(id1, id2).unwrap();
+
+    // Get original edge lengths
+    let edge1 = tree.get(id1).unwrap().parent_edge;
+    let edge2 = tree.get(id2).unwrap().parent_edge;
+
+    // New node with parent (old) has no edge length
+    let new = tree.add_child(Node::new(), old, None).unwrap();
+
+    // Set children's new parent and edge length
+    tree.get_mut(id1).unwrap().set_parent(new, edge1);
+    tree.get_mut(&new).unwrap().add_child(*id1, edge1);
+    tree.get_mut(&old).unwrap().remove_child(id1).unwrap();
+
+    tree.get_mut(id2).unwrap().set_parent(new, edge2);
+    tree.get_mut(&new).unwrap().add_child(*id2, edge2);
+    tree.get_mut(&old).unwrap().remove_child(id2).unwrap();
+
+    new
+}
+
+/// Removes a single node and connects its children to its parent
+///
+/// ```
+/// use phylotree::tree::Tree;
+///
+/// // Simple case
+/// let newick = "(A,(B)D);";
+/// let mut tree = Tree::from_newick(newick).unwrap();
+/// let id = tree.get_by_name("D").unwrap().id;
+///
+/// nwr::delete_node(&mut tree, &id).unwrap();
+///
+/// assert_eq!(tree.to_newick().unwrap(), "(A,B);".to_string());
+///
+/// // Case with edge lengths
+/// let newick = "(A:1,(B:1)D:2);";
+/// let mut tree = Tree::from_newick(newick).unwrap();
+/// let id = tree.get_by_name("D").unwrap().id;
+///
+/// nwr::delete_node(&mut tree, &id).unwrap();
+///
+/// assert_eq!(tree.to_newick().unwrap(), "(A:1,B:3);".to_string());
+/// ```
+pub fn delete_node(tree: &mut Tree, id: &NodeId) -> anyhow::Result<()> {
+    // Collect all necessary information first
+    let parent;
+    let to_remove;
+    let children_info: Vec<(NodeId, Option<EdgeLength>, Option<EdgeLength>)>;
+    {
+        let node = tree.get(id)?;
+        parent = node.parent.unwrap();
+        to_remove = node.id;
+
+        // Collect information for all child nodes
+        children_info = node
+            .children
+            .iter()
+            .map(|child| {
+                let child_edge = node.get_child_edge(child);
+                let parent_edge = node.parent_edge;
+                (*child, child_edge, parent_edge)
+            })
+            .collect();
+    }
+
+    // Process all child nodes
+    for (child, child_edge, parent_edge) in children_info {
+        let new_edge = match (parent_edge, child_edge) {
+            (Some(p), Some(c)) => Some(p + c),
+            (Some(p), None) => Some(p),
+            (None, Some(c)) => Some(c),
+            (None, None) => None,
+        };
+
+        // Reset parent-child relationships
+        tree.get_mut(&child)?.set_parent(parent, new_edge);
+        tree.get_mut(&parent)?.add_child(child, new_edge);
+    }
+
+    // Remove the original node
+    tree.get_mut(&parent)?.remove_child(&to_remove)?;
+
+    Ok(())
+}
+
+/// Get the height of a node (maximum distance to its descendant leaves)
+///
+/// ```
+/// use phylotree::tree::Tree;
+///
+/// // Simple case
+/// let newick = "(A:1,(B:2)C:1);";
+/// let mut tree = Tree::from_newick(newick).unwrap();
+///
+/// let id_c = tree.get_by_name("C").unwrap().id;
+/// assert_eq!(nwr::node_height(&tree, &id_c), 2.0);
+///
+/// let id_b = tree.get_by_name("B").unwrap().id;
+/// assert_eq!(nwr::node_height(&tree, &id_b), 0.0);
+///
+/// // Case with no edge lengths
+/// let newick = "(A,(B)C);";
+/// let mut tree = Tree::from_newick(newick).unwrap();
+/// let id_c = tree.get_by_name("C").unwrap().id;
+///
+/// assert_eq!(nwr::node_height(&tree, &id_c), 0.0);
+/// ```
+pub fn node_height(tree: &Tree, id: &NodeId) -> EdgeLength {
+    if tree.get(id).unwrap().is_tip() {
+        return 0.0;
+    }
+
+    let mut heights = vec![];
+    for child in tree.get_descendants(id).unwrap() {
+        // eprintln!("child = {:#?}", child);
+
+        if tree.get(&child).unwrap().is_tip() {
+            if let Ok((Some(dist), _)) = tree.get_distance(id, &child) {
+                heights.push(dist);
+            }
+        }
+    }
+
+    if heights.is_empty() {
+        0.0
+    } else {
+        heights
+            .iter()
+            .max_by(|a, b| a.partial_cmp(b).unwrap())
+            .unwrap()
+            .to_owned()
+    }
+}
+
 // Named IDs that match the name rules
 pub fn match_names(tree: &Tree, args: &clap::ArgMatches) -> BTreeSet<usize> {
     // IDs with names

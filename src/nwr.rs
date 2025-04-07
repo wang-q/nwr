@@ -34,6 +34,8 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::viz::make_subcommand())
         // Distance matrix
         .subcommand(cmd_nwr::mat::make_subcommand())
+        // Build tree
+        .subcommand(cmd_nwr::build::make_subcommand())
         // Pipeline
         .subcommand(cmd_nwr::pl_condense::make_subcommand())
         .after_help(
@@ -56,6 +58,8 @@ Subcommand groups:
     * pl-condense
 * Distance matrix
     * mat pair / mat phylip / mat format / mat subset / mat compare
+* Build tree
+    * build upgma / build nj
 
 "###,
         );
@@ -78,6 +82,7 @@ Subcommand groups:
         Some(("ops", sub_matches)) => cmd_nwr::ops::execute(sub_matches),
         Some(("viz", sub_matches)) => cmd_nwr::viz::execute(sub_matches),
         Some(("mat", sub_matches)) => cmd_nwr::mat::execute(sub_matches),
+        Some(("build", sub_matches)) => cmd_nwr::build::execute(sub_matches),
         Some(("pl-condense", sub_matches)) => cmd_nwr::pl_condense::execute(sub_matches),
         _ => unreachable!(),
     }?;
