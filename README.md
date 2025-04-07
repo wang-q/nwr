@@ -361,7 +361,9 @@ echo "((A[color=green],B)[dot=black],C[color=green]);" |
 nwr viz tex tests/newick/catarrhini.nwk -o output.tex
 tectonic output.tex
 
-nwr viz tex --bl tests/newick/hg38.7way.nwk
+cargo run --bin nwr viz tex --bl tests/newick/hg38.7way.nwk |
+    tectonic - &&
+    mv texput.pdf hg38.7way.pdf
 
 nwr viz tex --forest --bare tests/newick/test.forest
 

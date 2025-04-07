@@ -97,21 +97,33 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         let tree = nwr::read_newick(infile);
 
         let height = if is_bl { tree.height().unwrap() } else { 0.0 };
-        // eprintln!("height = {:#?}", height);
+        // eprintln!("height = {:#?}", tree.height().unwrap());
+        // eprintln!("diameter = {:#?}", tree.diameter().unwrap());
 
         let mut s = format_forest(&tree, height);
 
         // a bar of unit length
         if is_bl {
-            let bar_len = format!("{:.3}", height / 100.0 * 10.0);
-            // a grey 1pt bar
+            // Candidate scale values
+            let scales = [10.0, 5.0, 1.0, 0.5, 0.1, 0.05, 0.01, 0.005, 0.001];
+
+            // Choose appropriate scale: best between 10-20% of tree height
+            let scale = scales
+                .iter()
+                // Not exceeding 1/5 of tree height
+                .filter(|&&x| x <= height / 5.0)
+                .next()
+                // If all too large, use the smallest
+                .unwrap_or(&scales[scales.len() - 1]);
+
+            // Calculate actual length in millimeters
+            let bar_mm = (scale * 100.0 / height).round() as i32;
+
+            // Draw scale bar
             s += "\\draw[-, grey, line width=1pt]";
-            // bar position
             s += " ($(current bounding box.south east)+(-10mm,-2mm)$)";
-            // 10 mm
-            s += " --++ (-10mm,0mm)";
-            // text
-            s += &format!(" node[midway, below]{{\\scriptsize{{{}}}}};\n", &bar_len);
+            s += &format!(" --++ (-{}mm,0mm)", bar_mm);
+            s += &format!(" node[midway, below]{{\\scriptsize{{{}}}}};\n", scale);
         }
 
         s
