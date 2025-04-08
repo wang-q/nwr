@@ -78,7 +78,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     while nodes.iter().filter_map(|x| x.as_ref()).count() > 1 {
         // Find minimum distance pair
         let (min_dist, min_i, min_j) = {
-            let mut min_dist = EdgeLength::MAX;
+            let mut min_dist = f64::MAX;
             let mut min_i = 0;
             let mut min_j = 0;
 
@@ -102,15 +102,15 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         if let (Some((node_i, size_i)), Some((node_j, size_j))) =
             (nodes[min_i].take(), nodes[min_j].take())
         {
-            let height = min_dist as EdgeLength / 2.0;
+            let height = min_dist / 2.0;
 
             // Calculate branch lengths
             let edge_i = height - nwr::node_height(&tree, &node_i);
             let edge_j = height - nwr::node_height(&tree, &node_j);
 
             // Update tree
-            tree.get_mut(&node_i).unwrap().parent_edge = Some(edge_i);
-            tree.get_mut(&node_j).unwrap().parent_edge = Some(edge_j);
+            tree.get_mut(&node_i)?.parent_edge = Some(edge_i);
+            tree.get_mut(&node_j)?.parent_edge = Some(edge_j);
 
             let new_node = nwr::insert_parent_pair(&mut tree, &node_i, &node_j);
 
@@ -144,8 +144,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     }
 
     // Remove redundant root
-    let root = tree.get_root().unwrap();
-    let root_children = tree.get(&root).unwrap().children.clone();
+    let root = tree.get_root()?;
+    let root_children = tree.get(&root)?.children.clone();
     if root_children.len() == 1 {
         nwr::delete_node(&mut tree, &root_children[0])?;
     }
