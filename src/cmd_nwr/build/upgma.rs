@@ -10,6 +10,10 @@ pub fn make_subcommand() -> Command {
             r###"
 Build a rooted phylogenetic tree using the UPGMA (Unweighted Pair Group Method with Arithmetic Mean) algorithm.
 
+* UPGMA is a bottom-up clustering method that assumes a constant rate of evolution (molecular clock)
+* The algorithm produces a rooted tree with ultrametric property (equal root-to-tip distances)
+* The algorithm minimizes the average distance between clusters at each step
+
 Input format:
     PHYLIP distance matrix format
 

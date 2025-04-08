@@ -61,6 +61,7 @@ Commands:
   ops          Newick operation commands
   viz          Newick visualization commands
   mat          Distance matrix commands
+  build        Build tree from distance matrix
   pl-condense  Pipeline - condense subtrees based on taxonomy
   help         Print this message or the help of the given subcommand(s)
 
@@ -87,6 +88,8 @@ Subcommand groups:
     * pl-condense
 * Distance matrix
     * mat pair / mat phylip / mat format / mat subset / mat compare
+* Build tree
+    * build upgma / build nj
 
 $ nwr data help
 Newick data commands
@@ -149,6 +152,20 @@ Commands:
   phylip   Convert pairwise distances to a phylip distance matrix
   subset   Extract a submatrix from a PHYLIP matrix using a list of names
   help     Print this message or the help of the given subcommand(s)
+
+Options:
+  -h, --help     Print help
+  -V, --version  Print version
+
+$ nwr build help
+Build tree from distance matrix
+
+Usage: nwr build <COMMAND>
+
+Commands:
+  upgma  Build a tree using UPGMA algorithm
+  nj     Build a phylogenetic tree using Neighbor-Joining algorithm
+  help   Print this message or the help of the given subcommand(s)
 
 Options:
   -h, --help     Print help
@@ -375,18 +392,18 @@ nwr viz common "Escherichia coli" 4932 Drosophila_melanogaster 9606 "Mus musculu
 ### Matrix commands
 
 ```bash
-nwr mat phylip tests/clust/IBPA.fa.tsv
+nwr mat phylip tests/mat/IBPA.fa.tsv
 
-nwr mat pair tests/clust/IBPA.phy
+nwr mat pair tests/mat/IBPA.phy
 
-cargo run --bin nwr mat format tests/clust/IBPA.phy
+cargo run --bin nwr mat format tests/mat/IBPA.phy
 
-cargo run --bin nwr mat subset tests/clust/IBPA.phy tests/clust/IBPA.list
+cargo run --bin nwr mat subset tests/mat/IBPA.phy tests/mat/IBPA.list
 
-hnsm distance tests/clust/IBPA.fa -k 7 -w 1 |
-    nwr mat phylip stdin -o tests/clust/IBPA.71.phy
+hnsm distance tests/mat/IBPA.fa -k 7 -w 1 |
+    nwr mat phylip stdin -o tests/mat/IBPA.71.phy
 
-cargo run --bin nwr mat compare tests/clust/IBPA.phy tests/clust/IBPA.71.phy --method all
+cargo run --bin nwr mat compare tests/mat/IBPA.phy tests/mat/IBPA.71.phy --method all
 # Sequences in matrices: 10 and 10
 # Common sequences: 10
 # Method  Score
@@ -402,21 +419,22 @@ cargo run --bin nwr mat compare tests/clust/IBPA.phy tests/clust/IBPA.71.phy --m
 ### Build tree from distance matrix
 
 ```shell
-cargo run --bin nwr build upgma tests/build/human.phy |
-    nwr viz tex stdin --bl |
-    tectonic - &&
-    mv texput.pdf human.upgma.pdf
-
-neighbor
-# tests/build/human.phy
-# r
-# y
-# r
-
 cargo run --bin nwr build upgma tests/build/wiki.phy |
     nwr viz tex stdin --bl |
     tectonic - &&
     mv texput.pdf wiki.upgma.pdf
+
+cargo run --bin nwr build nj tests/build/wiki-nj.phy |
+    nwr viz tex stdin --bl |
+    tectonic - &&
+    mv texput.pdf wiki.nj.pdf
+
+neighbor
+# tests/build/wiki-nj.phy
+# r
+# y
+# r
+nwr ops reroot outtree -n e
 
 ```
 
