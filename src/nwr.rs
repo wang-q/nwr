@@ -36,6 +36,8 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::mat::make_subcommand())
         // Build tree
         .subcommand(cmd_nwr::build::make_subcommand())
+        // Plots
+        .subcommand(cmd_nwr::plot::make_subcommand())
         // Pipeline
         .subcommand(cmd_nwr::pl_condense::make_subcommand())
         .after_help(
@@ -83,6 +85,7 @@ Subcommand groups:
         Some(("viz", sub_matches)) => cmd_nwr::viz::execute(sub_matches),
         Some(("mat", sub_matches)) => cmd_nwr::mat::execute(sub_matches),
         Some(("build", sub_matches)) => cmd_nwr::build::execute(sub_matches),
+        Some(("plot", sub_matches)) => cmd_nwr::plot::execute(sub_matches),
         Some(("pl-condense", sub_matches)) => cmd_nwr::pl_condense::execute(sub_matches),
         _ => unreachable!(),
     }?;

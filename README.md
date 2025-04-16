@@ -438,6 +438,27 @@ nwr ops reroot outtree -n e
 
 ```
 
+### Plots
+
+```shell
+cargo run --bin nwr plot venn tests/plot/rocauc.result.tsv tests/plot/mcox.05.result.tsv |
+    tectonic - &&
+    mv texput.pdf venn2.pdf
+
+cargo run --bin nwr plot venn tests/plot/rocauc.result.tsv tests/plot/mcox.05.result.tsv tests/plot/mcox.result.tsv |
+    tectonic - &&
+    mv texput.pdf venn3.pdf
+
+cargo run --bin nwr plot venn tests/plot/rocauc.result.tsv tests/plot/rocauc.result.tsv tests/plot/mcox.05.result.tsv tests/plot/mcox.result.tsv |
+    tectonic - &&
+    mv texput.pdf venn4.pdf
+
+plotr venn tests/plot/rocauc.result.tsv tests/plot/mcox.05.result.tsv
+
+tectonic doc/venn4.tex
+
+```
+
 ## Database schema
 
 ```shell

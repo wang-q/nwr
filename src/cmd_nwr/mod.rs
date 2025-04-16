@@ -13,6 +13,7 @@ pub mod mat;
 pub mod member;
 pub mod ops;
 pub mod pl_condense;
+pub mod plot;
 pub mod restrict;
 pub mod seqdb;
 pub mod template;

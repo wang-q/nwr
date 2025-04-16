@@ -18,6 +18,7 @@ fn command_build_upgma() -> anyhow::Result<()> {
 
     Ok(())
 }
+
 #[test]
 fn command_build_nj() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
@@ -36,4 +37,3 @@ fn command_build_nj() -> anyhow::Result<()> {
 
     Ok(())
 }
-
