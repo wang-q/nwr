@@ -457,6 +457,8 @@ plotr venn tests/plot/rocauc.result.tsv tests/plot/mcox.05.result.tsv
 
 tectonic doc/venn4.tex
 
+tectonic doc/heatmap.tex
+
 ```
 
 ## Database schema
