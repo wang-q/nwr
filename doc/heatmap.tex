@@ -13,6 +13,8 @@
 ]
 
 \usepackage{color}
+\definecolor{red}{RGB}{255,59,48}
+\definecolor{yellow}{RGB}{255,204,0}
 \definecolor{grey}{RGB}{129,130,132}
 
 % 添加热图所需的包和设置
@@ -21,21 +23,42 @@
     compat=1.18,
     every axis/.append style={
         enlargelimits=false,
-        ytick=data,
-        xtick=data,
         axis line style={grey, thick},
         tick style={draw=none},
+        xtick={},
+        xticklabels={},
+        x tick label style={font=\scriptsize},
+        extra x tick style={
+            grid=major, grid style={grey, thick},
+        },
+        ytick=data,
+        y tick label style={font=\normalsize},
         extra y tick labels={},
         extra y tick style={
             grid=major, grid style={grey, thick},
         },
-        colormap={mymap}{color(0)=(white) color(1)=(red)},
+        colormap={mymap}{
+            color(0)=(white)
+            color(0.25)=(yellow)
+            color(0.5)=(red)
+            color(1)=(red)
+        },
+        colorbar,
+        colorbar style={
+            width=2mm,
+            height=1cm,
+            ytick={0,0.25,0.5},
+            y tick label style={font=\scriptsize},
+        },
+        point meta min=0,
+        point meta max=0.5,
     },
     every colorbar/.append style={
         tick style={draw=none},
         axis line style={draw=none},
-        at={(1.1,0)},
-        anchor=south west,
+        at={(current axis.south east)},
+        yshift=+0.5cm,
+        anchor=west,
         label style={/pgf/number format/assume math mode=true},
         tick label style={/pgf/number format/assume math mode=true},
     },
@@ -45,41 +68,64 @@
 
 \begin{tikzpicture}
     \begin{axis}[
-        width=6cm,
-        height=6cm,
+        width=7.5cm,
+        height=3cm,
+        extra x ticks={-0.5, 4.5, 9.5, 14.5},
+        extra x tick labels={0, 0.25, 0.5, 0.75},
         yticklabels={A1, A2, A3},
-        xticklabels={0.05, {}, 0.15},
-        extra y ticks={0.5, 1.5},
-        colorbar,
-        colorbar style={
-            width=2mm,
-            height=2cm,
-            ytick={0,40},
-        },
-        point meta min=0,
-        point meta max=40,
+        extra y ticks={-0.5, 0.5, 1.5, 2.5},
         ]
         \addplot[
             matrix plot,
-            mesh/cols=5,
+            mesh/cols=15,
             point meta=explicit,
         ] table [meta=C] {
             x y  C
-            0 0  40
-            1 0  38
-            2 0  35
-            3 0  30
-            4 0  25
-            0 1  35
-            1 1  30
-            2 1  25
-            3 1  20
-            4 1  15
-            0 2  10
-            1 2  8
-            2 2  5
-            3 2  3
-            4 2  2
+            0 0  0
+            1 0  0.15
+            2 0  0.15
+            3 0  0.30
+            4 0  0.10
+            5 0  0.10
+            6 0  0.08
+            7 0  0.05
+            8 0  0.04
+            9 0  0.03
+            10 0  0.02
+            11 0  0.02
+            12 0  0.01
+            13 0  0.01
+            14 0  0
+            0 1  0.25
+            1 1  0.20
+            2 1  0.15
+            3 1  0.10
+            4 1  0.08
+            5 1  0.07
+            6 1  0.06
+            7 1  0.04
+            8 1  0.03
+            9 1  0.02
+            10 1  0.02
+            11 1  0.01
+            12 1  0.01
+            13 1  0.01
+            14 1  0
+            0 2  0.30
+            1 2  0.20
+            2 2  0.15
+            3 2  0.10
+            4 2  0.07
+            5 2  0.06
+            6 2  0.05
+            7 2  0.03
+            8 2  0.02
+            9 2  0.02
+            10 2  0.01
+            11 2  0.01
+            12 2  0.01
+            13 2  0.01
+            14 2  0
         };
     \end{axis}
 \end{tikzpicture}
