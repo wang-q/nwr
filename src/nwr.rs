@@ -41,8 +41,7 @@ fn main() -> anyhow::Result<()> {
         // Pipeline
         .subcommand(cmd_nwr::pl_condense::make_subcommand())
         .after_help(
-            r###"
-Subcommand groups:
+            r###"Subcommand groups:
 
 * Database
     * download / txdb / ardb
