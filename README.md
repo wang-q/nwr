@@ -457,6 +457,18 @@ plotr venn tests/plot/rocauc.result.tsv tests/plot/mcox.05.result.tsv
 
 tectonic doc/venn4.tex
 
+cargo run --bin nwr plot hh tests/plot/hist.tsv -g 2 --bins 20 --xl "" --unit 0.5,1.5 |
+    tectonic - &&
+    mv texput.pdf hist.pdf
+
+cargo run --bin nwr plot hh tests/plot/hist.tsv --bins 30 --xl "" --xmm 45,75 --unit 0.5,1.5 |
+    tectonic - &&
+    mv texput.pdf hist.pdf
+
+
+cargo run --bin nwr plot hh tests/plot/hist.tsv -g 2
+
+
 tectonic doc/heatmap.tex
 
 ```

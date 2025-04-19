@@ -24,6 +24,7 @@
     every axis/.append style={
         enlargelimits=false,
         axis line style={grey, thick},
+        axis on top,
         tick style={draw=none},
         xtick={},
         xticklabels={},
@@ -32,15 +33,20 @@
             grid=major, grid style={grey, thick},
         },
         ytick=data,
-        y tick label style={font=\normalsize},
+        y tick label style={
+            font=\normalsize,
+            align=center,
+        },
         extra y tick labels={},
         extra y tick style={
             grid=major, grid style={grey, thick},
         },
         colormap={mymap}{
             color(0)=(white)
-            color(0.25)=(yellow)
-            color(0.5)=(red)
+            color(0.05)=(yellow!50)
+            color(0.1)=(yellow)
+            color(0.4)=(yellow!50!red)
+            color(0.7)=(yellow!25!red)
             color(1)=(red)
         },
         colorbar,
@@ -48,7 +54,10 @@
             width=2mm,
             height=1cm,
             ytick={0,0.25,0.5},
-            y tick label style={font=\scriptsize},
+            y tick label style={
+                font=\scriptsize,
+                align=left,
+            },
         },
         point meta min=0,
         point meta max=0.5,
@@ -67,24 +76,33 @@
 \begin{document}
 
 \begin{tikzpicture}
-    \begin{axis}[
+    \begin{axis}[%
+%AXIS_BEGIN%
         width=7.5cm,
         height=3cm,
+        xlabel={Ks},
+        ylabel={A domains},
         extra x ticks={-0.5, 4.5, 9.5, 14.5},
         extra x tick labels={0, 0.25, 0.5, 0.75},
         yticklabels={A1, A2, A3},
         extra y ticks={-0.5, 0.5, 1.5, 2.5},
+        y tick label style={
+            text width=3em,
+        },
+%AXIS_END%
         ]
         \addplot[
             matrix plot,
-            mesh/cols=15,
+            empty line=auto,
+            % mesh/cols=15,
             point meta=explicit,
         ] table [meta=C] {
             x y  C
+%TABLE_BEGIN%
             0 0  0
             1 0  0.15
             2 0  0.15
-            3 0  0.30
+            3 0  0.60
             4 0  0.10
             5 0  0.10
             6 0  0.08
@@ -96,6 +114,7 @@
             12 0  0.01
             13 0  0.01
             14 0  0
+
             0 1  0.25
             1 1  0.20
             2 1  0.15
@@ -111,6 +130,7 @@
             12 1  0.01
             13 1  0.01
             14 1  0
+
             0 2  0.30
             1 2  0.20
             2 2  0.15
@@ -126,6 +146,7 @@
             12 2  0.01
             13 2  0.01
             14 2  0
+%TABLE_END%
         };
     \end{axis}
 \end{tikzpicture}
