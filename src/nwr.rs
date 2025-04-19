@@ -62,6 +62,8 @@ Subcommand groups:
     * mat pair / mat phylip / mat format / mat subset / mat compare
 * Build tree
     * build upgma / build nj
+* Plots
+    * plot hh / plot venn
 
 "###,
         );

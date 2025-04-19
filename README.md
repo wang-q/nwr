@@ -62,6 +62,7 @@ Commands:
   viz          Newick visualization commands
   mat          Distance matrix commands
   build        Build tree from distance matrix
+  plot         Plot commands
   pl-condense  Pipeline - condense subtrees based on taxonomy
   help         Print this message or the help of the given subcommand(s)
 
@@ -90,86 +91,8 @@ Subcommand groups:
     * mat pair / mat phylip / mat format / mat subset / mat compare
 * Build tree
     * build upgma / build nj
-
-$ nwr data help
-Newick data commands
-
-Usage: nwr data <COMMAND>
-
-Commands:
-  label     Labels in the Newick file
-  stat      Statistics about the Newick file
-  distance  Output a TSV/phylip file with distances between all named nodes
-  help      Print this message or the help of the given subcommand(s)
-
-Options:
-  -h, --help     Print help
-  -V, --version  Print version
-
-$ nwr ops help
-Newick operation commands
-
-Usage: nwr ops <COMMAND>
-
-Commands:
-  order    Order nodes in a Newick file
-  rename   Rename named/unnamed nodes in a Newick file
-  replace  Replace node names/comments in a Newick file
-  subtree  Extract a subtree
-  topo     Topological information of the Newick file
-  prune    Remove nodes from the Newick file
-  reroot   Place the root in the middle of the desired node and its parent
-  help     Print this message or the help of the given subcommand(s)
-
-Options:
-  -h, --help     Print help
-  -V, --version  Print version
-
-$ nwr viz help
-Newick visualization commands
-
-Usage: nwr viz <COMMAND>
-
-Commands:
-  indent   Indent the Newick file
-  comment  Add comments to node(s) in a Newick file
-  tex      Visualize the Newick tree via LaTeX
-  help     Print this message or the help of the given subcommand(s)
-
-Options:
-  -h, --help     Print help
-  -V, --version  Print version
-
-$ nwr mat help
-Distance matrix commands
-
-Usage: nwr mat <COMMAND>
-
-Commands:
-  compare  Compare two distance matrices
-  format   Convert between different PHYLIP matrix formats
-  pair     Convert a PHYLIP distance matrix to pairwise distances
-  phylip   Convert pairwise distances to a phylip distance matrix
-  subset   Extract a submatrix from a PHYLIP matrix using a list of names
-  help     Print this message or the help of the given subcommand(s)
-
-Options:
-  -h, --help     Print help
-  -V, --version  Print version
-
-$ nwr build help
-Build tree from distance matrix
-
-Usage: nwr build <COMMAND>
-
-Commands:
-  upgma  Build a tree using UPGMA algorithm
-  nj     Build a phylogenetic tree using Neighbor-Joining algorithm
-  help   Print this message or the help of the given subcommand(s)
-
-Options:
-  -h, --help     Print help
-  -V, --version  Print version
+* Plots
+    * plot hh / plot venn
 
 ```
 
