@@ -357,7 +357,7 @@ mv texput.pdf bs.pdf
 nwr ops reroot tests/newick/bs.nw -n C | nwr viz tex stdin | tectonic -
 mv texput.pdf bs.reroot.pdf
 
-cargo run --bin nwr pl-condense tests/newick/catarrhini.nwk -r family
+nwr pl-condense tests/newick/catarrhini.nwk -r family
 
 ```
 
@@ -373,12 +373,12 @@ echo "((A,B),C);" |
 tectonic doc/template.tex
 
 echo "((A[color=green],B)[dot=black],C[color=green]);" |
-    cargo run --bin nwr viz comment stdin -r "color="
+    nwr viz comment stdin -r "color="
 
 nwr viz tex tests/newick/catarrhini.nwk -o output.tex
 tectonic output.tex
 
-cargo run --bin nwr viz tex --bl tests/newick/hg38.7way.nwk |
+nwr viz tex --bl tests/newick/hg38.7way.nwk |
     tectonic - &&
     mv texput.pdf hg38.7way.pdf
 
@@ -396,14 +396,14 @@ nwr mat phylip tests/mat/IBPA.fa.tsv
 
 nwr mat pair tests/mat/IBPA.phy
 
-cargo run --bin nwr mat format tests/mat/IBPA.phy
+nwr mat format tests/mat/IBPA.phy
 
-cargo run --bin nwr mat subset tests/mat/IBPA.phy tests/mat/IBPA.list
+nwr mat subset tests/mat/IBPA.phy tests/mat/IBPA.list
 
 hnsm distance tests/mat/IBPA.fa -k 7 -w 1 |
     nwr mat phylip stdin -o tests/mat/IBPA.71.phy
 
-cargo run --bin nwr mat compare tests/mat/IBPA.phy tests/mat/IBPA.71.phy --method all
+nwr mat compare tests/mat/IBPA.phy tests/mat/IBPA.71.phy --method all
 # Sequences in matrices: 10 and 10
 # Common sequences: 10
 # Method  Score
@@ -419,12 +419,12 @@ cargo run --bin nwr mat compare tests/mat/IBPA.phy tests/mat/IBPA.71.phy --metho
 ### Build tree from distance matrix
 
 ```shell
-cargo run --bin nwr build upgma tests/build/wiki.phy |
+nwr build upgma tests/build/wiki.phy |
     nwr viz tex stdin --bl |
     tectonic - &&
     mv texput.pdf wiki.upgma.pdf
 
-cargo run --bin nwr build nj tests/build/wiki-nj.phy |
+nwr build nj tests/build/wiki-nj.phy |
     nwr viz tex stdin --bl |
     tectonic - &&
     mv texput.pdf wiki.nj.pdf
@@ -441,15 +441,25 @@ nwr ops reroot outtree -n e
 ### Plots
 
 ```shell
-cargo run --bin nwr plot venn tests/plot/rocauc.result.tsv tests/plot/mcox.05.result.tsv |
+# venn
+nwr plot venn \
+    tests/plot/rocauc.result.tsv \
+    tests/plot/mcox.05.result.tsv |
     tectonic - &&
     mv texput.pdf venn2.pdf
 
-cargo run --bin nwr plot venn tests/plot/rocauc.result.tsv tests/plot/mcox.05.result.tsv tests/plot/mcox.result.tsv |
+nwr plot venn \
+    tests/plot/rocauc.result.tsv \
+    tests/plot/mcox.05.result.tsv \
+    tests/plot/mcox.result.tsv |
     tectonic - &&
     mv texput.pdf venn3.pdf
 
-cargo run --bin nwr plot venn tests/plot/rocauc.result.tsv tests/plot/rocauc.result.tsv tests/plot/mcox.05.result.tsv tests/plot/mcox.result.tsv |
+nwr plot venn \
+    tests/plot/rocauc.result.tsv \
+    tests/plot/rocauc.result.tsv \
+    tests/plot/mcox.05.result.tsv \
+    tests/plot/mcox.result.tsv |
     tectonic - &&
     mv texput.pdf venn4.pdf
 
@@ -457,17 +467,14 @@ plotr venn tests/plot/rocauc.result.tsv tests/plot/mcox.05.result.tsv
 
 tectonic doc/venn4.tex
 
-cargo run --bin nwr plot hh tests/plot/hist.tsv -g 2 --bins 20 --xl "" --unit 0.5,1.5 |
+# histo
+nwr plot hh tests/plot/hist.tsv -g 2 --bins 20 --xl "" --unit 0.5,1.5 |
     tectonic - &&
     mv texput.pdf hist.pdf
 
-cargo run --bin nwr plot hh tests/plot/hist.tsv --bins 30 --xl "" --xmm 45,75 --unit 0.5,1.5 |
+nwr plot hh tests/plot/hist.tsv --bins 30 --xl "" --xmm 45,75 --unit 0.5,1.5 |
     tectonic - &&
     mv texput.pdf hist.pdf
-
-
-cargo run --bin nwr plot hh tests/plot/hist.tsv -g 2
-
 
 tectonic doc/heatmap.tex
 
