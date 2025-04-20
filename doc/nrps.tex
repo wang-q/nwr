@@ -13,7 +13,9 @@
 ]
 
 \usepackage{color}
+%COLOR_BEGIN%
 \definecolor{module}{RGB}{188,36,46} % red
+%COLOR_END%
 
 \tikzset{
     base/.style={
@@ -67,7 +69,7 @@
     Te/.style={
         base,
         circle,
-        minimum width=0.7cm,
+        minimum width=0.6cm,
         anchor=north,
         yshift=2mm,
     },
@@ -91,24 +93,25 @@
 
 \begin{document}
 \begin{tikzpicture}
+%MODULE_BEGIN%
+    \node[A] (A1) at (0,0) {Val};
+    \node[C] (A2) at (1,0) {};
+    \node[A] (A3) at (2,0) {Leu};
+    \node[CE] (A4) at (3,0) {};
+    \node[A] (A5) at (4,0) {Phe};
+    \node[T] (A6) at (4.6,0) {};
+    \node[R] (A7) at (5.2,0) {};
+    \node[M] (A8) at (6.2,0) {};
+    \node[E] (A9) at (7.2,0) {};
+    \node[Te] (A10) at (8,0) {};
     % Draw module sequence
     \begin{scope}[on background layer]
-        \draw[module, line width=2mm] (0,0) -- (10.8,0);
+        \draw[module, line width=2mm] (0,0) -- (8,0);
     \end{scope}
+%MODULE_END%
 
-    \node[A] (A1) at (0,0) {Val};
-    \node[C] (A2) at (1.2,0) {};
-    \node[A] (A3) at (2.4,0) {Leu};
-    \node[CE] (A4) at (3.6,0) {};
-    \node[A] (A5) at (4.8,0) {Phe};
-    \node[T] (A6) at (6.0,0) {};
-    \node[R] (A7) at (7.2,0) {};
-    \node[M] (A8) at (8.4,0) {};
-    \node[E] (A9) at (9.6,0) {};
-    \node[Te] (A10) at (10.8,0) {};
-
-    % Legend
-    \begin{scope}[yshift=-3cm]
+%LEGEND_BEGIN%
+    \begin{scope}[yshift=-2cm]
         \begin{scope}[yshift=0cm]
             \node[A,anchor=center,yshift=2mm,] at (0,0) {};
             \node[anchor=west] at (0.8,0) {\textbf{A}denylation};
@@ -149,5 +152,6 @@
             \node[anchor=west] at (0.8,0) {\textbf{M}ethyltransferase};
         \end{scope}
     \end{scope}
+%LEGEND_END%
 \end{tikzpicture}
 \end{document}
