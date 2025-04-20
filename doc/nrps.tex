@@ -13,19 +13,12 @@
 ]
 
 \usepackage{color}
-\definecolor{black}{RGB}{26,25,25}
-\definecolor{grey}{RGB}{129,130,132}
-\definecolor{red}{RGB}{188,36,46}
-\definecolor{brown}{RGB}{121,37,0}
-\definecolor{green}{RGB}{32,128,108}
-\definecolor{purple}{RGB}{160,90,150}
-\definecolor{blue}{RGB}{0,103,149} % MidnightBlue
-\definecolor{darkred}{RGB}{180,30,45} % Darker red
+\definecolor{module}{RGB}{188,36,46} % red
 
 \tikzset{
     base/.style={
-        draw=darkred,
-        fill=darkred,
+        draw=module,
+        fill=module,
         text=white,
         font=\small,
     },
@@ -43,7 +36,7 @@
         regular polygon,
         regular polygon sides=3,
         shape border rotate=180,
-        minimum width=1cm,
+        minimum width=0.9cm,
         anchor=north,
     },
     % Epimerization
@@ -52,7 +45,7 @@
         regular polygon,
         regular polygon sides=3,
         shape border rotate=0,
-        minimum width=1cm,
+        minimum width=0.9cm,
         anchor=south,
     },
     % Condensation/Epimerization
@@ -91,7 +84,7 @@
     M/.style={
         base,
         ellipse,
-        minimum width=1cm,
+        minimum width=0.9cm,
         minimum height=0.6cm,
     },
 }
@@ -100,19 +93,61 @@
 \begin{tikzpicture}
     % Draw module sequence
     \begin{scope}[on background layer]
-        \draw[darkred, line width=2mm] (0,0) -- (10.8,0);
+        \draw[module, line width=2mm] (0,0) -- (10.8,0);
     \end{scope}
 
-    \node[A] (A1) at (0,0) {V};
+    \node[A] (A1) at (0,0) {Val};
     \node[C] (A2) at (1.2,0) {};
-    \node[A] (A3) at (2.4,0) {L};
+    \node[A] (A3) at (2.4,0) {Leu};
     \node[CE] (A4) at (3.6,0) {};
-    \node[A] (A5) at (4.8,0) {F};
+    \node[A] (A5) at (4.8,0) {Phe};
     \node[T] (A6) at (6.0,0) {};
     \node[R] (A7) at (7.2,0) {};
     \node[M] (A8) at (8.4,0) {};
     \node[E] (A9) at (9.6,0) {};
     \node[Te] (A10) at (10.8,0) {};
 
+    % Legend
+    \begin{scope}[yshift=-3cm]
+        \begin{scope}[yshift=0cm]
+            \node[A,anchor=center,yshift=2mm,] at (0,0) {};
+            \node[anchor=west] at (0.8,0) {\textbf{A}denylation};
+        \end{scope}
+
+        \begin{scope}[yshift=-0.9cm]
+            \node[C,anchor=center] at (0,0) {};
+            \node[anchor=west] at (0.8,0) {\textbf{C}ondensation};
+        \end{scope}
+
+        \begin{scope}[yshift=-1.8cm]
+            \node[CE] at (0.3,0) {};
+            \node[anchor=west,align=left] at (0.8,0) {\textbf{C}ondensation/\\\textbf{E}pimerization};
+        \end{scope}
+
+        \begin{scope}[yshift=-2.7cm]
+            \node[T,anchor=center] at (0,0) {};
+            \node[anchor=west] at (0.8,0) {\textbf{T}hiolation};
+        \end{scope}
+
+        \begin{scope}[yshift=-3.6cm]
+            \node[Te,anchor=center,yshift=-2mm,] at (0,0) {};
+            \node[anchor=west] at (0.8,0) {\textbf{T}hio\textbf{e}sterase};
+        \end{scope}
+
+        \begin{scope}[yshift=-4.5cm]
+            \node[E,anchor=center] at (0,0) {};
+            \node[anchor=west] at (0.8,0) {\textbf{E}pimerization};
+        \end{scope}
+
+        \begin{scope}[yshift=-5.4cm]
+            \node[R,anchor=center,yshift=-2mm] at (0,0) {};
+            \node[anchor=west] at (0.8,0) {\textbf{R}eductase};
+        \end{scope}
+
+        \begin{scope}[yshift=-6.3cm]
+            \node[M] at (0,0) {};
+            \node[anchor=west] at (0.8,0) {\textbf{M}ethyltransferase};
+        \end{scope}
+    \end{scope}
 \end{tikzpicture}
 \end{document}
