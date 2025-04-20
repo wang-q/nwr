@@ -400,6 +400,8 @@ nwr plot hh tests/plot/hist.tsv --bins 30 --xl "" --xmm 45,75 --unit 0.5,1.5 |
 
 tectonic doc/heatmap.tex
 
+tectonic doc/nrps.tex
+
 ```
 
 ## Database schema
