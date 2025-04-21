@@ -15,7 +15,7 @@
 \usepackage{color}
 \definecolor{red}{RGB}{255,59,48}
 \definecolor{yellow}{RGB}{255,204,0}
-\definecolor{grey}{RGB}{129,130,132}
+\definecolor{grey}{RGB}{180,180,182}
 
 % 添加热图所需的包和设置
 \usepackage{pgfplots}
@@ -28,7 +28,7 @@
         tick style={draw=none},
         xtick={},
         xticklabels={},
-        x tick label style={font=\scriptsize},
+        x tick label style={font=\small},
         extra x tick style={
             grid=major, grid style={grey, thick},
         },
@@ -44,23 +44,24 @@
         colormap={mymap}{
             color(0)=(white)
             color(0.05)=(yellow!50)
-            color(0.1)=(yellow)
-            color(0.4)=(yellow!50!red)
-            color(0.7)=(yellow!25!red)
+            color(0.2)=(yellow)
+            color(0.4)=(yellow!70!red)
+            color(0.6)=(yellow!50!red)
+            color(0.8)=(yellow!25!red)
             color(1)=(red)
         },
         colorbar,
         colorbar style={
             width=2mm,
             height=1cm,
-            ytick={0,0.25,0.5},
+            ytick={0,0.5,1},
             y tick label style={
-                font=\scriptsize,
+                font=\small,
                 align=left,
             },
         },
         point meta min=0,
-        point meta max=0.5,
+        point meta max=1,
     },
     every colorbar/.append style={
         tick style={draw=none},
