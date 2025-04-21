@@ -10,7 +10,7 @@ Module	M3
 C
 A	D-Leu	red
 T
-E
+E	E
 Module	M4	brown
 C
 A	Val/\\Leu
@@ -28,4 +28,4 @@ Module	M7	grey
 C
 A	Leu
 T
-Te
+Te	Te
