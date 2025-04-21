@@ -1,0 +1,30 @@
+Module	M1	grey
+C
+A	Glu
+T
+Module	M2	brown
+C
+A	Leu
+T
+Module	M3
+C
+A	D-Leu	red
+T
+E
+Module	M4	brown
+C
+A	Val/\\Leu
+T
+Module	M5	grey
+C
+A	L-X
+T
+Module	M6	brown
+C
+A	D-Leu
+T
+E
+Module	M7	grey
+C
+A	Leu
+T
