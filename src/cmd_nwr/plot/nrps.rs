@@ -140,7 +140,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             "A" => (0.4, 0.4),
             "C" | "E" | "CE" | "M" => (0.4, 0.4),
             "T" => (0.2, 0.2),
-            "Te" | "R" => (0.4, 0.4),
+            "Te" | "R" => (0.3, 0.3),
             _ => unreachable!(),
         };
 

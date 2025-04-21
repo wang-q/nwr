@@ -1,5 +1,5 @@
 Module	M1	grey
-C
+C	Cy
 A	Glu
 T
 Module	M2	brown
@@ -28,3 +28,4 @@ Module	M7	grey
 C
 A	Leu
 T
+Te
