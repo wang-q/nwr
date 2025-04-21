@@ -400,6 +400,11 @@ nwr plot hh tests/plot/hist.tsv --bins 30 --xl "" --xmm 45,75 --unit 0.5,1.5 |
 
 tectonic doc/heatmap.tex
 
+# nrps
+cargo run --bin nwr plot nrps tests/plot/srf.tsv --legend --color black |
+    tectonic - &&
+    mv texput.pdf srf.pdf
+
 tectonic doc/nrps.tex
 
 ```

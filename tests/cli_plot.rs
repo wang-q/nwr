@@ -85,3 +85,34 @@ fn command_plot_hh() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn command_plot_nrps() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("plot")
+        .arg("nrps")
+        .arg("tests/plot/srf.tsv")
+        .output()?;
+    let stdout = String::from_utf8(output.stdout)?;
+
+    assert!(stdout.contains("(-0.4cm,0) -- (\\x1 + 0.2cm,0)"));
+    assert!(!stdout.contains("\\textbf{M}ethyltransferase"));
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("plot")
+        .arg("nrps")
+        .arg("tests/plot/srf.tsv")
+        .arg("--legend")
+        .arg("--color")
+        .arg("black")
+        .output()?;
+    let stdout = String::from_utf8(output.stdout)?;
+
+    assert!(stdout.contains("     draw=black,"));
+    assert!(stdout.contains("\\textbf{M}ethyltransferase"));
+
+
+    Ok(())
+}
