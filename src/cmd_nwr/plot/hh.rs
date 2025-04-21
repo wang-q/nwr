@@ -131,6 +131,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     // Calculate histogram for each group
     let (hist_data, bin_edges) = calc_hist(&data, *bins, xmm)?;
+    // eprintln!("hist_data = {:#?}", hist_data);
     let density_data = calc_density(&hist_data);
     let table = create_table(&density_data);
 
@@ -253,8 +254,16 @@ fn calc_hist(
                     (min.min(val), max.max(val))
                 });
             // Normalize range to neat values
-            let magnitude_min = 10f64.powf(min.abs().log10().floor());
-            let magnitude_max = 10f64.powf(max.abs().log10().floor());
+            let magnitude_min = if min.abs() < f64::EPSILON {
+                1.0
+            } else {
+                10f64.powf(min.abs().log10().floor())
+            };
+            let magnitude_max = if max.abs() < f64::EPSILON {
+                1.0
+            } else {
+                10f64.powf(max.abs().log10().floor())
+            };
 
             let norm_min = (min / magnitude_min).floor() * magnitude_min;
             let norm_max = (max / magnitude_max).ceil() * magnitude_max;
