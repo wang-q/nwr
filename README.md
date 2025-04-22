@@ -398,7 +398,7 @@ nwr plot hh tests/plot/hist.tsv --bins 30 --xl "" --xmm 45,75 --unit 0.5,1.5 |
     tectonic - &&
     mv texput.pdf hist.pdf
 
-cargo run --bin nwr plot hh tests/plot/adomain.tsv -g 2 --bins 40 --xl "" --unit 0.5,0.8 |
+cargo run --bin nwr plot hh tests/plot/adomain.tsv -g 2 --bins 40 --xl "" --yl "" --unit 0.3,0.5 |
     tectonic - &&
     mv texput.pdf hist.pdf
 
