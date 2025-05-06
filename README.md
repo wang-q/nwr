@@ -411,6 +411,8 @@ cargo run --bin nwr plot nrps tests/plot/srf.tsv --legend --color blue |
 
 tectonic doc/nrps.tex
 
+tectonic doc/da.tex
+
 ```
 
 ## Database schema
