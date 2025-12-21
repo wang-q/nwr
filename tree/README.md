@@ -253,7 +253,8 @@ tectonic tex/Vertebrate.tex --outdir pdf
 ```shell
 iqtree2 -s seqs/vet.fa -st MORPH -m MK -b 100
 
-nwr viz reroot seqs/vet.fa.contree -n Lamprey |
+nwr ops reroot seqs/vet.fa.contree -n Lamprey |
+    nwr ops topo stdin |
     nwr viz tex stdin -s |
     tectonic - --outdir pdf
 
