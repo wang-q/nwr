@@ -86,8 +86,6 @@ Subcommand groups:
     * Visualization
         * viz indent / viz comment / viz tex
     * pl-condense
-* Distance matrix
-    * mat pair / mat phylip / mat format / mat subset / mat compare
 * Build tree
     * build upgma / build nj
 * Plots
@@ -308,33 +306,6 @@ nwr viz tex --forest --bare tests/newick/test.forest
 
 nwr viz common "Escherichia coli" 4932 Drosophila_melanogaster 9606 "Mus musculus" |
     nwr viz tex --bare stdin
-
-```
-
-### Matrix commands
-
-```bash
-nwr mat phylip tests/mat/IBPA.fa.tsv
-
-nwr mat pair tests/mat/IBPA.phy
-
-nwr mat format tests/mat/IBPA.phy
-
-nwr mat subset tests/mat/IBPA.phy tests/mat/IBPA.list
-
-hnsm distance tests/mat/IBPA.fa -k 7 -w 1 |
-    nwr mat phylip stdin -o tests/mat/IBPA.71.phy
-
-nwr mat compare tests/mat/IBPA.phy tests/mat/IBPA.71.phy --method all
-# Sequences in matrices: 10 and 10
-# Common sequences: 10
-# Method  Score
-# pearson 0.935803
-# spearman        0.919631
-# mae     0.113433
-# cosine  0.978731
-# jaccard 0.759106
-# euclid  1.229844
 
 ```
 
