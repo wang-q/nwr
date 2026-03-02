@@ -61,7 +61,6 @@ Commands:
   ops          Newick operation commands
   viz          Newick visualization commands
   mat          Distance matrix commands
-  build        Build tree from distance matrix
   plot         Plot commands
   pl-condense  Pipeline - condense subtrees based on taxonomy
   help         Print this message or the help of the given subcommand(s)
@@ -86,8 +85,6 @@ Subcommand groups:
     * Visualization
         * viz indent / viz comment / viz tex
     * pl-condense
-* Build tree
-    * build upgma / build nj
 * Plots
     * plot hh / plot venn
 

@@ -46,7 +46,6 @@ cargo test
     - **Newick Data**: `data` (包含 `label`, `stat`, `distance`).
     - **Newick Operations**: `ops` (包含 `order`, `rename`, `replace`, `topo`, `subtree`, `prune`, `reroot`).
     - **Newick Visualization**: `viz` (包含 `indent`, `comment`, `tex`).
-    - **Build Tree**: `build` (包含 `nj`, `upgma`).
     - **Plots**: `plot` (包含 `hh`, `venn`, `nrps`).
     - **Pipeline**: `pl_condense`.
 - **`src/libs/`** - 共享工具库和核心逻辑。
