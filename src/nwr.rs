@@ -28,12 +28,6 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::seqdb::make_subcommand())
         // Newick data
         .subcommand(cmd_nwr::data::make_subcommand())
-        // Newick operations
-        .subcommand(cmd_nwr::ops::make_subcommand())
-        // Newick visualization
-        .subcommand(cmd_nwr::viz::make_subcommand())
-        // Plots
-        .subcommand(cmd_nwr::plot::make_subcommand())
         // Pipeline
         .subcommand(cmd_nwr::pl_condense::make_subcommand())
         .after_help(
@@ -47,14 +41,7 @@ fn main() -> anyhow::Result<()> {
     * template / kb / seqdb
 * Newick
     * data label / data stat / data distance
-    * Operations
-        * ops order / ops rename / ops replace / ops topo / ops subtree /
-          ops prune / ops  reroot
-    * Visualization
-        * viz indent / viz comment / viz tex
     * pl-condense
-* Plots
-    * plot hh / plot venn
 
 "###,
         );
@@ -74,9 +61,6 @@ fn main() -> anyhow::Result<()> {
         Some(("kb", sub_matches)) => cmd_nwr::kb::execute(sub_matches),
         Some(("seqdb", sub_matches)) => cmd_nwr::seqdb::execute(sub_matches),
         Some(("data", sub_matches)) => cmd_nwr::data::execute(sub_matches),
-        Some(("ops", sub_matches)) => cmd_nwr::ops::execute(sub_matches),
-        Some(("viz", sub_matches)) => cmd_nwr::viz::execute(sub_matches),
-        Some(("plot", sub_matches)) => cmd_nwr::plot::execute(sub_matches),
         Some(("pl-condense", sub_matches)) => cmd_nwr::pl_condense::execute(sub_matches),
         _ => unreachable!(),
     }?;

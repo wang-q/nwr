@@ -117,9 +117,12 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     env::set_current_dir(tempdir_str)?;
 
     run_cmd!(info "==> Start")?;
-    run_cmd!(
-        ${nwr} viz indent ${abs_infile} -o start.nwk
-    )?;
+    {
+        let tree = nwr::read_newick(&abs_infile);
+        let out_string = nwr::format_tree(&tree, "  ");
+        let mut writer = intspan::writer("start.nwk");
+        writer.write_all((out_string + "\n").as_ref())?;
+    }
 
     run_cmd!(info "==> Labels in the file")?;
     run_cmd!(

@@ -58,10 +58,6 @@ Commands:
   kb           Prints docs (knowledge bases)
   seqdb        Init the seq database
   data         Newick data commands
-  ops          Newick operation commands
-  viz          Newick visualization commands
-  mat          Distance matrix commands
-  plot         Plot commands
   pl-condense  Pipeline - condense subtrees based on taxonomy
   help         Print this message or the help of the given subcommand(s)
 
@@ -78,15 +74,8 @@ Subcommand groups:
 * Assembly
     * template / kb / seqdb
 * Newick
-    * data label / data stat / data distance
-    * Operations
-        * ops order / ops rename / ops replace / ops topo / ops subtree /
-          ops prune / ops  reroot
-    * Visualization
-        * viz indent / viz comment / viz tex
+    * data label
     * pl-condense
-* Plots
-    * plot hh / plot venn
 
 ```
 
