@@ -10,7 +10,7 @@ pub fn make_subcommand() -> Command {
         .after_help(include_str!("../../docs/help/kb.md"))
         .arg(
             Arg::new("infile")
-                .help("Document to print (formats, abbr, bac120, ar53)")
+                .help("Document to print (abbr, bac120, ar53)")
                 .num_args(1)
                 .required(true)
                 .index(1),
@@ -29,16 +29,11 @@ pub fn make_subcommand() -> Command {
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let outfile = args.get_one::<String>("outfile").unwrap();
 
-    static FILE_FORMATS: &str = include_str!("../../docs/formats.md");
     static FILE_ABBR: &str = include_str!("../../docs/abbr.pl");
     static FILE_BAC: &[u8] = include_bytes!("../../docs/bac120.tar.gz");
     static FILE_AR: &[u8] = include_bytes!("../../docs/ar53.tar.gz");
 
     match args.get_one::<String>("infile").unwrap().as_ref() {
-        "formats" => {
-            let mut writer = intspan::writer(outfile);
-            writer.write_all(FILE_FORMATS.as_ref())?;
-        }
         "abbr" => {
             let mut writer = intspan::writer(outfile);
             writer.write_all(FILE_ABBR.as_ref())?;
