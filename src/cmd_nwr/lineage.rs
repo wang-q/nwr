@@ -45,12 +45,14 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         nwr::nwr_path()
     };
 
-    let conn = nwr::connect_txdb(&nwrdir).unwrap();
+    let conn = nwr::connect_txdb(&nwrdir)?;
 
-    let term = args.get_one::<String>("term").unwrap();
-    let id = nwr::term_to_tax_id(&conn, term).unwrap();
+    let term = args
+        .get_one::<String>("term")
+        .ok_or_else(|| anyhow::anyhow!("No term provided"))?;
+    let id = nwr::term_to_tax_id(&conn, term)?;
 
-    let lineage = nwr::get_lineage(&conn, id).unwrap();
+    let lineage = nwr::get_lineage(&conn, id)?;
 
     for node in lineage.iter() {
         writer.write_fmt(format_args!(

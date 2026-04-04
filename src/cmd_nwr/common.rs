@@ -87,8 +87,8 @@ fn add_taxon(
     let name = taxon.names.get("scientific name").unwrap()[0].clone();
     node.set_name(name);
 
-    if parent.is_some() {
-        tree.add_child(node, parent.unwrap(), None).unwrap()
+    if let Some(p) = parent {
+        tree.add_child(node, p, None).unwrap()
     } else {
         tree.add(node)
     }

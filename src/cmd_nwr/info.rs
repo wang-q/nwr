@@ -45,15 +45,18 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         nwr::nwr_path()
     };
 
-    let conn = nwr::connect_txdb(&nwrdir).unwrap();
+    let conn = nwr::connect_txdb(&nwrdir)?;
 
     let mut ids = vec![];
-    for term in args.get_many::<String>("terms").unwrap() {
-        let id = nwr::term_to_tax_id(&conn, term).unwrap();
+    for term in args
+        .get_many::<String>("terms")
+        .ok_or_else(|| anyhow::anyhow!("No terms provided"))?
+    {
+        let id = nwr::term_to_tax_id(&conn, term)?;
         ids.push(id);
     }
 
-    let nodes = nwr::get_taxon(&conn, ids).unwrap();
+    let nodes = nwr::get_taxon(&conn, ids)?;
 
     if args.get_flag("tsv") {
         let mut wtr = csv::WriterBuilder::new()

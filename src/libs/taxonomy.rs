@@ -406,7 +406,7 @@ pub fn batch_exec(
     stmts: &mut Vec<String>,
     i: usize,
 ) -> anyhow::Result<()> {
-    if i > 1 && i % 1000 == 0 {
+    if i > 1 && i.is_multiple_of(1000) {
         stmts.push(String::from("COMMIT;"));
         let stmt = &stmts.join("\n");
         conn.execute_batch(stmt)?;
@@ -419,7 +419,7 @@ pub fn batch_exec(
         conn.execute_batch(stmt)?;
         println!("\n    Finished");
     }
-    if i > 1 && i % 10000 == 0 {
+    if i > 1 && i.is_multiple_of(10000) {
         print!(".");
         std::io::stdout().flush()?; // Ensure the dot is printed immediately
     }

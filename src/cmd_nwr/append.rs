@@ -125,7 +125,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 if ranks.is_empty() {
                     let node = nwr::get_taxon(&conn, vec![id])
                         .unwrap()
-                        .get(0)
+                        .first()
                         .unwrap()
                         .clone();
                     let s = &node.names.get("scientific name").unwrap()[0];

@@ -66,7 +66,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         nwr::nwr_path()
     };
 
-    let conn = nwr::connect_txdb(&nwrdir).unwrap();
+    let conn = nwr::connect_txdb(&nwrdir)?;
 
     let mut tsv_wtr = csv::WriterBuilder::new()
         .delimiter(b'\t')
@@ -75,15 +75,21 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     let mut rank_set: HashSet<String> = HashSet::new();
     if args.contains_id("rank") {
-        for rank in args.get_many::<String>("rank").unwrap() {
+        for rank in args
+            .get_many::<String>("rank")
+            .ok_or_else(|| anyhow::anyhow!("No ranks provided"))?
+        {
             rank_set.insert(rank.to_string());
         }
     }
     let is_env = args.get_flag("env");
 
-    for term in args.get_many::<String>("terms").unwrap() {
-        let id = nwr::term_to_tax_id(&conn, term).unwrap();
-        let descendents = nwr::get_all_descendent(&conn, id).unwrap();
+    for term in args
+        .get_many::<String>("terms")
+        .ok_or_else(|| anyhow::anyhow!("No terms provided"))?
+    {
+        let id = nwr::term_to_tax_id(&conn, term)?;
+        let descendents = nwr::get_all_descendent(&conn, id)?;
 
         let nodes = nwr::get_taxon(&conn, descendents)?;
 

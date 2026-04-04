@@ -81,20 +81,25 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         nwr::nwr_path()
     };
 
-    let conn = nwr::connect_txdb(&nwrdir).unwrap();
+    let conn = nwr::connect_txdb(&nwrdir)?;
 
     let mut id_set = IntSpan::new();
-    for term in args.get_many::<String>("terms").unwrap() {
-        let id = nwr::term_to_tax_id(&conn, term).unwrap();
-        let descendents: Vec<i32> = nwr::get_all_descendent(&conn, id)
-            .unwrap()
+    for term in args
+        .get_many::<String>("terms")
+        .ok_or_else(|| anyhow::anyhow!("No terms provided"))?
+    {
+        let id = nwr::term_to_tax_id(&conn, term)?;
+        let descendents: Vec<i32> = nwr::get_all_descendent(&conn, id)?
             .iter()
             .map(|n| *n as i32)
             .collect();
         id_set.add_vec(descendents.as_ref());
     }
 
-    for infile in args.get_many::<String>("file").unwrap() {
+    for infile in args
+        .get_many::<String>("file")
+        .ok_or_else(|| anyhow::anyhow!("No input files provided"))?
+    {
         let reader = intspan::reader(infile);
         for line in reader.lines().map_while(Result::ok) {
             // Always output lines start with "#"
@@ -105,8 +110,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
             // Check the given field
             let fields: Vec<&str> = line.split('\t').collect();
-            let term = fields.get(column - 1).unwrap();
-            let id = nwr::term_to_tax_id(&conn, term).unwrap();
+            let term = fields.get(column - 1).ok_or_else(|| {
+                anyhow::anyhow!("Column {} not found in line: {}", column, line)
+            })?;
+            let id = nwr::term_to_tax_id(&conn, term)?;
 
             if is_exclude ^ id_set.contains(id as i32) {
                 writer.write_fmt(format_args!("{}\n", line))?;
