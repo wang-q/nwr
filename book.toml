@@ -1,0 +1,9 @@
+[book]
+authors = ["Qiang Wang"]
+language = "en"
+src = "docs"
+title = "NWR Documentation"
+
+[output.html]
+git-repository-url = "https://github.com/wang-q/nwr"
+edit-url-template = "https://github.com/wang-q/nwr/edit/master/{path}"
