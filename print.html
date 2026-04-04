@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-8908d466.js";
+            window.path_to_searchindex_js = "searchindex-a5b85870.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-83b76625.js"></script>
+        <script src="toc-65c3b4e4.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -1014,6 +1014,239 @@ cat raw.tsv |
 </table>
 </div>
 <div style="break-before: page; page-break-before: always;"></div>
+<h1 id="download"><a class="header" href="#download">download</a></h1>
+<p>Behavior:</p>
+<ul>
+<li>Downloads the latest releases of <code>taxdump</code> and assembly reports from NCBI.</li>
+<li>Automatically verifies MD5 checksum for taxdump.</li>
+<li>Extracts taxdump.tar.gz to the NWR directory.</li>
+<li>Skips downloading if files already exist.</li>
+</ul>
+<p>Manual Download:</p>
+<p>You can also download the files manually:</p>
+<pre><code class="language-bash">mkdir -p ~/.nwr
+
+# taxdump
+wget -N -P ~/.nwr https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
+wget -N -P ~/.nwr https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz.md5
+
+# assembly reports
+wget -N -P ~/.nwr https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_refseq.txt
+wget -N -P ~/.nwr https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_genbank.txt
+
+# with aria2
+cat &lt;&lt;EOF &gt; download.txt
+https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
+https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz.md5
+https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_refseq.txt
+https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_genbank.txt
+
+EOF
+
+aria2c -x 4 -s 2 -c -d ~/.nwr -i download.txt
+</code></pre>
+<p>Examples:</p>
+<ol>
+<li>
+<p>Download with default settings
+<code>nwr download</code></p>
+</li>
+<li>
+<p>Use a different FTP host
+<code>nwr download --host ftp.ncbi.nih.gov:21</code></p>
+</li>
+<li>
+<p>Custom paths
+<code>nwr download --tx /pub/taxonomy --ar /genomes/ASSEMBLY_REPORTS</code></p>
+</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="txdb"><a class="header" href="#txdb">txdb</a></h1>
+<p>Behavior:</p>
+<ul>
+<li>Initializes the taxonomy database from <code>taxdump.tar.gz</code>.</li>
+<li>Creates a SQLite database at <code>~/.nwr/taxonomy.sqlite</code>.</li>
+<li>Loads data from <code>division.dmp</code>, <code>names.dmp</code>, and <code>nodes.dmp</code>.</li>
+<li>Creates indexes for efficient querying.</li>
+</ul>
+<p>Database Location:</p>
+<pre><code>~/.nwr/taxonomy.sqlite
+</code></pre>
+<p>The DDL:</p>
+<pre><code class="language-sql">DROP TABLE IF EXISTS division;
+DROP TABLE IF EXISTS node;
+DROP TABLE IF EXISTS name;
+
+CREATE TABLE IF NOT EXISTS division (
+    id       INTEGER      NOT NULL
+                          PRIMARY KEY,
+    division VARCHAR (50) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS node (
+    tax_id        INTEGER      NOT NULL
+                               PRIMARY KEY,
+    parent_tax_id INTEGER,
+    rank          VARCHAR (25) NOT NULL,
+    division_id   INTEGER      NOT NULL,
+    comment       TEXT,
+    FOREIGN KEY (
+        division_id
+    )
+    REFERENCES division (id)
+);
+
+CREATE TABLE IF NOT EXISTS name (
+    id         INTEGER      NOT NULL
+                            PRIMARY KEY,
+    tax_id     INTEGER      NOT NULL,
+    name       VARCHAR (50) NOT NULL,
+    name_class VARCHAR (50) NOT NULL
+);
+</code></pre>
+<p>Query the database:</p>
+<pre><code>echo "
+    SELECT sql
+    FROM sqlite_master
+    WHERE type='table'
+    ORDER BY name;
+    " |
+    sqlite3 -tabs ~/.nwr/taxonomy.sqlite
+</code></pre>
+<p>Examples:</p>
+<ol>
+<li>
+<p>Initialize the taxonomy database
+<code>nwr txdb</code></p>
+</li>
+<li>
+<p>Use a custom directory
+<code>nwr txdb --dir /path/to/nwr</code></p>
+</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="ardb"><a class="header" href="#ardb">ardb</a></h1>
+<p>Behavior:</p>
+<ul>
+<li>Initializes the assembly database from assembly summary files.</li>
+<li>Creates SQLite databases at <code>~/.nwr/ar_refseq.sqlite</code> and <code>~/.nwr/ar_genbank.sqlite</code>.</li>
+<li>Loads data from <code>assembly_summary_refseq.txt</code> or <code>assembly_summary_genbank.txt</code>.</li>
+<li>Appends taxonomic lineage information (species, genus, family).</li>
+<li>Filters out incompetent strains (uncultured, unidentified, etc.).</li>
+</ul>
+<p>Database Location:</p>
+<pre><code>~/.nwr/ar_refseq.sqlite
+~/.nwr/ar_genbank.sqlite
+</code></pre>
+<p>Input Columns:</p>
+<ul>
+<li>
+<p><code>assembly_summary_*.txt</code> have 23 tab-delimited columns.</p>
+</li>
+<li>
+<p>Fields with numbers are used in the database.</p>
+<p>0   assembly_accession  6
+1   bioproject          4
+2   biosample           5
+3   wgs_master
+4   refseq_category     7
+5   taxid AS tax_id     1
+6   species_taxid
+7   organism_name       2
+8   infraspecific_name  3
+9   isolate
+10  version_status
+11  assembly_level      8
+12  release_type
+13  genome_rep          9
+14  seq_rel_date        10
+15  asm_name            11
+16  submitter
+17  gbrs_paired_asm     12
+18  paired_asm_comp
+19  ftp_path            13
+20  excluded_from_refseq
+21  relation_to_type_material
+22  asm_not_live_date</p>
+</li>
+</ul>
+<p>Appended Columns:</p>
+<pre><code>14  species
+15  species_id
+16  genus
+17  genus_id
+18  family
+19  family_id
+</code></pre>
+<p>Filtered Strains:</p>
+<p>Incompetent strains matching the following regexes in their <code>organism_name</code> are removed:</p>
+<pre><code>\bCandidatus\b
+\bcandidate\b
+\buncultured\b
+\bunidentified\b
+\bbacterium\b
+\barchaeon\b
+\bmetagenome\b
+virus\b
+phage\b
+</code></pre>
+<p>Requirements:</p>
+<ul>
+<li>Strains with <code>assembly_level</code> of Scaffold or Contig should have a <code>genome_rep</code> of <code>full</code>.</li>
+<li>Requires SQLite version 3.34 or above.</li>
+</ul>
+<p>Query the database:</p>
+<pre><code>echo "
+    SELECT
+        COUNT(*)
+    FROM ar
+    WHERE 1=1
+        AND genus IN ('Pseudomonas')
+        AND assembly_level IN ('Complete Genome', 'Chromosome')
+    " |
+    sqlite3 -tabs ~/.nwr/ar_refseq.sqlite
+</code></pre>
+<p>The DDL:</p>
+<pre><code class="language-sql">DROP TABLE IF EXISTS ar;
+
+CREATE TABLE IF NOT EXISTS ar (
+    tax_id             INTEGER,
+    organism_name      VARCHAR (200),
+    infraspecific_name VARCHAR (200),
+    bioproject         VARCHAR (50),
+    biosample          VARCHAR (50),
+    assembly_accession VARCHAR (50),
+    refseq_category    VARCHAR (50),
+    assembly_level     VARCHAR (50),
+    genome_rep         VARCHAR (50),
+    seq_rel_date       DATE,
+    asm_name           VARCHAR (200),
+    gbrs_paired_asm    VARCHAR (200),
+    ftp_path           VARCHAR (200),
+    species            VARCHAR (50),
+    species_id         INTEGER,
+    genus              VARCHAR (50),
+    genus_id           INTEGER,
+    family             VARCHAR (50),
+    family_id          INTEGER
+);
+</code></pre>
+<p>Examples:</p>
+<ol>
+<li>
+<p>Initialize the RefSeq assembly database
+<code>nwr ardb</code></p>
+</li>
+<li>
+<p>Initialize the GenBank assembly database
+<code>nwr ardb --genbank</code></p>
+</li>
+<li>
+<p>Use a custom directory
+<code>nwr ardb --dir /path/to/nwr</code></p>
+</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
 <h1 id="append"><a class="header" href="#append">append</a></h1>
 <p>Behavior:</p>
 <ul>
@@ -1056,6 +1289,485 @@ cat raw.tsv |
 <li>
 <p>Specify column and output file
 <code>nwr append input.tsv -c 2 --rank kingdom -o output.tsv</code></p>
+</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="common"><a class="header" href="#common">common</a></h1>
+<p>Behavior:</p>
+<ul>
+<li>Outputs the common tree of terms as Newick format.</li>
+<li>Finds the most recent common ancestor of all input terms.</li>
+<li>Constructs a phylogenetic tree showing the relationship.</li>
+<li>Ancestral terms can be Taxonomy IDs or scientific names.</li>
+</ul>
+<p>Input:</p>
+<ul>
+<li>Accepts two or more Taxonomy IDs or scientific names.</li>
+<li>Terms are provided as positional arguments.</li>
+</ul>
+<p>Output:</p>
+<ul>
+<li>Newick format tree string.</li>
+<li>Tree includes scientific names as node labels.</li>
+<li>By default, output is written to standard output.</li>
+<li>Use <code>--outfile</code> to write to a file instead.</li>
+</ul>
+<p>Examples:</p>
+<ol>
+<li>
+<p>Find common ancestor of two species
+<code>nwr common 9606 10090</code></p>
+</li>
+<li>
+<p>Find common ancestor of multiple taxa
+<code>nwr common "Homo sapiens" "Mus musculus" "Danio rerio"</code></p>
+</li>
+<li>
+<p>Write to file
+<code>nwr common 9606 10090 -o tree.nwk</code></p>
+</li>
+<li>
+<p>Use taxonomy IDs
+<code>nwr common 9605 10090 10116</code></p>
+</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="info"><a class="header" href="#info">info</a></h1>
+<p>Behavior:</p>
+<ul>
+<li>Retrieves taxonomic information from the local taxonomy database.</li>
+<li>Accepts Taxonomy IDs or scientific names as input.</li>
+<li>By default, outputs detailed information in a custom format.</li>
+<li>Use <code>--tsv</code> to output results as tab-separated values.</li>
+</ul>
+<p>Input:</p>
+<ul>
+<li>Accepts one or more Taxonomy IDs or scientific names.</li>
+<li>Terms can be provided as positional arguments.</li>
+</ul>
+<p>Output:</p>
+<ul>
+<li>Default format shows detailed taxonomic information.</li>
+<li>TSV output includes: tax_id, sci_name, rank, division.</li>
+<li>By default, output is written to standard output.</li>
+<li>Use <code>--outfile</code> to write to a file instead.</li>
+</ul>
+<p>Examples:</p>
+<ol>
+<li>
+<p>Get information for a single taxon
+<code>nwr info 9606</code></p>
+</li>
+<li>
+<p>Get information for multiple taxa
+<code>nwr info 9606 10090 10116</code></p>
+</li>
+<li>
+<p>Output as TSV
+<code>nwr info Homo_sapiens --tsv</code></p>
+</li>
+<li>
+<p>Use scientific names
+<code>nwr info "Homo sapiens" "Mus musculus"</code></p>
+</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="lineage"><a class="header" href="#lineage">lineage</a></h1>
+<p>Behavior:</p>
+<ul>
+<li>Retrieves the lineage of a taxon from root to the specified term.</li>
+<li>Returns the full taxonomic hierarchy including all ranks.</li>
+<li>By default, outputs rank, scientific name, and taxonomy ID for each level.</li>
+</ul>
+<p>Input:</p>
+<ul>
+<li>Accepts a single Taxonomy ID or scientific name.</li>
+<li>Use <code>--tsv</code> for tab-separated output format.</li>
+</ul>
+<p>Output:</p>
+<ul>
+<li>Default output: rank, scientific_name, tax_id (tab-separated)</li>
+<li>TSV output: rank, scientific_name, tax_id (tab-separated)</li>
+<li>By default, output is written to standard output.</li>
+<li>Use <code>--outfile</code> to write to a file instead.</li>
+</ul>
+<p>Examples:</p>
+<ol>
+<li>
+<p>Get lineage for a species
+<code>nwr lineage 9606</code></p>
+</li>
+<li>
+<p>Get lineage using scientific name
+<code>nwr lineage "Homo sapiens"</code></p>
+</li>
+<li>
+<p>Output as TSV
+<code>nwr lineage 9606 --tsv</code></p>
+</li>
+<li>
+<p>Write to file
+<code>nwr lineage 9606 -o lineage.txt</code></p>
+</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="member"><a class="header" href="#member">member</a></h1>
+<p>Behavior:</p>
+<ul>
+<li>Lists members (of certain ranks) under ancestral term(s).</li>
+<li>Retrieves taxonomic information from the local taxonomy database.</li>
+<li>Ancestral terms can be Taxonomy IDs or scientific names.</li>
+<li>By default, excludes “Environmental samples” division.</li>
+<li>The output file is in the same TSV format as <code>nwr info --tsv</code>.</li>
+</ul>
+<p>Valid ranks:</p>
+<ul>
+<li>species, genus, family, order, class, phylum, kingdom</li>
+<li>Other ranks (e.g., clade, no rank) may work but are not officially supported.</li>
+</ul>
+<p>Input:</p>
+<ul>
+<li>Accepts one or more ancestral Taxonomy IDs or scientific names.</li>
+<li>Optionally filter results by rank using <code>--rank</code>.</li>
+</ul>
+<p>Output:</p>
+<ul>
+<li>TSV output includes: tax_id, sci_name, rank, division.</li>
+<li>By default, output is written to standard output.</li>
+<li>Use <code>--outfile</code> to write to a file instead.</li>
+</ul>
+<p>Examples:</p>
+<ol>
+<li>
+<p>List all members under a genus
+<code>nwr member 9605</code></p>
+</li>
+<li>
+<p>List only species under a genus
+<code>nwr member Homo --rank species</code></p>
+</li>
+<li>
+<p>Include environmental samples
+<code>nwr member 4751 --env</code></p>
+</li>
+<li>
+<p>Multiple ancestors with rank filter
+<code>nwr member Homo Pan --rank genus</code></p>
+</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="restrict"><a class="header" href="#restrict">restrict</a></h1>
+<p>Behavior:</p>
+<ul>
+<li>Restricts taxonomy terms to descendants of specified ancestor(s).</li>
+<li>Terms can be Taxonomy IDs or scientific names.</li>
+<li>Use <code>--exclude</code> to invert the filter (exclude matching lines).</li>
+<li>Header lines (starting with “#”) are always outputted.</li>
+</ul>
+<p>Input:</p>
+<ul>
+<li>Accepts one or more TSV files via <code>--file</code> option.</li>
+<li>Reads from standard input by default.</li>
+<li>The input file should contain taxon IDs or scientific names in a specific column.</li>
+</ul>
+<p>Output:</p>
+<ul>
+<li>Filtered tab-separated values.</li>
+<li>By default, output is written to standard output.</li>
+<li>Use <code>--outfile</code> to write to a file instead.</li>
+</ul>
+<p>Examples:</p>
+<ol>
+<li>
+<p>Restrict to descendants of a specific genus
+<code>nwr restrict "Homo" --file input.tsv</code></p>
+</li>
+<li>
+<p>Restrict using taxonomy ID
+<code>nwr restrict 9605 --file input.tsv</code></p>
+</li>
+<li>
+<p>Exclude descendants (inverse filter)
+<code>nwr restrict "Bacteria" --file input.tsv --exclude</code></p>
+</li>
+<li>
+<p>Specify column and output file
+<code>nwr restrict "Mammalia" --file input.tsv -c 2 -o output.tsv</code></p>
+</li>
+<li>
+<p>Multiple ancestors
+<code>nwr restrict "Homo" "Pan" --file input.tsv</code></p>
+</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="template"><a class="header" href="#template">template</a></h1>
+<p>Behavior:</p>
+<ul>
+<li>Creates directories, data files, and scripts for phylogenomic research.</li>
+<li>Generates materials for ASSEMBLY, BioSample, MinHash, Count, and Protein steps.</li>
+<li>Uses Tera templates to generate Bash scripts.</li>
+</ul>
+<p>Input File Format:</p>
+<p><code>.assembly.tsv</code> is a TAB-delimited file to guide downloading and processing:</p>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th style="text-align: right">Col</th><th style="text-align: center">Type</th><th style="text-align: left">Description</th></tr>
+</thead>
+<tbody>
+<tr><td style="text-align: right">1</td><td style="text-align: center">string</td><td style="text-align: left">#name: species + infraspecific_name + assembly_accession</td></tr>
+<tr><td style="text-align: right">2</td><td style="text-align: center">string</td><td style="text-align: left">ftp_path</td></tr>
+<tr><td style="text-align: right">3</td><td style="text-align: center">string</td><td style="text-align: left">biosample</td></tr>
+<tr><td style="text-align: right">4</td><td style="text-align: center">string</td><td style="text-align: left">species</td></tr>
+<tr><td style="text-align: right">5</td><td style="text-align: center">string</td><td style="text-align: left">assembly_level</td></tr>
+</tbody>
+</table>
+</div>
+<p>Generated Materials:</p>
+<ul>
+<li>
+<p><code>--ass</code>: ASSEMBLY/</p>
+<ul>
+<li>One TSV file: url.tsv</li>
+<li>Five Bash scripts: rsync.sh, check.sh, n50.sh, collect.sh, finish.sh</li>
+</ul>
+</li>
+<li>
+<p><code>--bs</code>: BioSample/</p>
+<ul>
+<li>One TSV file: sample.tsv</li>
+<li>Two Bash scripts: download.sh, collect.sh</li>
+</ul>
+</li>
+<li>
+<p><code>--mh</code>: MinHash/</p>
+<ul>
+<li>One TSV file: species.tsv</li>
+<li>Five Bash scripts: compute.sh, species.sh, abnormal.sh, nr.sh, dist.sh</li>
+</ul>
+</li>
+<li>
+<p><code>--count</code>: Count/</p>
+<ul>
+<li>One TSV file: species.tsv</li>
+<li>Three Bash scripts: strains.sh, rank.sh, lineage.sh</li>
+</ul>
+</li>
+<li>
+<p><code>--pro</code>: Protein/</p>
+<ul>
+<li>One TSV file: species.tsv</li>
+<li>Bash scripts: collect.sh, info.sh, count.sh</li>
+</ul>
+</li>
+</ul>
+<p>Examples:</p>
+<ol>
+<li>
+<p>Generate ASSEMBLY materials
+<code>nwr template input.assembly.tsv --ass</code></p>
+</li>
+<li>
+<p>Generate all materials
+<code>nwr template input.assembly.tsv --ass --bs --mh --count --pro</code></p>
+</li>
+<li>
+<p>Specify output directory
+<code>nwr template input.assembly.tsv --ass -o output_dir</code></p>
+</li>
+<li>
+<p>Use parallel processing
+<code>nwr template input.assembly.tsv --mh --parallel 16</code></p>
+</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="abbr"><a class="header" href="#abbr">abbr</a></h1>
+<p>Behavior:</p>
+<ul>
+<li>Abbreviates strain scientific names to unique short identifiers.</li>
+<li>Generates abbreviations for genus, species, and strain parts.</li>
+<li>Handles special cases like Candidatus and subspecies names.</li>
+<li>Ensures uniqueness of abbreviations across all input names.</li>
+</ul>
+<p>Input:</p>
+<ul>
+<li>Accepts a TSV/CSV file or standard input.</li>
+<li>Each row should contain strain, species, and genus names in separate columns.</li>
+<li>Use <code>--column</code> to specify which columns contain these names (default: 1,2,3).</li>
+<li>Common column patterns:
+<ul>
+<li><code>1,2,3</code> - strain in column 1, species in 2, genus in 3</li>
+<li><code>1,1,2</code> - no strain: strain and species both in column 1, genus in 2</li>
+<li><code>2,2,3</code> - don’t need strain part: strain and species in 2, genus in 3</li>
+<li><code>1,1,1</code> - only strain: all three in column 1</li>
+</ul>
+</li>
+</ul>
+<p>Output:</p>
+<ul>
+<li>Original line followed by a tab and the generated abbreviation.</li>
+<li>Abbreviation format:
+<ul>
+<li>Normal mode: <code>Genus_Species_Strain</code> (e.g., H_sapiens_sapiens)</li>
+<li>Tight mode (<code>--tight</code>): <code>GenusSpecies_Strain</code> (e.g., Hsapiens_sapiens)</li>
+</ul>
+</li>
+<li>Special handling:
+<ul>
+<li>Candidatus is abbreviated to C</li>
+<li>Non-alphanumeric characters are replaced with underscores</li>
+<li>Consecutive underscores are collapsed</li>
+<li>Leading and trailing underscores are removed</li>
+</ul>
+</li>
+</ul>
+<p>Examples:</p>
+<ol>
+<li>
+<p>Basic usage with default columns
+<code>echo -e 'Homo sapiens,Homo\nHomo erectus,Homo' | nwr abbr -s ',' -c "1,1,2"</code></p>
+</li>
+<li>
+<p>Tight mode (no underscore between genus and species)
+<code>echo -e 'Homo sapiens,Homo\nHomo erectus,Homo' | nwr abbr -s ',' -c "1,1,2" --tight</code></p>
+</li>
+<li>
+<p>Clean subspecies names
+<code>echo 'Legionella pneumophila subsp. pneumophila' | nwr abbr --shortsub</code></p>
+</li>
+<li>
+<p>Process a file
+<code>nwr abbr names.tsv -o abbreviated.tsv</code></p>
+</li>
+<li>
+<p>Custom separator and columns
+<code>nwr abbr data.csv -s ',' -c "1,2,3" -o output.tsv</code></p>
+</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="kb"><a class="header" href="#kb">kb</a></h1>
+<p>Behavior:</p>
+<ul>
+<li>Prints embedded documentation and knowledge bases.</li>
+<li>Extracts built-in files to stdout or a specified output directory.</li>
+</ul>
+<p>Available Documents:</p>
+<ul>
+<li><code>bac120</code> - 120 bacterial marker genes (tar.gz archive)</li>
+<li><code>ar53</code> - 53 archaeal marker genes (tar.gz archive)</li>
+</ul>
+<p>Output:</p>
+<ul>
+<li>Archive files (bac120, ar53) are extracted to the specified directory.</li>
+<li>By default, output is written to standard output.</li>
+<li>Use <code>--outfile</code> to specify an output file or directory.</li>
+</ul>
+<p>Examples:</p>
+<ol>
+<li>
+<p>Extract bacterial marker genes
+<code>nwr kb bac120 -o marker_genes/</code></p>
+</li>
+<li>
+<p>Extract archaeal marker genes
+<code>nwr kb ar53 -o marker_genes/</code></p>
+</li>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="seqdb-1"><a class="header" href="#seqdb-1">seqdb</a></h1>
+<p>Behavior:</p>
+<ul>
+<li>Initializes the sequence database for protein sequence information.</li>
+<li>Creates a SQLite database at <code>./seq.sqlite</code>.</li>
+<li>Loads data from various TSV files into appropriate tables.</li>
+<li>Supports loading strains, sizes, clusters, annotations, and assembly sequences.</li>
+</ul>
+<p>Database Location:</p>
+<pre><code>./seq.sqlite
+</code></pre>
+<p>The DDL:</p>
+<pre><code class="language-sql">CREATE TABLE rank (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR NOT NULL UNIQUE
+);
+-- assembly
+CREATE TABLE asm (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR NOT NULL UNIQUE,
+    rank_id INTEGER NOT NULL,
+    FOREIGN KEY (rank_id) REFERENCES rank(id)
+);
+-- sequence
+CREATE TABLE seq (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR NOT NULL UNIQUE,
+    size INTEGER,
+    anno TEXT
+);
+-- representative
+CREATE TABLE rep (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name VARCHAR NOT NULL UNIQUE,
+    f1 TEXT,
+    f2 TEXT,
+    f3 TEXT,
+    f4 TEXT,
+    f5 TEXT,
+    f6 TEXT,
+    f7 TEXT,
+    f8 TEXT
+);
+-- Junction table to associate rep with seq
+CREATE TABLE rep_seq (
+    rep_id INTEGER NOT NULL,
+    seq_id INTEGER NOT NULL,
+    PRIMARY KEY (rep_id, seq_id),
+    FOREIGN KEY (rep_id) REFERENCES rep(id),
+    FOREIGN KEY (seq_id) REFERENCES seq(id)
+);
+-- Junction table to associate asm with seq
+CREATE TABLE asm_seq (
+    asm_id INTEGER NOT NULL,
+    seq_id INTEGER NOT NULL,
+    PRIMARY KEY (asm_id, seq_id),
+    FOREIGN KEY (asm_id) REFERENCES asm(id),
+    FOREIGN KEY (seq_id) REFERENCES seq(id)
+);
+-- Regular indices
+CREATE INDEX rep_idx_f1 ON rep(f1);
+CREATE INDEX rep_idx_f2 ON rep(f2);
+CREATE INDEX rep_idx_f3 ON rep(f3);
+CREATE INDEX rep_idx_f4 ON rep(f4);
+CREATE INDEX rep_idx_f5 ON rep(f5);
+CREATE INDEX rep_idx_f6 ON rep(f6);
+CREATE INDEX rep_idx_f7 ON rep(f7);
+CREATE INDEX rep_idx_f8 ON rep(f8);
+-- Case-insensitive indices for `like`
+CREATE INDEX seq_idx_anno ON seq(anno COLLATE NOCASE);
+</code></pre>
+<p>Notes:</p>
+<ul>
+<li>If <code>--strain</code> is called without specifying a path, it will load the default file under <code>--dir</code>.</li>
+<li><code>--rep</code> requires a key-value pair in the format <code>--rep f1=file</code>.</li>
+<li>Valid fields for <code>--rep</code> are: f1, f2, f3, f4, f5, f6, f7, f8.</li>
+</ul>
+<p>Examples:</p>
+<ol>
+<li>
+<p>Initialize the database
+<code>nwr seqdb --init</code></p>
+</li>
+<li>
+<p>Load strain information
+<code>nwr seqdb --strain strains.tsv</code></p>
+</li>
+<li>
+<p>Load multiple data types
+<code>nwr seqdb --strain --size --clust</code></p>
+</li>
+<li>
+<p>Load features into rep table
+<code>nwr seqdb --rep f1=features.tsv</code></p>
 </li>
 </ol>
 
