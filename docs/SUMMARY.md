@@ -23,5 +23,6 @@
 
 ## Assembly
 - [template](help/template.md)
+- [abbr](help/abbr.md)
 - [kb](help/kb.md)
 - [seqdb](help/seqdb.md)

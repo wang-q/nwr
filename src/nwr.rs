@@ -24,6 +24,7 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::common::make_subcommand())
         // Assembly
         .subcommand(cmd_nwr::template::make_subcommand())
+        .subcommand(cmd_nwr::abbr::make_subcommand())
         .subcommand(cmd_nwr::kb::make_subcommand())
         .subcommand(cmd_nwr::seqdb::make_subcommand())
         .after_help(
@@ -34,8 +35,7 @@ fn main() -> anyhow::Result<()> {
 * Taxonomy
     * info / lineage / member / append / restrict / common
 * Assembly
-    * template / kb / seqdb
-
+    * template / abbr / kb / seqdb
 "###,
         );
 
@@ -51,6 +51,7 @@ fn main() -> anyhow::Result<()> {
         Some(("restrict", sub_matches)) => cmd_nwr::restrict::execute(sub_matches),
         Some(("common", sub_matches)) => cmd_nwr::common::execute(sub_matches),
         Some(("template", sub_matches)) => cmd_nwr::template::execute(sub_matches),
+        Some(("abbr", sub_matches)) => cmd_nwr::abbr::execute(sub_matches),
         Some(("kb", sub_matches)) => cmd_nwr::kb::execute(sub_matches),
         Some(("seqdb", sub_matches)) => cmd_nwr::seqdb::execute(sub_matches),
         _ => unreachable!(),

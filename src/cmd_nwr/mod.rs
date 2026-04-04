@@ -1,5 +1,6 @@
 //! Subcommand modules for the `nwr` binary.
 
+pub mod abbr;
 pub mod append;
 pub mod ardb;
 pub mod common;
