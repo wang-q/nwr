@@ -421,6 +421,16 @@ pub fn term_to_tax_id(conn: &rusqlite::Connection, term: &str) -> anyhow::Result
     Ok(id)
 }
 
+/// Find rank in lineage
+///
+/// ```
+/// let path = std::path::PathBuf::from("tests/nwr/");
+/// let conn = nwr::connect_txdb(&path).unwrap();
+/// let lineage = nwr::get_lineage(&conn, 12340).unwrap();
+/// let (species_id, species_name) = nwr::find_rank(&lineage, "species".to_string());
+/// assert_eq!(species_id, 12340);
+/// assert_eq!(species_name, "Enterobacteria phage 933J");
+/// ```
 pub fn find_rank(lineage: &[Taxon], rank: String) -> (i64, String) {
     let mut tax_id: i64 = 0;
     let mut sci_name = "NA".to_string();
@@ -442,6 +452,15 @@ pub fn find_rank(lineage: &[Taxon], rank: String) -> (i64, String) {
 }
 
 /// Helper function to handle batch execution of SQL statements
+///
+/// ```
+/// let path = std::path::PathBuf::from("tests/nwr/");
+/// let conn = nwr::connect_txdb(&path).unwrap();
+/// let mut stmts = vec![String::from("BEGIN;")];
+/// stmts.push(String::from("SELECT 1;"));
+/// let result = nwr::batch_exec(&conn, &mut stmts, 1001);
+/// assert!(result.is_ok());
+/// ```
 pub fn batch_exec(
     conn: &rusqlite::Connection,
     stmts: &mut Vec<String>,
@@ -465,4 +484,78 @@ pub fn batch_exec(
         std::io::stdout().flush()?; // Ensure the dot is printed immediately
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_taxon_display() {
+        let taxon = Taxon {
+            tax_id: 12340,
+            rank: "species".to_string(),
+            division: "Phages".to_string(),
+            names: HashMap::from([
+                ("scientific name".to_string(), vec!["Test Phage".to_string()]),
+                ("synonym".to_string(), vec!["Synonym1".to_string(), "Synonym2".to_string()]),
+            ]),
+            ..Default::default()
+        };
+        let display = format!("{}", taxon);
+        assert!(display.contains("Test Phage"));
+        assert!(display.contains("12340"));
+        assert!(display.contains("Phages"));
+        assert!(display.contains("Synonym1"));
+    }
+
+    #[test]
+    fn test_get_tax_id_not_found() {
+        let path = std::path::PathBuf::from("tests/nwr/");
+        let conn = connect_txdb(&path).unwrap();
+        let result = get_tax_id(&conn, vec!["NonExistentName".to_string()]);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("No such name"));
+    }
+
+    #[test]
+    fn test_get_taxon_not_found() {
+        let path = std::path::PathBuf::from("tests/nwr/");
+        let conn = connect_txdb(&path).unwrap();
+        let result = get_taxon(&conn, vec![999999999]);
+        assert!(result.is_err());
+        assert!(result.unwrap_err().to_string().contains("No such ID"));
+    }
+
+    #[test]
+    fn test_find_rank_not_found() {
+        let path = std::path::PathBuf::from("tests/nwr/");
+        let conn = connect_txdb(&path).unwrap();
+        let lineage = get_lineage(&conn, 12340).unwrap();
+        let (tax_id, sci_name) = find_rank(&lineage, "kingdom".to_string());
+        assert_eq!(tax_id, 0);
+        assert_eq!(sci_name, "NA");
+    }
+
+    #[test]
+    fn test_batch_exec_with_commit() {
+        let path = std::path::PathBuf::from("tests/nwr/");
+        let conn = connect_txdb(&path).unwrap();
+        let mut stmts = vec![String::from("BEGIN;")];
+        
+        // Test at 1000 boundary - should trigger COMMIT
+        let result = batch_exec(&conn, &mut stmts, 1001);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_batch_exec_with_progress() {
+        let path = std::path::PathBuf::from("tests/nwr/");
+        let conn = connect_txdb(&path).unwrap();
+        let mut stmts = vec![String::from("BEGIN;")];
+        
+        // Test at 10000 boundary - should print progress dot
+        let result = batch_exec(&conn, &mut stmts, 10001);
+        assert!(result.is_ok());
+    }
 }

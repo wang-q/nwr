@@ -175,3 +175,33 @@ fn readable(n: String) -> String {
 
     c
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_readable_small_number() {
+        assert_eq!(readable("123".to_string()), "123");
+    }
+
+    #[test]
+    fn test_readable_thousands() {
+        assert_eq!(readable("1234".to_string()), "1,234");
+    }
+
+    #[test]
+    fn test_readable_millions() {
+        assert_eq!(readable("1234567".to_string()), "1,234,567");
+    }
+
+    #[test]
+    fn test_readable_zero() {
+        assert_eq!(readable("0".to_string()), "0");
+    }
+
+    #[test]
+    fn test_readable_large_number() {
+        assert_eq!(readable("1234567890".to_string()), "1,234,567,890");
+    }
+}
