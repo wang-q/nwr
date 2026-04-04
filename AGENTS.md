@@ -10,7 +10,9 @@
 
 **目录约定**: 任何被 `.gitignore` 完全忽略的目录，均仅作为参考资料，**不是本项目的一部分**。
 
-`nwr` 是一个处理 NCBI 分类学数据、Newick 树文件和组装报告的命令行工具集。它旨在提供高效的工具来管理物种分类信息、操作系统发育树以及处理基因组组装元数据。
+`nwr` 是一个处理 NCBI 分类学数据和组装报告的命令行工具集。它旨在提供高效的工具来管理物种分类信息以及处理基因组组装元数据。
+
+`nwr` = **N**CBI taxonomy and assembly **WR**angler
 
 ## 构建命令
 
@@ -43,11 +45,8 @@ cargo test
     - **Database**: `download`, `txdb` (Taxonomy DB), `ardb` (Assembly Report DB).
     - **Taxonomy**: `info`, `lineage`, `member`, `append`, `restrict`, `common`.
     - **Assembly**: `template` (Tera templates), `kb`, `seqdb`.
-    - **Newick Data**: `data` (包含 `label`).
-    - **Pipeline**: `pl_condense`.
 - **`src/libs/`** - 共享工具库和核心逻辑。
   - **`io.rs`** - I/O 辅助函数。
-  - **`newick.rs`** - Newick 树处理逻辑。
   - **`taxonomy.rs`** - 分类学数据处理逻辑。
 
 ### 命令结构 (Command Structure)
@@ -65,8 +64,7 @@ cargo test
 
 - **`clap`**: 命令行参数解析。
 - **`anyhow`**: 错误处理。
-- **`rusqlite`**: SQLite 数据库操作 (用于 `txdb`, `ardb`)。
-- **`phylotree`**: 系统发育树处理。
+- **`rusqlite`**: SQLite 数据库操作 (用于 `txdb`, `ardb`).
 - **`petgraph`**: 图数据结构。
 - **`tera`**: 模板引擎 (用于生成脚本)。
 - **`intspan`**: 整数区间操作。
@@ -84,8 +82,8 @@ cargo test
 
 ### 测试约定
 
-- 集成测试位于 `tests/` 目录下，通常命名为 `cli_<category>.rs` (如 `cli_nwr_taxonomy.rs`, `cli_newick_ops.rs`)。
-- 测试数据通常放在 `tests/` 下的相关子目录中 (如 `tests/newick/`, `tests/nwr/`)。
+- 集成测试位于 `tests/` 目录下，通常命名为 `cli_<category>.rs` (如 `cli_nwr_taxonomy.rs`).
+- 测试数据通常放在 `tests/` 下的相关子目录中 (如 `tests/nwr/`).
 - **推荐使用 `assert_cmd`** 来编写集成测试，以验证二进制文件的行为。
 - **稳定性原则 (Zero Panic)**: 任何用户输入（包括畸形数据）都不应导致程序 Panic。必须捕获所有错误并返回友好的错误信息。
 
