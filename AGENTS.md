@@ -53,22 +53,13 @@ cargo test -- --test-threads=1
 
 每个命令在 `src/cmd_nwr/` 下作为一个独立的模块实现，通常包含两个公开函数：
 
-1.  **`make_subcommand`**: 定义命令行接口。
-    -   返回 `clap::Command`。
-    -   使用 `.about(...)` 设置简短描述。
-2.  **`execute`**: 命令执行逻辑。
-    -   接收 `&clap::ArgMatches`。
-    -   返回 `anyhow::Result<()>`。
-
-### 关键依赖
-
-- **`clap`**: 命令行参数解析。
-- **`anyhow`**: 错误处理。
-- **`rusqlite`**: SQLite 数据库操作 (用于 `txdb`, `ardb`).
-- **`petgraph`**: 图数据结构。
-- **`tera`**: 模板引擎 (用于生成脚本)。
-- **`intspan`**: 整数区间操作。
-- **`regex`**: 正则表达式。
+1. **`make_subcommand`**: 定义命令行接口。
+    - 返回 `clap::Command`。
+    - 使用 `.about(...)` 设置简短描述。
+    - 推荐使用 `.after_help(include_str!("../../docs/help/<cmd>.md"))` 引入详细文档。
+2. **`execute`**: 命令执行逻辑。
+    - 接收 `&clap::ArgMatches`。
+    - 返回 `anyhow::Result<()>`。
 
 ## 开发工作流
 
@@ -96,9 +87,15 @@ cargo test -- --test-threads=1
 
 ## 帮助文本规范 (Help Text Style Guide)
 
-- **About**: 第三人称单数动词 (e.g., "Downloads...", "Converts...").
-- **Args**:
-    - Input: `infile` / `infiles`.
-    - Output: `outfile` (`-o`).
-- **Description**: 简明扼要，解释命令的核心功能。
-- **Examples**: 提供典型的使用示例。
+### Rust 实现规范 (Implementation)
+
+* **`about`**: 使用第三人称单数动词，简要描述操作。
+* **`after_help`**: 使用 `include_str!("../../docs/help/<cmd>.md")` 引入外部文档。
+
+## 开发者文档规范
+
+`docs/developer.md` 是供项目开发者参考的内部指南，不要包含在最终生成的用户文档（mdBook 站点）中。
+
+* **语言**: 使用**中文**编写。
+* **格式**: 避免过多的加粗 (Bold) 或强调格式，以保持在纯文本编辑器中的可读性。
+* **内容**: 包含测试策略、架构设计、功能计划和开发工作流。

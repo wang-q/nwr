@@ -38,10 +38,10 @@ pub fn make_subcommand() -> Command {
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let outfile = args.get_one::<String>("outfile").unwrap();
 
-    static FILE_FORMATS: &str = include_str!("../../doc/formats.md");
-    static FILE_ABBR: &str = include_str!("../../doc/abbr.pl");
-    static FILE_BAC: &[u8] = include_bytes!("../../doc/bac120.tar.gz");
-    static FILE_AR: &[u8] = include_bytes!("../../doc/ar53.tar.gz");
+    static FILE_FORMATS: &str = include_str!("../../docs/formats.md");
+    static FILE_ABBR: &str = include_str!("../../docs/abbr.pl");
+    static FILE_BAC: &[u8] = include_bytes!("../../docs/bac120.tar.gz");
+    static FILE_AR: &[u8] = include_bytes!("../../docs/ar53.tar.gz");
 
     match args.get_one::<String>("infile").unwrap().as_ref() {
         "formats" => {

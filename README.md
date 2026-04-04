@@ -62,7 +62,7 @@ Subcommand groups:
 
 ### Usage of each command
 
-For practical uses of `nwr` and other awesome companions, follow this [page](doc/ncbi_ar.md).
+For practical uses of `nwr` and other awesome companions, follow this [page](docs/ncbi_ar.md).
 
 ```shell
 nwr download
@@ -193,7 +193,7 @@ nwr plot venn \
 
 plotr venn tests/plot/rocauc.result.tsv tests/plot/mcox.05.result.tsv
 
-tectonic doc/venn4.tex
+tectonic docs/venn4.tex
 
 # histo
 nwr plot hh tests/plot/hist.tsv -g 2 --bins 20 --xl "" --unit 0.5,1.5 |
@@ -208,16 +208,16 @@ cargo run --bin nwr plot hh tests/plot/adomain.tsv -g 2 --bins 40 --xl "" --yl "
     tectonic - &&
     mv texput.pdf hist.pdf
 
-tectonic doc/heatmap.tex
+tectonic docs/heatmap.tex
 
 # nrps
 cargo run --bin nwr plot nrps tests/plot/srf.tsv --legend --color blue |
     tectonic - &&
     mv texput.pdf srf.pdf
 
-tectonic doc/nrps.tex
+tectonic docs/nrps.tex
 
-tectonic doc/da.tex
+tectonic docs/da.tex
 
 ```
 
@@ -226,12 +226,12 @@ tectonic doc/da.tex
 ```shell
 brew install k1LoW/tap/tbls
 
-tbls doc sqlite://./tests/nwr/taxonomy.sqlite doc/txdb
+tbls doc sqlite://./tests/nwr/taxonomy.sqlite docs/txdb
 
-tbls doc sqlite://./tests/nwr/ar_refseq.sqlite doc/ardb
+tbls doc sqlite://./tests/nwr/ar_refseq.sqlite docs/ardb
 
 ```
 
-[txdb](./doc/txdb/README.md)
+[txdb](./docs/txdb/README.md)
 
-[ardb](./doc/ardb/README.md)
+[ardb](./docs/ardb/README.md)

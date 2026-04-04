@@ -148,7 +148,7 @@
 ## 0.5.3 - 2022-02-24
 
 * Move old Perl codes here
-* Add `doc/assembly.md`
+* Add `docs/assembly.md`
 
 ## 0.5.0 - 2022-02-22
 

@@ -72,7 +72,7 @@ cat ~/.nwr/assembly_summary_refseq.txt |
 ## Reference genomes
 
 ```shell
-cd ~/Scripts/nwr/doc/
+cd ~/Scripts/nwr/docs/
 
 nwr member Bacteria Archaea -r family |
     grep -v -i "Candidatus " |

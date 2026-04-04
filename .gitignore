@@ -139,6 +139,6 @@ Cargo.lock
 *.sqlite
 *.dmp
 *.tsv
-/doc/src/
+/docs/src/
 
 git*.txt
