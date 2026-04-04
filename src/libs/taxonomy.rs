@@ -17,35 +17,41 @@ impl std::fmt::Display for Taxon {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let mut lines = String::new();
 
-        let sciname = &self.names.get("scientific name").unwrap()[0];
+        let sciname = self
+            .names
+            .get("scientific name")
+            .and_then(|v| v.first())
+            .map(|s| s.as_str())
+            .unwrap_or("Unknown");
         let l1 = format!("{} - {}\n", sciname, self.rank);
         let l2 = "-".repeat(l1.len() - 1);
         lines.push_str(&l1);
         lines.push_str(&l2);
         lines.push_str(&format!("\nNCBI Taxonomy ID: {}\n", self.tax_id));
 
-        if self.names.contains_key("synonym") {
+        if let Some(synonyms) = self.names.get("synonym") {
             lines.push_str("Same as:\n");
-            for synonym in self.names.get("synonym").unwrap() {
+            for synonym in synonyms {
                 lines.push_str(&format!("* {}\n", synonym));
             }
         }
 
-        if self.names.contains_key("genbank common name") {
-            let genbank = &self.names.get("genbank common name").unwrap()[0];
-            lines.push_str(&format!("Commonly named {}.\n", genbank));
+        if let Some(genbank_names) = self.names.get("genbank common name") {
+            if let Some(genbank) = genbank_names.first() {
+                lines.push_str(&format!("Commonly named {}.\n", genbank));
+            }
         }
 
-        if self.names.contains_key("common name") {
+        if let Some(common_names) = self.names.get("common name") {
             lines.push_str("Also known as:\n");
-            for name in self.names.get("common name").unwrap() {
+            for name in common_names {
                 lines.push_str(&format!("* {}\n", name));
             }
         }
 
-        if self.names.contains_key("authority") {
+        if let Some(authorities) = self.names.get("authority") {
             lines.push_str("First description:\n");
-            for authority in self.names.get("authority").unwrap() {
+            for authority in authorities {
                 lines.push_str(&format!("* {}\n", authority));
             }
         }
@@ -63,17 +69,19 @@ impl std::fmt::Display for Taxon {
 /// nwr working path
 ///
 /// ```
-/// let path = nwr::nwr_path();
+/// let path = nwr::nwr_path().unwrap();
 ///
 /// assert!(std::path::Path::new(&path).exists());
 /// ```
-pub fn nwr_path() -> std::path::PathBuf {
-    let path = dirs::home_dir().unwrap().join(".nwr/");
+pub fn nwr_path() -> anyhow::Result<std::path::PathBuf> {
+    let home = dirs::home_dir()
+        .ok_or_else(|| anyhow::anyhow!("Cannot get home directory"))?;
+    let path = home.join(".nwr/");
     if !path.exists() {
-        std::fs::create_dir_all(&path).unwrap();
+        std::fs::create_dir_all(&path)?;
     }
 
-    path
+    Ok(path)
 }
 
 /// Connect taxonomy.sqlite in this dir
@@ -123,7 +131,7 @@ pub fn get_tax_id(
     for name in names.iter() {
         let mut rows = stmt.query([name])?;
 
-        if let Some(row) = rows.next().unwrap() {
+        if let Some(row) = rows.next()? {
             tax_ids.push(row.get(0)?);
         } else {
             return Err(anyhow::anyhow!("No such name: {}", name));
@@ -175,9 +183,7 @@ pub fn get_taxon(
         let mut rows = stmt.query([id])?;
 
         let mut taxon: Taxon = Default::default();
-        // Here, row.get has no reason to return an error
-        // so row.get_unwrap should be safe
-        if let Some(row) = rows.next().unwrap() {
+        if let Some(row) = rows.next()? {
             taxon.tax_id = row.get(0)?;
             taxon.parent_tax_id = row.get(1)?;
             taxon.rank = row.get(2)?;
@@ -188,20 +194,21 @@ pub fn get_taxon(
                 taxon.comments = Some(comments);
             }
 
-            taxon
-                .names
-                .entry(row.get(4)?)
-                .or_insert_with(|| vec![row.get(5).unwrap()]);
+            let name_class: String = row.get(4)?;
+            let name: String = row.get(5)?;
+            taxon.names.entry(name_class).or_insert_with(|| vec![name]);
         } else {
             return Err(anyhow::anyhow!("No such ID: {}", id));
         }
 
-        while let Some(row) = rows.next().unwrap() {
+        while let Some(row) = rows.next()? {
+            let name_class: String = row.get(4)?;
+            let name: String = row.get(5)?;
             taxon
                 .names
-                .entry(row.get(4).unwrap())
-                .and_modify(|n| n.push(row.get(5).unwrap()))
-                .or_insert_with(|| vec![row.get(5).unwrap()]);
+                .entry(name_class)
+                .and_modify(|n| n.push(name.clone()))
+                .or_insert_with(|| vec![name]);
         }
 
         taxa.push(taxon);
@@ -306,8 +313,8 @@ pub fn get_descendent(
     )?;
 
     let mut rows = stmt.query([id])?;
-    while let Some(row) = rows.next().unwrap() {
-        ids.push(row.get(0).unwrap());
+    while let Some(row) = rows.next()? {
+        ids.push(row.get(0)?);
     }
 
     let nodes = get_taxon(conn, ids)?;
@@ -346,8 +353,8 @@ pub fn get_all_descendent(
         ids.push(id);
 
         let mut rows = stmt.query([id])?;
-        while let Some(row) = rows.next().unwrap() {
-            temp_ids.push(row.get(0).unwrap());
+        while let Some(row) = rows.next()? {
+            temp_ids.push(row.get(0)?);
         }
     }
 
@@ -379,7 +386,12 @@ pub fn term_to_tax_id(conn: &rusqlite::Connection, term: &str) -> anyhow::Result
 
     let id: i64 = match term.parse::<i64>() {
         Ok(n) => n,
-        Err(_) => get_tax_id(conn, vec![term])?.pop().unwrap(),
+        Err(_) => {
+            let ids = get_tax_id(conn, vec![term])?;
+            ids.into_iter()
+                .next()
+                .ok_or_else(|| anyhow::anyhow!("No tax ID found for term"))?
+        }
     };
 
     Ok(id)
@@ -391,7 +403,12 @@ pub fn find_rank(lineage: &[Taxon], rank: String) -> (i64, String) {
 
     for node in lineage.iter() {
         if node.rank == rank {
-            sci_name = node.names.get("scientific name").unwrap()[0].to_string();
+            sci_name = node
+                .names
+                .get("scientific name")
+                .and_then(|v| v.first())
+                .map(|s| s.to_string())
+                .unwrap_or_else(|| "NA".to_string());
             tax_id = node.tax_id;
             break;
         }

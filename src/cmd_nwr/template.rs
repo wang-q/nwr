@@ -6,6 +6,21 @@ use std::fs;
 use std::io::BufRead;
 use tera::{Context, Tera};
 
+// Constants for assembly levels
+const LEVEL_COMPLETE_GENOME: &str = "1";
+const LEVEL_CHROMOSOME: &str = "2";
+const LEVEL_SCAFFOLD: &str = "3";
+const LEVEL_CONTIG: &str = "3";
+const LEVEL_OTHER: &str = "5";
+
+// Regular expressions for species name formatting
+lazy_static! {
+    static ref RE_S1: Regex = Regex::new(r#"(?xi)\W+"#).unwrap();
+    static ref RE_S2: Regex = Regex::new(r#"(?xi)_+"#).unwrap();
+    static ref RE_S3: Regex = Regex::new(r#"(?xi)_$"#).unwrap();
+    static ref RE_S4: Regex = Regex::new(r#"(?xi)^_"#).unwrap();
+}
+
 // Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
     Command::new("template")
@@ -242,12 +257,6 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
                 // format species strings
                 let species = fields[3];
-                lazy_static! {
-                    static ref RE_S1: Regex = Regex::new(r#"(?xi)\W+"#).unwrap();
-                    static ref RE_S2: Regex = Regex::new(r#"(?xi)_+"#).unwrap();
-                    static ref RE_S3: Regex = Regex::new(r#"(?xi)_$"#).unwrap();
-                    static ref RE_S4: Regex = Regex::new(r#"(?xi)^_"#).unwrap();
-                }
                 let s1 = RE_S1.replace_all(species, "_");
                 let s2 = RE_S2.replace_all(&s1, "_");
                 let s3 = RE_S3.replace_all(&s2, "");
@@ -255,11 +264,11 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 let species_ = s4.to_string();
 
                 let level = match fields[4] {
-                    "Complete Genome" => "1",
-                    "Chromosome" => "2",
-                    "Scaffold" => "3",
-                    "Contig" => "3",
-                    _ => "5",
+                    "Complete Genome" => LEVEL_COMPLETE_GENOME,
+                    "Chromosome" => LEVEL_CHROMOSOME,
+                    "Scaffold" => LEVEL_SCAFFOLD,
+                    "Contig" => LEVEL_CONTIG,
+                    _ => LEVEL_OTHER,
                 };
 
                 // ass

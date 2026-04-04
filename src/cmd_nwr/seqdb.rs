@@ -2,6 +2,7 @@ use clap::*;
 use itertools::Itertools;
 use log::info;
 use simplelog::*;
+use std::io::Write;
 use std::path::PathBuf;
 
 // Create clap subcommand arguments
@@ -267,7 +268,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     if !opt_asmseq.as_os_str().is_empty() {
         info!("==> Loading `{}` to `asm_seq`", opt_asmseq.display());
-        // sequence name, asm
+        // sequence name, assembly name
         let dmp = std::fs::File::open(opt_asmseq)?;
         insert_asmseq(&dmp, &conn)?;
     }
@@ -291,35 +292,24 @@ fn insert_strain(
         .delimiter(b'\t')
         .from_reader(dmp);
 
-    let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
+    let mut rank_stmt = conn.prepare(
+        "INSERT OR IGNORE INTO rank(name) VALUES (?1)"
+    )?;
+    
+    let mut asm_stmt = conn.prepare(
+        "INSERT INTO asm(name, rank_id) VALUES (?1, (SELECT id FROM rank WHERE name = ?2))"
+    )?;
 
+    conn.execute_batch("BEGIN;")?;
     for result in tsv_rdr.records() {
         let record = result?;
         let strain: String = record[0].trim().parse()?;
         let rank: String = record[1].trim().parse()?;
 
-        stmts.push(format!(
-            "
-            INSERT OR IGNORE INTO rank(name)
-            VALUES ('{}');
-            ",
-            rank
-        ));
-        stmts.push(format!(
-            "
-            INSERT INTO asm(name, rank_id)
-            VALUES (
-                '{}',
-                (SELECT id FROM rank WHERE name = '{}')
-            );
-            ",
-            strain, rank
-        ));
+        rank_stmt.execute([&rank])?;
+        asm_stmt.execute(rusqlite::params![&strain, &rank])?;
     }
-
-    stmts.push(String::from("COMMIT;"));
-    let stmt = &stmts.join("\n");
-    conn.execute_batch(stmt)?;
+    conn.execute_batch("COMMIT;")?;
     Ok(())
 }
 
@@ -329,25 +319,24 @@ fn insert_size(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Resu
         .delimiter(b'\t')
         .from_reader(dmp);
 
-    let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
-    for (i, result) in tsv_rdr.records().enumerate() {
-        nwr::batch_exec(conn, &mut stmts, i)?;
+    let mut stmt = conn.prepare(
+        "INSERT OR IGNORE INTO seq(name, size) VALUES (?1, ?2)"
+    )?;
 
+    conn.execute_batch("BEGIN;")?;
+    for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
         let name: String = record[0].trim().parse()?;
         let size: i64 = record[1].trim().parse()?;
 
-        stmts.push(format!(
-            "
-            INSERT OR IGNORE INTO seq(name, size)
-            VALUES ('{}', {});
-            ",
-            name, size
-        ));
+        stmt.execute(rusqlite::params![&name, size])?;
+        
+        if i > 0 && i % 10000 == 0 {
+            print!(".");
+            std::io::stdout().flush()?;
+        }
     }
-
-    // Records may be left in stmts
-    nwr::batch_exec(conn, &mut stmts, usize::MAX)?;
+    conn.execute_batch("COMMIT;")?;
 
     Ok(())
 }
@@ -358,36 +347,32 @@ fn insert_clust(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Res
         .delimiter(b'\t')
         .from_reader(dmp);
 
-    let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
-    for (i, result) in tsv_rdr.records().enumerate() {
-        nwr::batch_exec(conn, &mut stmts, i)?;
+    let mut rep_stmt = conn.prepare(
+        "INSERT OR IGNORE INTO rep(name) VALUES (?1)"
+    )?;
+    
+    let mut rep_seq_stmt = conn.prepare(
+        "INSERT INTO rep_seq(rep_id, seq_id) VALUES (
+            (SELECT id FROM rep WHERE name = ?1),
+            (SELECT id FROM seq WHERE name = ?2)
+        )"
+    )?;
 
+    conn.execute_batch("BEGIN;")?;
+    for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
         let rep: String = record[0].trim().parse()?;
         let seq: String = record[1].trim().parse()?;
 
-        stmts.push(format!(
-            "
-            INSERT OR IGNORE INTO rep(name)
-            VALUES ('{}');
-            ",
-            rep
-        ));
-
-        stmts.push(format!(
-            "
-            INSERT INTO rep_seq(rep_id, seq_id)
-            VALUES (
-                (SELECT id FROM rep WHERE name = '{}'),
-                (SELECT id FROM seq WHERE name = '{}')
-            );
-            ",
-            rep, seq
-        ));
+        rep_stmt.execute([&rep])?;
+        rep_seq_stmt.execute(rusqlite::params![&rep, &seq])?;
+        
+        if i > 0 && i % 10000 == 0 {
+            print!(".");
+            std::io::stdout().flush()?;
+        }
     }
-
-    // Records may be left in stmts
-    nwr::batch_exec(conn, &mut stmts, usize::MAX)?;
+    conn.execute_batch("COMMIT;")?;
 
     Ok(())
 }
@@ -398,26 +383,24 @@ fn insert_anno(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Resu
         .delimiter(b'\t')
         .from_reader(dmp);
 
-    let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
-    for (i, result) in tsv_rdr.records().enumerate() {
-        nwr::batch_exec(conn, &mut stmts, i)?;
+    let mut stmt = conn.prepare(
+        "UPDATE seq SET anno = ?1 WHERE seq.name = ?2"
+    )?;
 
+    conn.execute_batch("BEGIN;")?;
+    for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
         let name: String = record[0].trim().parse()?;
         let anno: String = record[1].trim().parse()?;
 
-        stmts.push(format!(
-            "
-            UPDATE seq
-            SET anno = '{}'
-            WHERE seq.name = '{}';
-            ",
-            anno, name
-        ));
+        stmt.execute(rusqlite::params![&anno, &name])?;
+        
+        if i > 0 && i % 10000 == 0 {
+            print!(".");
+            std::io::stdout().flush()?;
+        }
     }
-
-    // Records may be left in stmts
-    nwr::batch_exec(conn, &mut stmts, usize::MAX)?;
+    conn.execute_batch("COMMIT;")?;
 
     Ok(())
 }
@@ -431,30 +414,29 @@ fn insert_asmseq(
         .delimiter(b'\t')
         .from_reader(dmp);
 
-    let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
-    for (i, result) in tsv_rdr.records().enumerate() {
-        nwr::batch_exec(conn, &mut stmts, i)?;
+    let mut stmt = conn.prepare(
+        "INSERT INTO asm_seq(asm_id, seq_id) VALUES (
+            (SELECT id FROM asm WHERE name = ?1),
+            (SELECT id FROM seq WHERE name = ?2)
+        )"
+    )?;
 
+    conn.execute_batch("BEGIN;")?;
+    for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
 
         // sequence name, assembly name
         let seq: String = record[0].trim().parse()?;
         let asm: String = record[1].trim().parse()?;
 
-        stmts.push(format!(
-            "
-            INSERT INTO asm_seq(asm_id, seq_id)
-            VALUES (
-                (SELECT id FROM asm WHERE name = '{}'),
-                (SELECT id FROM seq WHERE name = '{}')
-            );
-            ",
-            asm, seq
-        ));
+        stmt.execute(rusqlite::params![&asm, &seq])?;
+        
+        if i > 0 && i % 10000 == 0 {
+            print!(".");
+            std::io::stdout().flush()?;
+        }
     }
-
-    // Records may be left in stmts
-    nwr::batch_exec(conn, &mut stmts, usize::MAX)?;
+    conn.execute_batch("COMMIT;")?;
 
     Ok(())
 }
@@ -478,25 +460,24 @@ fn insert_rep(
         .delimiter(b'\t')
         .from_reader(dmp);
 
-    let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
-    for (i, result) in tsv_rdr.records().enumerate() {
-        nwr::batch_exec(conn, &mut stmts, i)?;
+    // Use parameterized query with dynamic column name
+    let sql = format!("UPDATE rep SET {} = ?1 WHERE rep.name = ?2", field);
+    let mut stmt = conn.prepare(&sql)?;
 
+    conn.execute_batch("BEGIN;")?;
+    for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
         let family: String = record[0].trim().parse()?;
         let rep: String = record[1].trim().parse()?;
 
-        stmts.push(format!(
-            "
-            UPDATE rep
-            SET {} = '{}'
-            WHERE rep.name = '{}';
-            ",
-            field, family, rep
-        ));
+        stmt.execute(rusqlite::params![&family, &rep])?;
+        
+        if i > 0 && i % 10000 == 0 {
+            print!(".");
+            std::io::stdout().flush()?;
+        }
     }
-    // Records may be left in stmts
-    nwr::batch_exec(conn, &mut stmts, usize::MAX)?;
+    conn.execute_batch("COMMIT;")?;
 
     Ok(())
 }

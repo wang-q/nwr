@@ -6,7 +6,7 @@ use regex::Regex;
 use simplelog::*;
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Write};
 
 lazy_static! {
     static ref RE_INCOMPETENT: Regex =
@@ -148,7 +148,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let nwrdir = if args.contains_id("dir") {
         std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf()
     } else {
-        nwr::nwr_path()
+        nwr::nwr_path()?
     };
     let file = if args.get_flag("genbank") {
         nwrdir.join("ar_genbank.sqlite")
@@ -156,7 +156,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         nwrdir.join("ar_refseq.sqlite")
     };
     if file.exists() {
-        std::fs::remove_file(&file).unwrap();
+        std::fs::remove_file(&file)?;
     }
 
     info!("==> Opening database");
@@ -170,7 +170,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         PRAGMA temp_store = MEMORY;
         ",
     )?;
-    let tx_conn = nwr::connect_txdb(&nwrdir).unwrap();
+    let tx_conn = nwr::connect_txdb(&nwrdir)?;
 
     info!("==> Create tables");
     conn.execute_batch(DDL_AR)?;
@@ -183,10 +183,16 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     };
     let rdr = BufReader::new(file);
 
-    let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
+    let mut stmt = conn.prepare(
+        "INSERT INTO ar(
+            tax_id, organism_name, infraspecific_name, bioproject, biosample, assembly_accession, refseq_category,
+            assembly_level, genome_rep, seq_rel_date, asm_name, gbrs_paired_asm, ftp_path,
+            species, species_id, genus, genus_id, family, family_id
+        ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19)"
+    )?;
+    
+    conn.execute_batch("BEGIN;")?;
     for (i, line) in rdr.lines().map_while(Result::ok).enumerate() {
-        nwr::batch_exec(&conn, &mut stmts, i)?;
-
         if line.starts_with('#') {
             continue;
         }
@@ -250,7 +256,6 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
         // Skip incompetent strains
         if RE_INCOMPETENT.is_match(organism_name) || RE_VIRUS.is_match(organism_name) {
-            // debug!("Skip: {}", organism_name);
             continue;
         }
 
@@ -272,46 +277,34 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         let (genus_id, genus) = nwr::find_rank(&lineage, "genus".to_string());
         let (family_id, family) = nwr::find_rank(&lineage, "family".to_string());
 
-        // create stmt
-        let stmt = format!(
-            "INSERT INTO ar(
-                tax_id, organism_name, infraspecific_name, bioproject, biosample, assembly_accession, refseq_category,
-                assembly_level, genome_rep, seq_rel_date, asm_name, gbrs_paired_asm, ftp_path,
-                species, species_id, genus, genus_id, family, family_id
-            )
-            VALUES (
-                    {},  '{}', '{}', '{}', '{}', '{}', '{}',
-                    '{}', '{}', '{}', '{}', '{}', '{}',
-                    '{}', {}, '{}', {}, '{}', {}
-            );",
-            // 1-7
+        stmt.execute(rusqlite::params![
             tax_id,
-            organism_name.replace('\'', "''"),
-            infraspecific_name.replace('\'', "''"),
+            organism_name,
+            infraspecific_name,
             bioproject,
             biosample,
             assembly_accession,
             refseq_category,
-            // 8-13
             assembly_level,
             genome_rep,
-            seq_rel_date.replace('/', "-"), // Transform seq_rel_date to SQLite Date format
+            seq_rel_date.replace('/', "-"),
             asm_name,
             gbrs_paired_asm,
             ftp_path,
-            // 13-18
-            species.replace('\'', "''"),
+            species,
             species_id,
-            genus.replace('\'', "''"),
+            genus,
             genus_id,
-            family.replace('\'', "''"),
+            family,
             family_id,
-        );
-        stmts.push(stmt);
+        ])?;
+        
+        if i > 0 && i % 10000 == 0 {
+            print!(".");
+            std::io::stdout().flush()?;
+        }
     }
-
-    // There could left records in stmts
-    nwr::batch_exec(&conn, &mut stmts, usize::MAX)?;
+    conn.execute_batch("COMMIT;")?;
 
     debug!("Creating indexes for ar");
     conn.execute("CREATE INDEX idx_ar_tax_id ON ar(tax_id);", [])?;

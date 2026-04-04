@@ -38,7 +38,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let nwrdir = if args.contains_id("dir") {
         std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf()
     } else {
-        nwr::nwr_path()
+        nwr::nwr_path()?
     };
 
     let conn = nwr::connect_txdb(&nwrdir)?;
@@ -57,25 +57,26 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut id_of: HashMap<i64, usize> = HashMap::new();
 
     for tax_id in tax_ids {
-        let lineage = nwr::get_lineage(&conn, tax_id).unwrap();
+        let lineage = nwr::get_lineage(&conn, tax_id)?;
 
         for taxon in lineage.iter() {
             let cur_tax_id = taxon.tax_id;
             if !id_of.contains_key(&cur_tax_id) {
                 let node_id = if cur_tax_id == 1 {
-                    add_taxon(&mut tree, taxon, None)
+                    add_taxon(&mut tree, taxon, None)?
                 } else {
                     let parent_tax_id = taxon.parent_tax_id;
-                    let parent_id = id_of.get(&parent_tax_id).unwrap();
-                    add_taxon(&mut tree, taxon, Some(*parent_id))
+                    let parent_id = id_of.get(&parent_tax_id)
+                        .ok_or_else(|| anyhow::anyhow!("Parent ID not found: {}", parent_tax_id))?;
+                    add_taxon(&mut tree, taxon, Some(*parent_id))?
                 };
                 id_of.insert(cur_tax_id, node_id);
             }
         }
     }
 
-    tree.compress().unwrap();
-    let out_string = tree.to_newick().unwrap();
+    tree.compress()?;
+    let out_string = tree.to_newick()?;
     writer.write_all((out_string + "\n").as_ref())?;
 
     Ok(())
@@ -85,14 +86,20 @@ fn add_taxon(
     tree: &mut phylotree::tree::Tree,
     taxon: &Taxon,
     parent: Option<usize>,
-) -> usize {
+) -> anyhow::Result<usize> {
     let mut node = phylotree::tree::Node::new();
-    let name = taxon.names.get("scientific name").unwrap()[0].clone();
+    let name = taxon
+        .names
+        .get("scientific name")
+        .and_then(|v| v.first())
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| "Unknown".to_string());
     node.set_name(name);
 
-    if let Some(p) = parent {
-        tree.add_child(node, p, None).unwrap()
+    let node_id = if let Some(p) = parent {
+        tree.add_child(node, p, None)?
     } else {
         tree.add(node)
-    }
+    };
+    Ok(node_id)
 }

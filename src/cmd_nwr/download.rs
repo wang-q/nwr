@@ -62,7 +62,7 @@ aria2c -x 4 -s 2 -c -d ~/.nwr -i download.txt
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let _ = SimpleLogger::init(LevelFilter::Info, Config::default());
 
-    let nwrdir = nwr::nwr_path();
+    let nwrdir = nwr::nwr_path()?;
     let tarball = nwrdir.join("taxdump.tar.gz");
     let ar_refseq = nwrdir.join("assembly_summary_refseq.txt");
     let ar_genbank = nwrdir.join("assembly_summary_genbank.txt");

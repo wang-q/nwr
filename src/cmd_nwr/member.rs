@@ -63,7 +63,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let nwrdir = if args.contains_id("dir") {
         std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf()
     } else {
-        nwr::nwr_path()
+        nwr::nwr_path()?
     };
 
     let conn = nwr::connect_txdb(&nwrdir)?;

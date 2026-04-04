@@ -3,6 +3,7 @@ use itertools::Itertools;
 use log::{debug, info};
 use simplelog::*;
 use std::fs::File;
+use std::io::Write;
 
 // Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
@@ -78,7 +79,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let nwrdir = if args.contains_id("dir") {
         std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf()
     } else {
-        nwr::nwr_path()
+        nwr::nwr_path()?
     };
     let file = nwrdir.join("taxonomy.sqlite");
     if file.exists() {
@@ -109,21 +110,18 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             .delimiter(b'|')
             .from_reader(dmp);
 
-        let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
+        let mut stmt = conn.prepare(
+            "INSERT INTO division (id, division) VALUES (?1, ?2)"
+        )?;
+        
+        conn.execute_batch("BEGIN;")?;
         for result in tsv_rdr.records() {
             let record = result?;
             let id: i64 = record[0].trim().parse()?;
             let name: String = record[2].trim().parse()?;
-
-            stmts.push(format!(
-                "INSERT INTO division VALUES ({}, '{}');",
-                id,
-                name.replace('\'', "''")
-            ));
+            stmt.execute(rusqlite::params![id, name])?;
         }
-        stmts.push(String::from("COMMIT;"));
-        let stmt = &stmts.join("\n");
-        conn.execute_batch(stmt)?;
+        conn.execute_batch("COMMIT;")?;
 
         debug!("Done inserting divisions");
     }
@@ -137,10 +135,12 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             .delimiter(b'|')
             .from_reader(dmp);
 
-        let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
+        let mut stmt = conn.prepare(
+            "INSERT INTO name (tax_id, name, name_class) VALUES (?1, ?2, ?3)"
+        )?;
+        
+        conn.execute_batch("BEGIN;")?;
         for (i, result) in tsv_rdr.records().enumerate() {
-            nwr::batch_exec(&conn, &mut stmts, i)?;
-
             let record = result?;
 
             // tax_id, name, unique_name, name_class
@@ -148,18 +148,18 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             let name: String = record[1].parse()?;
             let name_class: String = record[3].parse()?;
 
-            stmts.push(format!(
-                "
-                INSERT INTO name(tax_id, name, name_class)
-                VALUES ({}, '{}', '{}');
-                ",
+            stmt.execute(rusqlite::params![
                 tax_id,
-                name.trim().replace('\'', "''"),
-                name_class.trim().replace('\'', "''")
-            ));
+                name.trim(),
+                name_class.trim()
+            ])?;
+            
+            if i > 0 && i % 10000 == 0 {
+                print!(".");
+                std::io::stdout().flush()?;
+            }
         }
-        // Records may be left in stmts
-        nwr::batch_exec(&conn, &mut stmts, usize::MAX)?;
+        conn.execute_batch("COMMIT;")?;
 
         debug!("Creating indexes for name");
         conn.execute("CREATE INDEX idx_name_tax_id ON name(tax_id);", [])?;
@@ -175,10 +175,12 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             .delimiter(b'|')
             .from_reader(dmp);
 
-        let mut stmts: Vec<String> = vec![String::from("BEGIN;")];
+        let mut stmt = conn.prepare(
+            "INSERT INTO node (tax_id, parent_tax_id, rank, division_id, comment) VALUES (?1, ?2, ?3, ?4, ?5)"
+        )?;
+        
+        conn.execute_batch("BEGIN;")?;
         for (i, result) in tsv_rdr.records().enumerate() {
-            nwr::batch_exec(&conn, &mut stmts, i)?;
-
             let record = result?;
 
             // tax_id, parent, rank, code, divid, undef, gen_code, undef, mito
@@ -188,13 +190,20 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             let division_id: i64 = record[4].trim().parse()?;
             let comments: String = record[12].trim().parse()?;
 
-            stmts.push(format!(
-                "INSERT INTO node VALUES ({}, {}, '{}', {}, '{}');",
-                tax_id, parent_tax_id, rank, division_id, comments
-            ));
+            stmt.execute(rusqlite::params![
+                tax_id,
+                parent_tax_id,
+                rank,
+                division_id,
+                comments
+            ])?;
+            
+            if i > 0 && i % 10000 == 0 {
+                print!(".");
+                std::io::stdout().flush()?;
+            }
         }
-        // Records may be left in stmts
-        nwr::batch_exec(&conn, &mut stmts, usize::MAX)?;
+        conn.execute_batch("COMMIT;")?;
 
         debug!("Creating indexes for node");
         conn.execute(
