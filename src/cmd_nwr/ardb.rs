@@ -8,6 +8,13 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
+lazy_static! {
+    static ref RE_INCOMPETENT: Regex =
+        Regex::new(r"(?xi)\b(uncultured|unidentified|bacterium|archaeon|metagenome)\b")
+            .unwrap();
+    static ref RE_VIRUS: Regex = Regex::new(r"(?xi)(virus|phage)\b").unwrap();
+}
+
 // Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
     Command::new("ardb")
@@ -190,19 +197,47 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
 
         // fields
-        let tax_id = fields.get(5).unwrap().parse::<i64>().unwrap();
-        let organism_name = fields.get(7).unwrap();
-        let infraspecific_name = fields.get(8).unwrap();
-        let bioproject = fields.get(1).unwrap();
-        let biosample = fields.get(2).unwrap();
-        let assembly_accession = fields.first().unwrap();
-        let refseq_category = fields.get(4).unwrap();
-        let assembly_level = fields.get(11).unwrap();
-        let genome_rep = fields.get(13).unwrap();
-        let seq_rel_date = fields.get(14).unwrap();
-        let asm_name = fields.get(15).unwrap();
-        let gbrs_paired_asm = fields.get(17).unwrap();
-        let ftp_path = fields.get(19).unwrap();
+        let tax_id = fields
+            .get(5)
+            .ok_or_else(|| anyhow::anyhow!("Missing tax_id field at line {}", i))?
+            .parse::<i64>()
+            .map_err(|e| anyhow::anyhow!("Invalid tax_id at line {}: {}", i, e))?;
+        let organism_name = fields.get(7).ok_or_else(|| {
+            anyhow::anyhow!("Missing organism_name field at line {}", i)
+        })?;
+        let infraspecific_name = fields.get(8).ok_or_else(|| {
+            anyhow::anyhow!("Missing infraspecific_name field at line {}", i)
+        })?;
+        let bioproject = fields
+            .get(1)
+            .ok_or_else(|| anyhow::anyhow!("Missing bioproject field at line {}", i))?;
+        let biosample = fields
+            .get(2)
+            .ok_or_else(|| anyhow::anyhow!("Missing biosample field at line {}", i))?;
+        let assembly_accession = fields.first().ok_or_else(|| {
+            anyhow::anyhow!("Missing assembly_accession field at line {}", i)
+        })?;
+        let refseq_category = fields.get(4).ok_or_else(|| {
+            anyhow::anyhow!("Missing refseq_category field at line {}", i)
+        })?;
+        let assembly_level = fields.get(11).ok_or_else(|| {
+            anyhow::anyhow!("Missing assembly_level field at line {}", i)
+        })?;
+        let genome_rep = fields
+            .get(13)
+            .ok_or_else(|| anyhow::anyhow!("Missing genome_rep field at line {}", i))?;
+        let seq_rel_date = fields.get(14).ok_or_else(|| {
+            anyhow::anyhow!("Missing seq_rel_date field at line {}", i)
+        })?;
+        let asm_name = fields
+            .get(15)
+            .ok_or_else(|| anyhow::anyhow!("Missing asm_name field at line {}", i))?;
+        let gbrs_paired_asm = fields.get(17).ok_or_else(|| {
+            anyhow::anyhow!("Missing gbrs_paired_asm field at line {}", i)
+        })?;
+        let ftp_path = fields
+            .get(19)
+            .ok_or_else(|| anyhow::anyhow!("Missing ftp_path field at line {}", i))?;
 
         // clean NA/na
         let infraspecific_name = if infraspecific_name.as_str() == "NA"
@@ -214,14 +249,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         };
 
         // Skip incompetent strains
-        lazy_static! {
-            static ref RE1: Regex = Regex::new(
-                r"(?xi)\b(uncultured|unidentified|bacterium|archaeon|metagenome)\b"
-            )
-            .unwrap();
-            static ref RE2: Regex = Regex::new(r"(?xi)(virus|phage)\b").unwrap();
-        }
-        if RE1.is_match(organism_name) || RE2.is_match(organism_name) {
+        if RE_INCOMPETENT.is_match(organism_name) || RE_VIRUS.is_match(organism_name) {
             // debug!("Skip: {}", organism_name);
             continue;
         }

@@ -58,5 +58,3 @@ fn main() -> anyhow::Result<()> {
 
     Ok(())
 }
-
-// TODO: `compgen -c nw_`

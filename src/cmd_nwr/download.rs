@@ -1,5 +1,5 @@
 use clap::*;
-use log::{info, warn};
+use log::info;
 use simplelog::*;
 use std::fs::File;
 use std::io;
@@ -114,9 +114,11 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         ncbi_digest.truncate(32);
 
         if digest != ncbi_digest {
-            warn!("Expected sum is: {}", ncbi_digest);
-            warn!("Computed sum is: {}", digest);
-            panic!("Fail to check integrity.");
+            return Err(anyhow::anyhow!(
+                "MD5 check failed. Expected: {}, Computed: {}",
+                ncbi_digest,
+                digest
+            ));
         } else {
             info!("MD5 sum passed");
         }
