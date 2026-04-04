@@ -92,6 +92,20 @@ cargo test -- --test-threads=1
 * **`about`**: 使用第三人称单数动词，简要描述操作。
 * **`after_help`**: 使用 `include_str!("../../docs/help/<cmd>.md")` 引入外部文档。
 
+### 外部帮助文档规范 (`docs/help/<cmd>.md`)
+
+* **文件位置**: `docs/help/<command>.md`
+* **内容原则**: 只包含 clap 不会自动生成的补充说明，避免重复。
+* **可选章节**:
+    * `Behavior:` - 命令行为说明、特殊逻辑、注意事项。
+    * `Valid ranks:` - 有效的分类等级列表（如适用）。
+    * `Input:` - 输入格式、来源说明。
+    * `Output:` - 输出格式、目标说明。
+    * `Examples:` - 使用示例，使用反引号包裹命令。
+* **避免内容**:
+    * `Options:` 章节（clap 自动生成参数列表）。
+    * 参数默认值（clap 自动生成）。
+
 ## 开发者文档规范
 
 `docs/developer.md` 是供项目开发者参考的内部指南，不要包含在最终生成的用户文档（mdBook 站点）中。

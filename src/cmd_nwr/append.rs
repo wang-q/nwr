@@ -5,27 +5,14 @@ use std::io::BufRead;
 // Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
     Command::new("append")
-        .about("Append fields of higher ranks to a TSV file")
-        .after_help(
-            r##"
-* If `--rank` is empty, the scientific name will be appended.
-
-* Valid ranks
-    * species genus family order class phylum kingdom
-    * Use other ranks, such as clade or no rank, at your own risk.
-
-* If the desired rank does not present, `NA` will be appended.
-
-* Lines starting with "#" will be treated as headers and have ranks attached to them.
-
-"##,
-        )
+        .about("Appends taxonomic rank fields to a TSV file")
+        .after_help(include_str!("../../docs/help/append.md"))
         .arg(
             Arg::new("infiles")
                 .required(true)
                 .num_args(1..)
                 .index(1)
-                .help("Input filename. [stdin] for standard input"),
+                .help("Input TSV file(s) to process. Use 'stdin' for standard input"),
         )
         .arg(
             Arg::new("dir")
@@ -33,7 +20,7 @@ pub fn make_subcommand() -> Command {
                 .short('d')
                 .num_args(1)
                 .value_name("DIR")
-                .help("Change working directory"),
+                .help("Specify the NWR data directory"),
         )
         .arg(
             Arg::new("rank")
@@ -41,7 +28,7 @@ pub fn make_subcommand() -> Command {
                 .short('r')
                 .num_args(1..)
                 .action(ArgAction::Append)
-                .help("To list which rank(s)"),
+                .help("Taxonomic rank(s) to append"),
         )
         .arg(
             Arg::new("column")
@@ -50,13 +37,13 @@ pub fn make_subcommand() -> Command {
                 .num_args(1)
                 .default_value("1")
                 .value_parser(value_parser!(usize))
-                .help("The column where the IDs are located, starting from 1"),
+                .help("Column containing taxon IDs/names (1-based)"),
         )
         .arg(
             Arg::new("id")
                 .long("id")
                 .action(ArgAction::SetTrue)
-                .help("Also append rank id"),
+                .help("Also append taxon IDs for each rank"),
         )
         .arg(
             Arg::new("outfile")
@@ -64,7 +51,7 @@ pub fn make_subcommand() -> Command {
                 .long("outfile")
                 .num_args(1)
                 .default_value("stdout")
-                .help("Output filename. [stdout] for screen"),
+                .help("Output filename (default: stdout)"),
         )
 }
 
