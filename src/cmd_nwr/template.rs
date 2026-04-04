@@ -7,10 +7,11 @@ use std::io::BufRead;
 use tera::{Context, Tera};
 
 // Constants for assembly levels
+/// Note: SCAFFOLD and CONTIG both map to "3" as they are treated equally in this context
 const LEVEL_COMPLETE_GENOME: &str = "1";
 const LEVEL_CHROMOSOME: &str = "2";
 const LEVEL_SCAFFOLD: &str = "3";
-const LEVEL_CONTIG: &str = "3";
+const LEVEL_CONTIG: &str = "3"; // Same as SCAFFOLD - both are treated as level 3
 const LEVEL_OTHER: &str = "5";
 
 // Regular expressions for species name formatting

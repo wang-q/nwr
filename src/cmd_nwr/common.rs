@@ -35,11 +35,7 @@ pub fn make_subcommand() -> Command {
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut writer = intspan::writer(args.get_one::<String>("outfile").unwrap());
 
-    let nwrdir = if args.contains_id("dir") {
-        std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf()
-    } else {
-        nwr::nwr_path()?
-    };
+    let nwrdir = nwr::get_nwr_dir(args, "dir")?;
 
     let conn = nwr::connect_txdb(&nwrdir)?;
 
@@ -66,8 +62,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                     add_taxon(&mut tree, taxon, None)?
                 } else {
                     let parent_tax_id = taxon.parent_tax_id;
-                    let parent_id = id_of.get(&parent_tax_id)
-                        .ok_or_else(|| anyhow::anyhow!("Parent ID not found: {}", parent_tax_id))?;
+                    let parent_id = id_of.get(&parent_tax_id).ok_or_else(|| {
+                        anyhow::anyhow!("Parent ID not found: {}", parent_tax_id)
+                    })?;
                     add_taxon(&mut tree, taxon, Some(*parent_id))?
                 };
                 id_of.insert(cur_tax_id, node_id);

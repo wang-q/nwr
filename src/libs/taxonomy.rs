@@ -74,14 +74,38 @@ impl std::fmt::Display for Taxon {
 /// assert!(std::path::Path::new(&path).exists());
 /// ```
 pub fn nwr_path() -> anyhow::Result<std::path::PathBuf> {
-    let home = dirs::home_dir()
-        .ok_or_else(|| anyhow::anyhow!("Cannot get home directory"))?;
+    let home =
+        dirs::home_dir().ok_or_else(|| anyhow::anyhow!("Cannot get home directory"))?;
     let path = home.join(".nwr/");
     if !path.exists() {
         std::fs::create_dir_all(&path)?;
     }
 
     Ok(path)
+}
+
+/// Get nwr working directory from command line args or default path
+///
+/// # Arguments
+/// * `args` - Command line arguments from clap
+/// * `arg_name` - The name of the directory argument (typically "dir")
+///
+/// # Returns
+/// * `anyhow::Result<PathBuf>` - The resolved path
+///
+/// # Example
+/// ```ignore
+/// let nwrdir = nwr::get_nwr_dir(&args, "dir").unwrap();
+/// ```
+pub fn get_nwr_dir(
+    args: &clap::ArgMatches,
+    arg_name: &str,
+) -> anyhow::Result<std::path::PathBuf> {
+    if args.contains_id(arg_name) {
+        Ok(Path::new(args.get_one::<String>(arg_name).unwrap()).to_path_buf())
+    } else {
+        nwr_path()
+    }
 }
 
 /// Connect taxonomy.sqlite in this dir

@@ -2,7 +2,7 @@ use clap::*;
 use cmd_lib::*;
 use itertools::Itertools;
 use std::io::{BufRead, Write};
-use std::{env, fs};
+use std::{env, fs, path::Path};
 use tempfile::TempDir;
 
 // Create clap subcommand arguments

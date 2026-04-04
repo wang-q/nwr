@@ -76,11 +76,7 @@ CREATE TABLE IF NOT EXISTS name (
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let _ = SimpleLogger::init(LevelFilter::Debug, Config::default());
 
-    let nwrdir = if args.contains_id("dir") {
-        std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf()
-    } else {
-        nwr::nwr_path()?
-    };
+    let nwrdir = nwr::get_nwr_dir(args, "dir")?;
     let file = nwrdir.join("taxonomy.sqlite");
     if file.exists() {
         std::fs::remove_file(&file)?;
@@ -110,10 +106,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             .delimiter(b'|')
             .from_reader(dmp);
 
-        let mut stmt = conn.prepare(
-            "INSERT INTO division (id, division) VALUES (?1, ?2)"
-        )?;
-        
+        let mut stmt =
+            conn.prepare("INSERT INTO division (id, division) VALUES (?1, ?2)")?;
+
         conn.execute_batch("BEGIN;")?;
         for result in tsv_rdr.records() {
             let record = result?;
@@ -136,9 +131,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             .from_reader(dmp);
 
         let mut stmt = conn.prepare(
-            "INSERT INTO name (tax_id, name, name_class) VALUES (?1, ?2, ?3)"
+            "INSERT INTO name (tax_id, name, name_class) VALUES (?1, ?2, ?3)",
         )?;
-        
+
         conn.execute_batch("BEGIN;")?;
         for (i, result) in tsv_rdr.records().enumerate() {
             let record = result?;
@@ -148,12 +143,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             let name: String = record[1].parse()?;
             let name_class: String = record[3].parse()?;
 
-            stmt.execute(rusqlite::params![
-                tax_id,
-                name.trim(),
-                name_class.trim()
-            ])?;
-            
+            stmt.execute(rusqlite::params![tax_id, name.trim(), name_class.trim()])?;
+
             if i > 0 && i % 10000 == 0 {
                 print!(".");
                 std::io::stdout().flush()?;
@@ -178,7 +169,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         let mut stmt = conn.prepare(
             "INSERT INTO node (tax_id, parent_tax_id, rank, division_id, comment) VALUES (?1, ?2, ?3, ?4, ?5)"
         )?;
-        
+
         conn.execute_batch("BEGIN;")?;
         for (i, result) in tsv_rdr.records().enumerate() {
             let record = result?;
@@ -197,7 +188,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 division_id,
                 comments
             ])?;
-            
+
             if i > 0 && i % 10000 == 0 {
                 print!(".");
                 std::io::stdout().flush()?;

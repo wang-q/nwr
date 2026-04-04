@@ -39,11 +39,7 @@ pub fn make_subcommand() -> Command {
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut writer = intspan::writer(args.get_one::<String>("outfile").unwrap());
 
-    let nwrdir = if args.contains_id("dir") {
-        std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf()
-    } else {
-        nwr::nwr_path()?
-    };
+    let nwrdir = nwr::get_nwr_dir(args, "dir")?;
 
     let conn = nwr::connect_txdb(&nwrdir)?;
 
@@ -65,12 +61,13 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
         wtr.write_record(["#tax_id", "sci_name", "rank", "division"])?;
         for node in nodes.iter() {
-            wtr.serialize((
-                node.tax_id,
-                &node.names.get("scientific name").unwrap()[0],
-                &node.rank,
-                &node.division,
-            ))?;
+            let sci_name = node
+                .names
+                .get("scientific name")
+                .and_then(|v| v.first())
+                .map(|s| s.as_str())
+                .unwrap_or("Unknown");
+            wtr.serialize((node.tax_id, sci_name, &node.rank, &node.division))?;
         }
         wtr.flush()?;
     } else {

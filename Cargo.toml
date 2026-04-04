@@ -53,5 +53,17 @@ rand = "0.8.5"
 criterion = "0.5.1"
 approx = "0.5.1"
 
+[profile.dev]
+opt-level = 0
+debug = 1
+incremental = true
+codegen-units = 256
+
+[profile.test]
+opt-level = 0
+debug = 1
+incremental = true
+codegen-units = 256
+
 [profile.release]
 lto = true

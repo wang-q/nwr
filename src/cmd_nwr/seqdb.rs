@@ -5,6 +5,22 @@ use simplelog::*;
 use std::io::Write;
 use std::path::PathBuf;
 
+/// Valid field names for the rep table
+const VALID_REP_FIELDS: &[&str] = &["f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8"];
+
+/// Validate that a field name is allowed for the rep table
+fn validate_rep_field(field: &str) -> anyhow::Result<&str> {
+    if VALID_REP_FIELDS.contains(&field) {
+        Ok(field)
+    } else {
+        Err(anyhow::anyhow!(
+            "Invalid field name '{}'. Valid fields are: {:?}",
+            field,
+            VALID_REP_FIELDS
+        ))
+    }
+}
+
 // Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
     Command::new("seqdb")
@@ -292,10 +308,8 @@ fn insert_strain(
         .delimiter(b'\t')
         .from_reader(dmp);
 
-    let mut rank_stmt = conn.prepare(
-        "INSERT OR IGNORE INTO rank(name) VALUES (?1)"
-    )?;
-    
+    let mut rank_stmt = conn.prepare("INSERT OR IGNORE INTO rank(name) VALUES (?1)")?;
+
     let mut asm_stmt = conn.prepare(
         "INSERT INTO asm(name, rank_id) VALUES (?1, (SELECT id FROM rank WHERE name = ?2))"
     )?;
@@ -319,9 +333,8 @@ fn insert_size(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Resu
         .delimiter(b'\t')
         .from_reader(dmp);
 
-    let mut stmt = conn.prepare(
-        "INSERT OR IGNORE INTO seq(name, size) VALUES (?1, ?2)"
-    )?;
+    let mut stmt =
+        conn.prepare("INSERT OR IGNORE INTO seq(name, size) VALUES (?1, ?2)")?;
 
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
@@ -330,7 +343,7 @@ fn insert_size(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Resu
         let size: i64 = record[1].trim().parse()?;
 
         stmt.execute(rusqlite::params![&name, size])?;
-        
+
         if i > 0 && i % 10000 == 0 {
             print!(".");
             std::io::stdout().flush()?;
@@ -347,15 +360,13 @@ fn insert_clust(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Res
         .delimiter(b'\t')
         .from_reader(dmp);
 
-    let mut rep_stmt = conn.prepare(
-        "INSERT OR IGNORE INTO rep(name) VALUES (?1)"
-    )?;
-    
+    let mut rep_stmt = conn.prepare("INSERT OR IGNORE INTO rep(name) VALUES (?1)")?;
+
     let mut rep_seq_stmt = conn.prepare(
         "INSERT INTO rep_seq(rep_id, seq_id) VALUES (
             (SELECT id FROM rep WHERE name = ?1),
             (SELECT id FROM seq WHERE name = ?2)
-        )"
+        )",
     )?;
 
     conn.execute_batch("BEGIN;")?;
@@ -366,7 +377,7 @@ fn insert_clust(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Res
 
         rep_stmt.execute([&rep])?;
         rep_seq_stmt.execute(rusqlite::params![&rep, &seq])?;
-        
+
         if i > 0 && i % 10000 == 0 {
             print!(".");
             std::io::stdout().flush()?;
@@ -383,9 +394,7 @@ fn insert_anno(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Resu
         .delimiter(b'\t')
         .from_reader(dmp);
 
-    let mut stmt = conn.prepare(
-        "UPDATE seq SET anno = ?1 WHERE seq.name = ?2"
-    )?;
+    let mut stmt = conn.prepare("UPDATE seq SET anno = ?1 WHERE seq.name = ?2")?;
 
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
@@ -394,7 +403,7 @@ fn insert_anno(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Resu
         let anno: String = record[1].trim().parse()?;
 
         stmt.execute(rusqlite::params![&anno, &name])?;
-        
+
         if i > 0 && i % 10000 == 0 {
             print!(".");
             std::io::stdout().flush()?;
@@ -418,7 +427,7 @@ fn insert_asmseq(
         "INSERT INTO asm_seq(asm_id, seq_id) VALUES (
             (SELECT id FROM asm WHERE name = ?1),
             (SELECT id FROM seq WHERE name = ?2)
-        )"
+        )",
     )?;
 
     conn.execute_batch("BEGIN;")?;
@@ -430,7 +439,7 @@ fn insert_asmseq(
         let asm: String = record[1].trim().parse()?;
 
         stmt.execute(rusqlite::params![&asm, &seq])?;
-        
+
         if i > 0 && i % 10000 == 0 {
             print!(".");
             std::io::stdout().flush()?;
@@ -446,6 +455,9 @@ fn insert_rep(
     field: &str,
     conn: &rusqlite::Connection,
 ) -> anyhow::Result<()> {
+    // Validate field name to prevent SQL injection
+    let field = validate_rep_field(field)?;
+
     // empty field before updating
     conn.execute_batch(&format!(
         "
@@ -471,7 +483,7 @@ fn insert_rep(
         let rep: String = record[1].trim().parse()?;
 
         stmt.execute(rusqlite::params![&family, &rep])?;
-        
+
         if i > 0 && i % 10000 == 0 {
             print!(".");
             std::io::stdout().flush()?;

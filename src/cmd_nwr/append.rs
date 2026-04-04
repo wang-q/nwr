@@ -74,13 +74,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     let column: usize = *args.get_one("column").unwrap();
 
-    let nwrdir = if args.contains_id("dir") {
-        std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf()
-    } else {
-        nwr::nwr_path()?
-    };
+    let nwrdir = nwr::get_nwr_dir(args, "dir")?;
 
-    let conn = nwr::connect_txdb(&nwrdir).unwrap();
+    let conn = nwr::connect_txdb(&nwrdir)?;
 
     let mut ranks = vec![];
     if args.contains_id("rank") {
@@ -116,12 +112,13 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             // Normal lines
             else {
                 // Check the given field
-                let term = fields.get(column - 1)
-                    .ok_or_else(|| anyhow::anyhow!(
+                let term = fields.get(column - 1).ok_or_else(|| {
+                    anyhow::anyhow!(
                         "Column {} out of range (line has {} columns)",
                         column,
                         fields.len()
-                    ))?;
+                    )
+                })?;
                 let id = match nwr::term_to_tax_id(&conn, term) {
                     Ok(x) => x,
                     Err(_) => continue 'line,
@@ -131,7 +128,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                     let node = nwr::get_taxon(&conn, vec![id])?
                         .into_iter()
                         .next()
-                        .ok_or_else(|| anyhow::anyhow!("No taxon found for ID: {}", id))?;
+                        .ok_or_else(|| {
+                            anyhow::anyhow!("No taxon found for ID: {}", id)
+                        })?;
                     let s = node
                         .names
                         .get("scientific name")

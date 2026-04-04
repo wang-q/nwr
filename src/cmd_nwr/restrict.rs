@@ -75,11 +75,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let column: usize = *args.get_one("column").unwrap();
     let is_exclude = args.get_flag("exclude");
 
-    let nwrdir = if args.contains_id("dir") {
-        std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf()
-    } else {
-        nwr::nwr_path()?
-    };
+    let nwrdir = nwr::get_nwr_dir(args, "dir")?;
 
     let conn = nwr::connect_txdb(&nwrdir)?;
 

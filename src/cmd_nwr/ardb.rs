@@ -145,11 +145,7 @@ CREATE TABLE IF NOT EXISTS ar (
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let _ = SimpleLogger::init(LevelFilter::Debug, Config::default());
 
-    let nwrdir = if args.contains_id("dir") {
-        std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf()
-    } else {
-        nwr::nwr_path()?
-    };
+    let nwrdir = nwr::get_nwr_dir(args, "dir")?;
     let file = if args.get_flag("genbank") {
         nwrdir.join("ar_genbank.sqlite")
     } else {
@@ -190,7 +186,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             species, species_id, genus, genus_id, family, family_id
         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19)"
     )?;
-    
+
     conn.execute_batch("BEGIN;")?;
     for (i, line) in rdr.lines().map_while(Result::ok).enumerate() {
         if line.starts_with('#') {
@@ -298,7 +294,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             family,
             family_id,
         ])?;
-        
+
         if i > 0 && i % 10000 == 0 {
             print!(".");
             std::io::stdout().flush()?;
