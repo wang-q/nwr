@@ -138,3 +138,5 @@ Cargo.lock
 *.dmp
 *.tsv
 /doc/src/
+
+git*.txt

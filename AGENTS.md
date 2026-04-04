@@ -29,8 +29,8 @@ cargo build --release
 ### 测试
 
 ```bash
-# 运行所有测试
-cargo test
+# Concurrent tests may trigger sqlite locking
+cargo test -- --test-threads=1
 ```
 
 ## 架构
