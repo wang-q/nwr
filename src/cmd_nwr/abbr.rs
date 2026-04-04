@@ -159,19 +159,33 @@ fn clean_name(name: &str) -> String {
         .chars()
         .map(|c| if c.is_alphanumeric() { c } else { '_' })
         .collect();
-    cleaned
-        .replace("__", "_")
-        .trim_matches('_')
-        .to_string()
+    cleaned.replace("__", "_").trim_matches('_').to_string()
 }
 
 /// Clean subspecies parts using word boundary regex (equivalent to Perl \b)
 fn clean_subspecies(strain: &str) -> String {
     let patterns = [
-        "subsp", "serovar", "str", "strain", "substr", "serotype",
-        "biovar", "var", "group", "variant", "genomovar", "genomosp",
-        "breed", "cultivar", "ecotype", "n/a", "NA",
-        "microbial", "clinical", "pathogenic", "isolate",
+        "subsp",
+        "serovar",
+        "str",
+        "strain",
+        "substr",
+        "serotype",
+        "biovar",
+        "var",
+        "group",
+        "variant",
+        "genomovar",
+        "genomosp",
+        "breed",
+        "cultivar",
+        "ecotype",
+        "n/a",
+        "NA",
+        "microbial",
+        "clinical",
+        "pathogenic",
+        "isolate",
     ];
 
     let mut result = strain.to_string();
@@ -215,8 +229,10 @@ fn process_line(
         if genus.chars().next()?.is_alphabetic() {
             if species.starts_with(&genus) {
                 if strain.starts_with(&species) {
-                    strain_clean = strain.trim_start_matches(&species).trim_start().to_string();
-                    species_clean = species.trim_start_matches(&genus).trim_start().to_string();
+                    strain_clean =
+                        strain.trim_start_matches(&species).trim_start().to_string();
+                    species_clean =
+                        species.trim_start_matches(&genus).trim_start().to_string();
                     is_normal = true;
                 }
             }
@@ -225,7 +241,8 @@ fn process_line(
         // No species part
         if genus.chars().next()?.is_alphabetic() {
             if strain.starts_with(&genus) {
-                strain_clean = strain.trim_start_matches(&genus).trim_start().to_string();
+                strain_clean =
+                    strain.trim_start_matches(&genus).trim_start().to_string();
                 species_clean = String::new();
                 is_normal = true;
             }
@@ -274,7 +291,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         .map(|s| s.parse().unwrap_or(1))
         .collect();
     if cols.len() != 3 {
-        return Err(anyhow::anyhow!("Column must be in format 's,p,g' (three numbers)"));
+        return Err(anyhow::anyhow!(
+            "Column must be in format 's,p,g' (three numbers)"
+        ));
     }
     let columns = (cols[0], cols[1], cols[2]);
 
@@ -284,7 +303,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut all_parts: Vec<NameParts> = Vec::new();
 
     for line in reader.lines().map_while(Result::ok) {
-        if let Some((fields, parts)) = process_line(&line, columns, separator, shortsub) {
+        if let Some((fields, parts)) = process_line(&line, columns, separator, shortsub)
+        {
             all_fields.push(fields);
             all_parts.push(parts);
         }
