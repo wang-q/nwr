@@ -6,6 +6,7 @@
 [![Crates.io](https://img.shields.io/crates/v/nwr.svg)](https://crates.io/crates/nwr)
 ![](https://img.shields.io/crates/d/nwr?label=downloads%20%28crates.io%29)
 [![Lines of code](https://www.aschey.tech/tokei/github/wang-q/nwr)](https://github.com//wang-q/nwr)
+[![Documentation](https://img.shields.io/badge/docs-online-blue)](https://wang-q.github.io/nwr/)
 
 `nwr` is a command line **N**CBI taxonomy and assembly **WR**angler.
 
