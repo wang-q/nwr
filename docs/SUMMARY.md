@@ -8,5 +8,20 @@
 
 # Command Reference
 
+## Database
+- [download](help/download.md)
+- [txdb](help/txdb.md)
+- [ardb](help/ardb.md)
+
 ## Taxonomy
 - [append](help/append.md)
+- [common](help/common.md)
+- [info](help/info.md)
+- [lineage](help/lineage.md)
+- [member](help/member.md)
+- [restrict](help/restrict.md)
+
+## Assembly
+- [template](help/template.md)
+- [kb](help/kb.md)
+- [seqdb](help/seqdb.md)

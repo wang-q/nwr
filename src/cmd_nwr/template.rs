@@ -26,63 +26,7 @@ lazy_static! {
 pub fn make_subcommand() -> Command {
     Command::new("template")
         .about("Create dirs, data and scripts for a phylogenomic research")
-        .after_help(
-            r###"
-.assembly.tsv: a TAB delimited file to guide downloading and processing of files.
-
-| Col |  Type  | Description                                              |
-|----:|:------:|:---------------------------------------------------------|
-|   1 | string | #name: species + infraspecific_name + assembly_accession |
-|   2 | string | ftp_path                                                 |
-|   3 | string | biosample                                                |
-|   4 | string | species                                                  |
-|   5 | string | assembly_level                                           |
-
-* --ass: ASSEMBLY/
-    * One TSV file
-        * url.tsv
-    * And five Bash scripts
-        * rsync.sh
-        * check.sh
-        * n50.sh [LEN_N50] [N_CONTIG] [LEN_SUM]
-        * collect.sh
-        * finish.sh
-
-* --bs: BioSample/
-    * One TSV file
-        * sample.tsv
-    * And two Bash scripts
-        * download.sh
-        * collect.sh [N_ATTR]
-
-* --mh: MinHash/
-    * One TSV file
-        * species.tsv
-    * And five Bash scripts
-        * compute.sh
-        * species.sh
-        * abnormal.sh
-        * nr.sh
-        * dist.sh
-
-* --count: Count/
-    * One TSV file
-        * species.tsv
-    * Three Bash scripts
-        * strains.sh - strains.taxon.tsv, species, genus, family, order, and class
-        * rank.sh - count species and strains
-        * lineage.sh - count strains
-
-* --pro: Protein/
-    * One TSV file
-        * species.tsv
-    * Bash scripts
-        * collect.sh
-        * info.sh
-        * count.sh
-
-"###,
-        )
+        .after_help(include_str!("../../docs/help/template.md"))
         // Global
         .arg(
             Arg::new("infiles")
@@ -97,7 +41,7 @@ pub fn make_subcommand() -> Command {
                 .short('o')
                 .num_args(1)
                 .default_value(".")
-                .help("Output directory. [stdout] for screen"),
+                .help("Output directory (default: current directory)"),
         )
         .arg(
             Arg::new("in")

@@ -6,18 +6,7 @@ use std::io::BufRead;
 pub fn make_subcommand() -> Command {
     Command::new("restrict")
         .about("Restrict taxonomy terms to ancestral descendants")
-        .after_help(
-            r###"
-* All terms, including ancestors and fields in input files,
-  are in the form of a Taxonomy ID or scientific name.
-
-* Input files should be TSV.
-  * `tests/nwr/taxon.tsv` as an example.
-
-* Lines start with `#` will always be outputted.
-
-"###,
-        )
+        .after_help(include_str!("../../docs/help/restrict.md"))
         .arg(
             Arg::new("terms")
                 .help("The ancestor(s)")
@@ -31,7 +20,7 @@ pub fn make_subcommand() -> Command {
                 .short('d')
                 .num_args(1)
                 .value_name("DIR")
-                .help("Change working directory"),
+                .help("Specify the NWR data directory"),
         )
         .arg(
             Arg::new("file")
@@ -64,7 +53,7 @@ pub fn make_subcommand() -> Command {
                 .long("outfile")
                 .num_args(1)
                 .default_value("stdout")
-                .help("Output filename. [stdout] for screen"),
+                .help("Output filename (default: stdout)"),
         )
 }
 

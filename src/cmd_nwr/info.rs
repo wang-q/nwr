@@ -4,9 +4,10 @@ use clap::*;
 pub fn make_subcommand() -> Command {
     Command::new("info")
         .about("Information of Taxonomy ID(s) or scientific name(s)")
+        .after_help(include_str!("../../docs/help/info.md"))
         .arg(
             Arg::new("terms")
-                .help("The ancestor(s)")
+                .help("Taxonomy ID(s) or scientific name(s)")
                 .required(true)
                 .num_args(1..)
                 .index(1),
@@ -17,7 +18,7 @@ pub fn make_subcommand() -> Command {
                 .short('d')
                 .num_args(1)
                 .value_name("DIR")
-                .help("Change working directory"),
+                .help("Specify the NWR data directory"),
         )
         .arg(
             Arg::new("tsv")
@@ -31,7 +32,7 @@ pub fn make_subcommand() -> Command {
                 .long("outfile")
                 .num_args(1)
                 .default_value("stdout")
-                .help("Output filename. [stdout] for screen"),
+                .help("Output filename (default: stdout)"),
         )
 }
 

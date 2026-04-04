@@ -4,6 +4,7 @@ use clap::*;
 pub fn make_subcommand() -> Command {
     Command::new("lineage")
         .about("Output the lineage of the term")
+        .after_help(include_str!("../../docs/help/lineage.md"))
         .arg(
             Arg::new("term")
                 .help("The NCBI Taxonomy ID or scientific name")
@@ -17,7 +18,7 @@ pub fn make_subcommand() -> Command {
                 .short('d')
                 .num_args(1)
                 .value_name("DIR")
-                .help("Change working directory"),
+                .help("Specify the NWR data directory"),
         )
         .arg(
             Arg::new("tsv")
@@ -31,7 +32,7 @@ pub fn make_subcommand() -> Command {
                 .long("outfile")
                 .num_args(1)
                 .default_value("stdout")
-                .help("Output filename. [stdout] for screen"),
+                .help("Output filename (default: stdout)"),
         )
 }
 

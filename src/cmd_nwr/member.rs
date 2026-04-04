@@ -5,18 +5,7 @@ use std::collections::HashSet;
 pub fn make_subcommand() -> Command {
     Command::new("member")
         .about("List members (of certain ranks) under ancestral term(s)")
-        .after_help(
-            r###"
-* Ancestral terms are in the form of a Taxonomy ID or scientific name.
-
-* Valid ranks
-  * species genus family order class phylum kingdom
-  * Use other ranks, such as clade or no rank, at your own risk.
-
-* The output file is in the same TSV format as `nwr info --tsv`.
-
-"###,
-        )
+        .after_help(include_str!("../../docs/help/member.md"))
         .arg(
             Arg::new("terms")
                 .help("The ancestor(s)")
@@ -30,7 +19,7 @@ pub fn make_subcommand() -> Command {
                 .short('d')
                 .num_args(1)
                 .value_name("DIR")
-                .help("Change working directory"),
+                .help("Specify the NWR data directory"),
         )
         .arg(
             Arg::new("rank")
@@ -38,7 +27,7 @@ pub fn make_subcommand() -> Command {
                 .short('r')
                 .num_args(1..)
                 .action(ArgAction::Append)
-                .help("To list which rank(s)"),
+                .help("Taxonomic rank(s) to list"),
         )
         .arg(
             Arg::new("env")
@@ -52,7 +41,7 @@ pub fn make_subcommand() -> Command {
                 .long("outfile")
                 .num_args(1)
                 .default_value("stdout")
-                .help("Output filename. [stdout] for screen"),
+                .help("Output filename (default: stdout)"),
         )
 }
 

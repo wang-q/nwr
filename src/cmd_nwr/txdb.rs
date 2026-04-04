@@ -1,5 +1,4 @@
 use clap::*;
-use itertools::Itertools;
 use log::{debug, info};
 use simplelog::*;
 use std::fs::File;
@@ -9,33 +8,14 @@ use std::io::Write;
 pub fn make_subcommand() -> Command {
     Command::new("txdb")
         .about("Init the taxonomy database")
-        .after_help(format!(
-            r###"
-~/.nwr/taxonomy.sqlite
-
-* The database built from `taxdump.tar.gz`
-
-* The DDL
-
-    echo "
-        SELECT sql
-        FROM sqlite_master
-        WHERE type='table'
-        ORDER BY name;
-        " |
-        sqlite3 -tabs ~/.nwr/taxonomy.sqlite
-
-{}
-"###,
-            DDL_TX.lines().map(|l| format!("    {}", l)).join("\n")
-        ))
+        .after_help(include_str!("../../docs/help/txdb.md"))
         .arg(
             Arg::new("dir")
                 .long("dir")
                 .short('d')
                 .num_args(1)
                 .value_name("DIR")
-                .help("Change working directory"),
+                .help("Specify the NWR data directory"),
         )
 }
 

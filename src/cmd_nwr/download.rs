@@ -8,33 +8,7 @@ use std::io;
 pub fn make_subcommand() -> Command {
     Command::new("download")
         .about("Download the latest releases of `taxdump` and assembly reports")
-        .after_help(
-            r###"
-You can download the files manually.
-
-mkdir -p ~/.nwr
-
-# taxdump
-wget -N -P ~/.nwr https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
-wget -N -P ~/.nwr https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz.md5
-
-# assembly reports
-wget -N -P ~/.nwr https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_refseq.txt
-wget -N -P ~/.nwr https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_genbank.txt
-
-# with aria2
-cat <<EOF > download.txt
-https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz
-https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/taxdump.tar.gz.md5
-https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_refseq.txt
-https://ftp.ncbi.nlm.nih.gov/genomes/ASSEMBLY_REPORTS/assembly_summary_genbank.txt
-
-EOF
-
-aria2c -x 4 -s 2 -c -d ~/.nwr -i download.txt
-
-"###,
-        )
+        .after_help(include_str!("../../docs/help/download.md"))
         .arg(
             Arg::new("host")
                 .long("host")

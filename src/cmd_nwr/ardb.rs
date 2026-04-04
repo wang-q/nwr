@@ -1,5 +1,4 @@
 use clap::*;
-use itertools::Itertools;
 use lazy_static::lazy_static;
 use log::{debug, info};
 use regex::Regex;
@@ -19,98 +18,20 @@ lazy_static! {
 pub fn make_subcommand() -> Command {
     Command::new("ardb")
         .about("Init the assembly database")
-        .after_help(format!(
-            r###"
-This command init the assembly database, which includes metadata for assemblies on the NCBI genomes FTP site.
-
-~/.nwr/ar_refseq.sqlite
-~/.nwr/ar_genbank.sqlite
-
-* `assembly_summary_*.txt` have 23 tab-delimited columns.
-* Fields with numbers are used in the database.
-
-    0   assembly_accession  6
-    1   bioproject          4
-    2   biosample           5
-    3   wgs_master
-    4   refseq_category     7
-    5   taxid AS tax_id     1
-    6   species_taxid
-    7   organism_name       2
-    8   infraspecific_name  3
-    9   isolate
-    10  version_status
-    11  assembly_level      8
-    12  release_type
-    13  genome_rep          9
-    14  seq_rel_date        10
-    15  asm_name            11
-    16  submitter
-    17  gbrs_paired_asm     12
-    18  paired_asm_comp
-    19  ftp_path            13
-    20  excluded_from_refseq
-    21  relation_to_type_material
-    22  asm_not_live_date
-
-* 6 columns appended
-
-    14  species
-    15  species_id
-    16  genus
-    17  genus_id
-    18  family
-    19  family_id
-
-* Incompetent strains matching the following regexes in their `organism_name` were removed.
-
-    \bCandidatus\b
-    \bcandidate\b
-    \buncultured\b
-    \bunidentified\b
-    \bbacterium\b
-    \barchaeon\b
-    \bmetagenome\b
-    virus\b
-    phage\b
-
-* Strains with `assembly_level` of Scaffold or Contig, should have a `genome_rep` of `full`.
-
-* The database contains one table, named `ar`
-
-* The `SELECT` statements can be passed to SQLite as shown below:
-
-    echo "
-        SELECT
-            COUNT(*)
-        FROM ar
-        WHERE 1=1
-            AND genus IN ('Pseudomonas')
-            AND assembly_level IN ('Complete Genome', 'Chromosome')
-        " |
-        sqlite3 -tabs ~/.nwr/ar_refseq.sqlite
-
-* Requires SQLite version 3.34 or above.
-
-* The DDL
-
-{}
-"###,
-            DDL_AR.lines().map(|l| format!("    {}", l)).join("\n")
-        ))
+        .after_help(include_str!("../../docs/help/ardb.md"))
         .arg(
             Arg::new("dir")
                 .long("dir")
                 .short('d')
                 .num_args(1)
                 .value_name("DIR")
-                .help("Change working directory"),
+                .help("Specify the NWR data directory"),
         )
         .arg(
             Arg::new("genbank")
                 .long("genbank")
                 .action(ArgAction::SetTrue)
-                .help("Create the genbank ardb"),
+                .help("Create the GenBank assembly database"),
         )
 }
 

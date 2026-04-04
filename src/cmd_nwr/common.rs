@@ -6,6 +6,7 @@ use std::collections::HashMap;
 pub fn make_subcommand() -> Command {
     Command::new("common")
         .about("Output the common tree of terms")
+        .after_help(include_str!("../../docs/help/common.md"))
         .arg(
             Arg::new("terms")
                 .help("The NCBI Taxonomy ID or scientific name")
@@ -19,7 +20,7 @@ pub fn make_subcommand() -> Command {
                 .short('d')
                 .num_args(1)
                 .value_name("DIR")
-                .help("Change working directory"),
+                .help("Specify the NWR data directory"),
         )
         .arg(
             Arg::new("outfile")
@@ -27,7 +28,7 @@ pub fn make_subcommand() -> Command {
                 .long("outfile")
                 .num_args(1)
                 .default_value("stdout")
-                .help("Output filename. [stdout] for screen"),
+                .help("Output filename (default: stdout)"),
         )
 }
 

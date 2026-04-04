@@ -7,19 +7,10 @@ use tar::Archive;
 pub fn make_subcommand() -> Command {
     Command::new("kb")
         .about("Prints docs (knowledge bases)")
-        .after_help(
-            r###"
-* formats - File formats
-* abbr    - A Perl script for generating abbreviated names
-
-* bac120  - 120 bacterial marker genes
-* ar53    - 53 archaeal marker genes
-
-"###,
-        )
+        .after_help(include_str!("../../docs/help/kb.md"))
         .arg(
             Arg::new("infile")
-                .help("Sets the input file to use")
+                .help("Document to print (formats, abbr, bac120, ar53)")
                 .num_args(1)
                 .required(true)
                 .index(1),
@@ -30,7 +21,7 @@ pub fn make_subcommand() -> Command {
                 .long("outfile")
                 .num_args(1)
                 .default_value("stdout")
-                .help("Output filename. [stdout] for screen"),
+                .help("Output filename (default: stdout)"),
         )
 }
 

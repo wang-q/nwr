@@ -1,5 +1,4 @@
 use clap::*;
-use itertools::Itertools;
 use log::info;
 use simplelog::*;
 use std::io::Write;
@@ -25,74 +24,56 @@ fn validate_rep_field(field: &str) -> anyhow::Result<&str> {
 pub fn make_subcommand() -> Command {
     Command::new("seqdb")
         .about("Init the seq database")
-        .after_help(format!(
-            r###"
-In RefSeq, many species contain hundreds or thousands of assemblies where many of
-the protein sequences are identical or highly similar
-
-./seq.sqlite
-
-* This database is a repository of protein sequence information per rank group
-
-* If `--strain` is called without specifying a path, it will load the default file under `--dir`
-
-* `--rep` requires key-value pair, `--rep f1=file`
-
-* The DDL
-
-{}
-"###,
-            DDL_SEQ.lines().map(|l| format!("    {}", l)).join("\n")
-        ))
+        .after_help(include_str!("../../docs/help/seqdb.md"))
         .arg(
             Arg::new("dir")
                 .long("dir")
                 .short('d')
                 .num_args(1)
                 .default_value(".")
-                .help("Change working directory"),
+                .help("Specify the working directory"),
         )
         .arg(
             Arg::new("init")
                 .long("init")
                 .action(ArgAction::SetTrue)
-                .help("Init (delete) the db"),
+                .help("Initialize (delete) the database"),
         )
         .arg(
             Arg::new("strain")
                 .long("strain")
                 .num_args(0..=1)
-                .help("Load strains.tsv"),
+                .help("Load strains.tsv file"),
         )
         .arg(
             Arg::new("size")
                 .long("size")
                 .num_args(0..=1)
-                .help("Load sizes.tsv"),
+                .help("Load sizes.tsv file"),
         )
         .arg(
             Arg::new("clust")
                 .long("clust")
                 .num_args(0..=1)
-                .help("Load rep_cluster.tsv"),
+                .help("Load rep_cluster.tsv file"),
         )
         .arg(
             Arg::new("anno")
                 .long("anno")
                 .num_args(0..=1)
-                .help("Load anno.tsv"),
+                .help("Load anno.tsv file"),
         )
         .arg(
             Arg::new("asmseq")
                 .long("asmseq")
                 .num_args(0..=1)
-                .help("Load asmseq.tsv"),
+                .help("Load asmseq.tsv file"),
         )
         .arg(
             Arg::new("rep")
                 .long("rep")
                 .num_args(1)
-                .help("Load features into rep"),
+                .help("Load features into rep table (format: field=file)"),
         )
 }
 
