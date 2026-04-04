@@ -1,4 +1,4 @@
-# nwr
+# nwr - **N**CBI taxonomy/assembly **WR**angler
 
 [![Publish](https://github.com/wang-q/nwr/actions/workflows/publish.yml/badge.svg)](https://github.com/wang-q/nwr/actions)
 [![Build](https://github.com/wang-q/nwr/actions/workflows/build.yml/badge.svg)](https://github.com/wang-q/nwr/actions)
@@ -7,8 +7,7 @@
 ![](https://img.shields.io/crates/d/nwr?label=downloads%20%28crates.io%29)
 [![Lines of code](https://www.aschey.tech/tokei/github/wang-q/nwr)](https://github.com//wang-q/nwr)
 
-`nwr` is a command line tool for working with **N**CBI taxonomy, Ne**W**ick files and assembly
-**R**eports, written in Rust.
+`nwr` is a command line **N**CBI taxonomy and assembly **WR**angler.
 
 ## Install
 
@@ -40,7 +39,7 @@ ll $CARGO_TARGET_DIR/x86_64-unknown-linux-gnu/release/
 
 ```console
 $ nwr help
-`nwr` is a command line tool for working with NCBI taxonomy, Newick files and assembly reports
+`nwr` is a command line **N**CBI taxonomy and assembly **WR**angler.
 
 Usage: nwr [COMMAND]
 
@@ -57,8 +56,6 @@ Commands:
   template     Create dirs, data and scripts for a phylogenomic research
   kb           Prints docs (knowledge bases)
   seqdb        Init the seq database
-  data         Newick data commands
-  pl-condense  Pipeline - condense subtrees based on taxonomy
   help         Print this message or the help of the given subcommand(s)
 
 Options:
@@ -73,9 +70,6 @@ Subcommand groups:
     * info / lineage / member / append / restrict / common
 * Assembly
     * template / kb / seqdb
-* Newick
-    * data label
-    * pl-condense
 
 ```
 
@@ -184,136 +178,6 @@ echo "
     " |
     sqlite3 -tabs ${SEQ_DIR}/seq.sqlite
 
-
-```
-
-### Newick files and LaTeX
-
-For more detailed usages, check [this file](tree/README.md).
-
-#### Get data from the tree
-
-```shell
-# List all names
-nwr data label tests/newick/hg38.7way.nwk
-
-# The intersection between the nodes in the tree and the provided
-nwr data label tests/newick/hg38.7way.nwk -r "^ch" -n Mouse -n foo
-nwr data label tests/newick/catarrhini.nwk -n Homo -n Pan -n Gorilla -M
-# Is Pongo the sibling of Homininae?
-nwr data label tests/newick/catarrhini.nwk -n Homininae -n Pongo -DM
-# All leaves belong to Hominidae
-nwr data label tests/newick/catarrhini.nwk -t Hominidae -I
-
-nwr data label tests/newick/catarrhini.nwk -c dup
-nwr data label tests/newick/catarrhini.comment.nwk -c full
-
-nwr data stat tests/newick/hg38.7way.nwk
-
-# Various distances
-nwr data distance -m root -I tests/newick/catarrhini.nwk
-nwr data distance -m parent -I tests/newick/catarrhini.nwk
-nwr data distance -m pairwise -I tests/newick/catarrhini.nwk
-nwr data distance -m lca -I tests/newick/catarrhini.nwk
-
-nwr data distance -m root -L tests/newick/catarrhini_topo.nwk
-
-# Phylip distance matrix
-nwr data distance -m phylip tests/newick/catarrhini.nwk
-
-```
-
-#### Operations of the tree
-
-```shell
-echo "((A,B),C);" | nwr ops order --ndr stdin
-nwr ops order --nd tests/newick/hg38.7way.nwk
-
-nwr ops order --list tests/newick/abcde.list tests/newick/abcde.nwk
-
-# gene tree as the order of species tree
-nwr ops order tests/newick/pmxc.nwk \
-    --list <(nwr data label tests/newick/species.nwk)
-
-nwr ops rename tests/newick/abc.nwk -n C -r F -l A,B -r D
-
-nwr ops replace tests/newick/abc.nwk tests/newick/abc.replace.tsv
-nwr ops replace tests/newick/abc.nwk tests/newick/abc3.replace.tsv
-
-nwr ops topo tests/newick/catarrhini.nwk
-
-# The behavior is very similar to `nwr label`, but outputs a subtree instead of labels
-nwr ops subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -M
-
-# Condense the subtree to a node
-nwr ops subtree tests/newick/hg38.7way.nwk -n Human -n Rhesus -r "^ch" -M -c Primates
-
-nwr ops subtree tests/newick/catarrhini.nwk -t Hominidae
-
-nwr ops prune tests/newick/catarrhini.nwk -n Homo -n Pan
-
-echo "((A:1,B:1)D:1,C:1)E;" |
-    nwr ops reroot stdin -n B
-nwr ops reroot tests/newick/catarrhini_wrong.nwk -n Cebus
-
-nwr ops reroot tests/newick/bs.nw -n C
-
-nwr viz tex tests/newick/bs.nw | tectonic -
-mv texput.pdf bs.pdf
-nwr ops reroot tests/newick/bs.nw -n C | nwr viz tex stdin | tectonic -
-mv texput.pdf bs.reroot.pdf
-
-nwr pl-condense tests/newick/catarrhini.nwk -r family
-
-```
-
-#### Visualization of the tree
-
-```shell
-nwr viz indent tests/newick/hg38.7way.nwk --text ".   "
-
-echo "((A,B),C);" |
-    nwr viz comment stdin -n A -n C --color green |
-    nwr viz comment stdin -l A,B --dot
-
-tectonic doc/template.tex
-
-echo "((A[color=green],B)[dot=black],C[color=green]);" |
-    nwr viz comment stdin -r "color="
-
-nwr viz tex tests/newick/catarrhini.nwk -o output.tex
-tectonic output.tex
-
-nwr viz tex --bl tests/newick/hg38.7way.nwk |
-    tectonic - &&
-    mv texput.pdf hg38.7way.pdf
-
-nwr viz tex --forest --bare tests/newick/test.forest
-
-nwr viz common "Escherichia coli" 4932 Drosophila_melanogaster 9606 "Mus musculus" |
-    nwr viz tex --bare stdin
-
-```
-
-### Build tree from distance matrix
-
-```shell
-nwr build upgma tests/build/wiki.phy |
-    nwr viz tex stdin --bl |
-    tectonic - &&
-    mv texput.pdf wiki.upgma.pdf
-
-nwr build nj tests/build/wiki-nj.phy |
-    nwr viz tex stdin --bl |
-    tectonic - &&
-    mv texput.pdf wiki.nj.pdf
-
-neighbor
-# tests/build/wiki-nj.phy
-# r
-# y
-# r
-nwr ops reroot outtree -n e
 
 ```
 

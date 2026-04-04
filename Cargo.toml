@@ -2,7 +2,7 @@
 name = "nwr"
 version = "0.8.5"
 authors = ["wang-q <wang-q@outlook.com>"]
-description = "`nwr` is a command line tool for newick and taxonomy"
+description = "**N**CBI taxonomy and assembly **WR**angler"
 documentation = "https://github.com/wang-q/nwr"
 homepage = "https://github.com/wang-q/nwr"
 repository = "https://github.com/wang-q/nwr"

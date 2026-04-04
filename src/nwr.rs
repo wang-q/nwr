@@ -7,7 +7,7 @@ fn main() -> anyhow::Result<()> {
     let app = Command::new("nwr")
         .version(crate_version!())
         .author(crate_authors!())
-        .about("`nwr` is a command line tool for working with NCBI taxonomy, Newick files and assembly reports")
+        .about("`nwr` is a command line **N**CBI taxonomy and assembly **WR**angler")
         .propagate_version(true)
         .arg_required_else_help(true)
         .color(ColorChoice::Auto)
@@ -26,10 +26,6 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::template::make_subcommand())
         .subcommand(cmd_nwr::kb::make_subcommand())
         .subcommand(cmd_nwr::seqdb::make_subcommand())
-        // Newick data
-        .subcommand(cmd_nwr::data::make_subcommand())
-        // Pipeline
-        .subcommand(cmd_nwr::pl_condense::make_subcommand())
         .after_help(
             r###"Subcommand groups:
 
@@ -39,9 +35,6 @@ fn main() -> anyhow::Result<()> {
     * info / lineage / member / append / restrict / common
 * Assembly
     * template / kb / seqdb
-* Newick
-    * data label / data stat / data distance
-    * pl-condense
 
 "###,
         );
@@ -60,8 +53,6 @@ fn main() -> anyhow::Result<()> {
         Some(("template", sub_matches)) => cmd_nwr::template::execute(sub_matches),
         Some(("kb", sub_matches)) => cmd_nwr::kb::execute(sub_matches),
         Some(("seqdb", sub_matches)) => cmd_nwr::seqdb::execute(sub_matches),
-        Some(("data", sub_matches)) => cmd_nwr::data::execute(sub_matches),
-        Some(("pl-condense", sub_matches)) => cmd_nwr::pl_condense::execute(sub_matches),
         _ => unreachable!(),
     }?;
 
