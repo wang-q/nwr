@@ -66,7 +66,6 @@ Subcommand groups:
     * info / lineage / member / append / restrict / common
 * Assembly
     * template / kb / seqdb
-
 ```
 
 ## Examples
@@ -97,6 +96,36 @@ nwr ardb
 nwr ardb --genbank
 
 nwr common "Escherichia coli" 4932 Drosophila_melanogaster 9606 Mus_musculus
+```
+
+### Initiate local databases
+
+The date `date --utc` of executing `nwr download` is `Sun Apr  5 15:59:45 UTC 2026`
+
+The database doesn't need frequent updates. In our lab, we update it approximately once a year. For reproducibility, I provide database files for the above date in [the Releases](https://github.com/wang-q/nwr/releases/tag/v0.9.0) page.
+
+```shell
+cbp install nwr
+
+nwr download
+nwr txdb
+
+nwr ardb
+nwr ardb --genbank
+
+cd $HOME/.nwr
+tar cvfz ncbi.$(date +"%Y%m%d").tar.gz \
+    taxdump.tar.gz \
+    taxdump.tar.gz.md5 \
+    assembly_summary_genbank.txt \
+    assembly_summary_refseq.txt
+
+rm \
+    *.dmp \
+    taxdump.tar.gz \
+    taxdump.tar.gz.md5 \
+    assembly_summary_genbank.txt \
+    assembly_summary_refseq.txt
 ```
 
 ### seqdb
@@ -151,6 +180,5 @@ echo "
     WHERE 1=1
     " |
     sqlite3 -tabs ${SEQ_DIR}/seq.sqlite
-
-
 ```
+
