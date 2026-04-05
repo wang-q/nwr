@@ -93,17 +93,19 @@ fn abbr(words: &[String], min_len: usize) -> HashMap<String, String> {
             *seen += 1;
 
             if *seen == 1 {
-                // First word with this abbreviation
+                // We're the first word so far to have this abbreviation
                 result.insert(abbrev.to_string(), word.clone());
             } else if *seen == 2 {
-                // Second word - can't use this abbreviation
+                // We're the second word to have this abbreviation,
+                // so we can't use it
                 result.remove(abbrev);
             }
-            // Third or more - skip
+            // We're the third word to have this abbreviation,
+            // so skip to the next word
         }
     }
 
-    // Non-abbreviations always get entered
+    // Non-abbreviations always get entered, even if they aren't unique
     for word in words {
         result.insert(word.clone(), word.clone());
     }
@@ -119,7 +121,8 @@ fn abbr(words: &[String], min_len: usize) -> HashMap<String, String> {
 /// # Arguments
 /// * `words` - List of words to abbreviate
 /// * `min_len` - Minimum length for abbreviations
-/// * `creat` - If true, don't abbreviate when only 1 character would be saved
+/// * `creat` - If true, don't abbreviate when only 1 character would be saved.
+///   "I'd spell creat with an e."
 ///
 /// # Returns
 /// A HashMap mapping each full word to its longest valid abbreviation
