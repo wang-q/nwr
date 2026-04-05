@@ -43,7 +43,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             let mut archive = Archive::new(GzDecoder::new(FILE_AR));
             archive.unpack(outfile)?;
         }
-        _ => unreachable!(),
+        _ => return Err(anyhow::anyhow!(
+            "Invalid document name. Valid options: bac120, ar53"
+        )),
     };
 
     Ok(())
