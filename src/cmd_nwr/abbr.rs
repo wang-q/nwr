@@ -70,7 +70,17 @@ pub fn make_subcommand() -> Command {
         )
 }
 
-/// Generate unique abbreviations (similar to Text::Abbrev)
+/// Generate unique abbreviations for a list of words (similar to Perl's Text::Abbrev).
+///
+/// For each word, generates all possible abbreviations from `min_len` to the full word length.
+/// An abbreviation is valid only if it uniquely identifies a single word.
+///
+/// # Arguments
+/// * `words` - List of words to abbreviate
+/// * `min_len` - Minimum length for abbreviations
+///
+/// # Returns
+/// A HashMap mapping valid abbreviations to their full words
 fn abbr(words: &[String], min_len: usize) -> HashMap<String, String> {
     let mut result = HashMap::new();
     let mut table: HashMap<String, usize> = HashMap::new();
@@ -101,7 +111,18 @@ fn abbr(words: &[String], min_len: usize) -> HashMap<String, String> {
     result
 }
 
-/// Select the longest valid abbreviation
+/// Select the longest valid abbreviation for each word.
+///
+/// Builds on `abbr()` to find the longest unique abbreviation for each word.
+/// When `creat` is true, avoids abbreviating words that differ by only one character.
+///
+/// # Arguments
+/// * `words` - List of words to abbreviate
+/// * `min_len` - Minimum length for abbreviations
+/// * `creat` - If true, don't abbreviate when only 1 character would be saved
+///
+/// # Returns
+/// A HashMap mapping each full word to its longest valid abbreviation
 fn abbr_most(words: &[String], min_len: usize, creat: bool) -> HashMap<String, String> {
     if words.is_empty() {
         return HashMap::new();
@@ -153,7 +174,16 @@ fn abbr_most(words: &[String], min_len: usize, creat: bool) -> HashMap<String, S
     abbr_of
 }
 
-/// Clean name by replacing non-word chars with underscore
+/// Clean name by replacing non-alphanumeric characters with underscores.
+///
+/// Removes leading and trailing underscores, and collapses consecutive
+/// underscores into a single one.
+///
+/// # Arguments
+/// * `name` - The name to clean
+///
+/// # Returns
+/// The cleaned name containing only alphanumeric characters and single underscores
 fn clean_name(name: &str) -> String {
     let cleaned: String = name
         .chars()
@@ -162,7 +192,16 @@ fn clean_name(name: &str) -> String {
     cleaned.replace("__", "_").trim_matches('_').to_string()
 }
 
-/// Clean subspecies parts using word boundary regex (equivalent to Perl \b)
+/// Clean subspecies parts using word boundary regex (equivalent to Perl \b).
+///
+/// Removes common subspecies designation terms like "subsp", "strain", "serovar",
+/// etc. from strain names to produce cleaner abbreviations.
+///
+/// # Arguments
+/// * `strain` - The strain name to clean
+///
+/// # Returns
+/// The strain name with subspecies designations removed
 fn clean_subspecies(strain: &str) -> String {
     let patterns = [
         "subsp",
@@ -199,7 +238,19 @@ fn clean_subspecies(strain: &str) -> String {
     result
 }
 
-/// Process a single line and extract name parts
+/// Process a single line and extract name parts for abbreviation.
+///
+/// Parses a line using the specified separator and column indices to extract
+/// strain, species, and genus information.
+///
+/// # Arguments
+/// * `line` - The input line to process
+/// * `columns` - Tuple of (strain_col, species_col, genus_col) as 1-based indices
+/// * `separator` - Field separator string
+/// * `shortsub` - Whether to clean subspecies parts
+///
+/// # Returns
+/// Option containing the original fields and extracted NameParts
 fn process_line(
     line: &str,
     columns: (usize, usize, usize),

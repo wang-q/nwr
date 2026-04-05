@@ -108,7 +108,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 })?;
                 let id = match nwr::term_to_tax_id(&conn, term) {
                     Ok(x) => x,
-                    Err(_) => continue 'line,
+                    Err(err) => {
+                        warn!("Error converting term '{}': {}", term, err);
+                        continue 'line;
+                    }
                 };
 
                 if ranks.is_empty() {
