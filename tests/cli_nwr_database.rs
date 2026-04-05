@@ -3,6 +3,26 @@ use predicates::prelude::*;
 use std::process::Command;
 
 #[test]
+fn command_download_help() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    cmd.arg("download").arg("--help");
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("Download"));
+
+    Ok(())
+}
+
+#[test]
+fn command_download_version() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    cmd.arg("download").arg("--version");
+    cmd.assert().success();
+
+    Ok(())
+}
+
+#[test]
 fn command_invalid() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     cmd.arg("foobar");
