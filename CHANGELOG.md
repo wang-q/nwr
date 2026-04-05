@@ -2,6 +2,33 @@
 
 ## Unreleased - ReleaseDate
 
+* **Breaking Changes**
+    * Remove Newick-related functionality
+        * Remove `nwr data` (label, stat, distance)
+        * Remove `nwr ops` (order, rename, replace, subtree, topo, prune, reroot)
+        * Remove `nwr viz` (indent, comment, tex)
+        * Remove `nwr mat` (pair, phylip, format, subset, compare)
+        * Remove `nwr pl-condense`
+    * Move tree operations to [pgr](https://github.com/wang-q/pgr)
+
+* Add `nwr abbr`
+    * Abbreviate strain scientific names to unique short identifiers
+
+* Improve error handling and code robustness
+    * Replace unwraps with proper error propagation
+    * Add comprehensive error messages
+    * Static regexes for better performance
+
+* Add comprehensive tests
+    * Unit tests for taxonomy module
+    * Integration tests with tempfile
+    * Tests for download functionality
+
+* Restructure documentation
+    * Rename `doc/` to `docs/`
+    * Add external help documentation for all commands
+    * Add developer documentation
+
 ## 0.8.5 - 2025-04-06
 
 * Add matrix operations commands
