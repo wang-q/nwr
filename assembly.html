@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-16c63539.js";
+            window.path_to_searchindex_js = "searchindex-4752db73.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-6f521977.js"></script>
@@ -184,63 +184,63 @@
 <h2 id="strain-info"><a class="header" href="#strain-info">Strain info</a></h2>
 <pre><code class="language-shell">cat ~/.nwr/assembly_summary_refseq.txt |
     sed '1d' |
-    tsv-summarize -H --missing-count infraspecific_name,isolate,biosample |
-    rgr md stdin --fmt
+    tva stats -H --missing-count infraspecific_name,isolate,biosample |
+    tva to md --fmt
 
 # infraspecific_name
 cat ~/.nwr/assembly_summary_refseq.txt |
     sed '1d' |
-    tsv-select -H -f infraspecific_name |
+    tva select -H -f infraspecific_name |
     perl -nla -F"=" -e 'print $F[0]' |
-    keep-header -- sort |
+    tva keep-header -- sort |
     uniq -c
-#      1 infraspecific_name
-#     40 breed
-#     92 cultivar
-#     77 ecotype
-#  53829 na
-# 356287 strain
+#       1 infraspecific_name
+#      38 breed
+#     109 cultivar
+#      82 ecotype
+#   67134 na
+#  456330 strain
 
 cat ~/.nwr/assembly_summary_genbank.txt |
     sed '1d' |
-    tsv-select -H -f infraspecific_name |
+    tva select -H -f infraspecific_name |
     perl -nla -F"=" -e 'print $F[0]' |
-    keep-header -- sort |
+    tva keep-header -- sort |
     uniq -c
-#      1 infraspecific_name
-#    453 breed
-#   1886 cultivar
-#    802 ecotype
-# 876578 na
-#1759454 strain
+#       1 infraspecific_name
+#     565 breed
+#    2587 cultivar
+#    1098 ecotype
+# 1264802 na
+# 2151541 strain
 
 cat ~/.nwr/assembly_summary_refseq.txt ~/.nwr/assembly_summary_genbank.txt |
     grep -v "^#" |
-    tsv-select -f 9 | # infraspecific_name
+    tva select -f 9 | # infraspecific_name
     perl -nla -F"=" -e 'print $F[1]' |
-    sort |
+    tva keep-header -- sort |
     uniq -c |
     sort -nr |
     head
-# 930439
-#   2482 Human
-#   2451 clinical isolate of L. monocytogenes
-#   2362 MSSA
-#   1363 MRSA
-#    927 microbial
-#    814 Escherichia coli
-#    788 CT18
-#    781 n/a
-#    710 ExPEC
+# 1331958
+#    3722 GPSC3
+#    2491 Human
+#    2451 clinical isolate of L. monocytogenes
+#    2360 MSSA
+#    1612 ExPEC
+#    1377 MRSA
+#    1285 GPSC12
+#     898 GPSC16
+#     854 GPSC55
 
 # String length
 cat ~/.nwr/assembly_summary_refseq.txt |
     sed '1d' |
-    tsv-select -H -f organism_name,infraspecific_name,asm_name,ftp_path |
+    tva select -H -f organism_name,infraspecific_name,asm_name,ftp_path |
     sed '1d' |
     perl -nla -F"\t" -e 'print join qq(\t), map {length} @F ;' |
-    tsv-summarize --exclude-missing --max 1,2,3,4
-#91      88      92      165
+    tva stats --exclude-missing --max 1,2,3,4
+#91      88      92      166
 
 </code></pre>
 <div class="table-wrapper">

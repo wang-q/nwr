@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-16c63539.js";
+            window.path_to_searchindex_js = "searchindex-4752db73.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-6f521977.js"></script>
@@ -186,7 +186,6 @@
 <img src="https://img.shields.io/crates/d/nwr?label=downloads%20%28crates.io%29" alt="">
 <a href="https://github.com//wang-q/nwr"><img src="https://www.aschey.tech/tokei/github/wang-q/nwr" alt="Lines of code"></a>
 <a href="https://wang-q.github.io/nwr/"><img src="https://img.shields.io/badge/docs-online-blue" alt="Documentation"></a></p>
-<p><code>nwr</code> is a command line <strong>N</strong>CBI taxonomy and assembly <strong>WR</strong>angler.</p>
 <h2 id="install"><a class="header" href="#install">Install</a></h2>
 <p>Current release: 0.9.0</p>
 <pre><code class="language-shell">cargo install nwr
@@ -233,14 +232,38 @@ Subcommand groups:
     * info / lineage / member / append / restrict / common
 * Assembly
     * template / kb / seqdb
-
 </code></pre>
 <h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
+<h3 id="initiate-local-databases"><a class="header" href="#initiate-local-databases">Initiate local databases</a></h3>
+<p>The date <code>date --utc</code> of executing <code>nwr download</code> is <code>Sun Apr  5 15:59:45 UTC 2026</code></p>
+<p>The database doesn’t need frequent updates. In our lab, we update it approximately once a year. For reproducibility, I provide database files for the above date in <a href="https://github.com/wang-q/nwr/releases/tag/v0.9.0">the Releases</a> page.</p>
+<pre><code class="language-shell">cbp install nwr
+
+nwr download
+nwr txdb
+
+nwr ardb
+nwr ardb --genbank
+
+cd $HOME/.nwr
+tar cvfz ncbi.$(date +"%Y%m%d").tar.gz \
+    taxdump.tar.gz \
+    taxdump.tar.gz.md5 \
+    assembly_summary_genbank.txt \
+    assembly_summary_refseq.txt
+
+rm \
+    *.dmp \
+    taxdump.tar.gz \
+    taxdump.tar.gz.md5 \
+    assembly_summary_genbank.txt \
+    assembly_summary_refseq.txt
+</code></pre>
 <h3 id="usage-of-each-command"><a class="header" href="#usage-of-each-command">Usage of each command</a></h3>
 <p>For practical uses of <code>nwr</code> and other awesome companions, follow this <a href="#ncbi-assembly-reports">page</a>.</p>
-<pre><code class="language-shell">nwr download
+<pre><code class="language-shell"># nwr download
 
-nwr txdb
+# nwr txdb
 
 nwr info "Homo sapiens" 4932
 
@@ -255,8 +278,8 @@ nwr member "Homo"
 
 nwr append tests/nwr/taxon.tsv -c 2 -r species -r family --id
 
-nwr ardb
-nwr ardb --genbank
+# nwr ardb
+# nwr ardb --genbank
 
 nwr common "Escherichia coli" 4932 Drosophila_melanogaster 9606 Mus_musculus
 </code></pre>
@@ -310,43 +333,39 @@ echo "
     WHERE 1=1
     " |
     sqlite3 -tabs ${SEQ_DIR}/seq.sqlite
-
-
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="ncbi-assembly-reports"><a class="header" href="#ncbi-assembly-reports">NCBI Assembly Reports</a></h1>
-<!-- TOC -->
-<ul>
-<li><a href="#ncbi-assembly-reports">NCBI Assembly Reports</a>
-<ul>
-<li><a href="#preparations">Preparations</a></li>
-<li><a href="#ncbi-assembly">NCBI ASSEMBLY</a></li>
-<li><a href="#example-1-count-qualified-assemblies-of-eukaryote-groups">Example 1: count qualified assemblies of Eukaryote groups</a></li>
-<li><a href="#example-2-count-qualified-assemblies-of-prokaryote-groups">Example 2: count qualified assemblies of Prokaryote groups</a></li>
-<li><a href="#example-3-find-accessions-of-a-species">Example 3: find accessions of a species</a></li>
-<li><a href="#example-4-find-model-organisms-in-a-family">Example 4: find model organisms in a family</a></li>
-</ul>
-</li>
-</ul>
-<!-- TOC -->
-<p>Download date: Fri Nov 15 15:51:01 CST 2024</p>
 <h2 id="preparations"><a class="header" href="#preparations">Preparations</a></h2>
-<pre><code class="language-shell">brew install wang-q/tap/nwr
-brew install wang-q/tap/tsv-utils
-brew install sqlite
-
-# Download `taxdump.tar.gz` and assembly reports
-nwr download
-
-# Init the taxonomy database
-nwr txdb
-
-# Init the assembly databases
-nwr ardb
-nwr ardb --genbank
-
+<pre><code class="language-shell">cbp install nwr
+cbp install sqlite3
+cbp install tva
 </code></pre>
 <p>Requires SQLite version 3.34 or above. <code>sqlite</code> that comes with mac does not work.</p>
+<h2 id="ncbi-taxonomy-statistics"><a class="header" href="#ncbi-taxonomy-statistics">NCBI Taxonomy Statistics</a></h2>
+<pre><code class="language-shell">curl -L "https://www.ncbi.nlm.nih.gov/Taxonomy/taxonomyhome.html/index.cgi?chapter=statistics&amp;?&amp;unclassified=hide&amp;uncultured=hide" |
+    tva from html -q 'table[bgcolor="#CCCCFF"] table[bgcolor="#FFFFFF"] tr td text{}' |
+    grep '\S' |
+    paste -d $'\t' - - - - - - |
+    tva to md --right 2-6
+</code></pre>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Ranks:</th><th style="text-align: right">higher taxa</th><th style="text-align: right">genus</th><th style="text-align: right">species</th><th style="text-align: right">lower taxa</th><th style="text-align: right">total</th></tr>
+</thead>
+<tbody>
+<tr><td>Archaea</td><td style="text-align: right">0</td><td style="text-align: right">340</td><td style="text-align: right">1,200</td><td style="text-align: right">2,290</td><td style="text-align: right">2,290</td></tr>
+<tr><td>Bacteria</td><td style="text-align: right">0</td><td style="text-align: right">5,782</td><td style="text-align: right">33,615</td><td style="text-align: right">90,218</td><td style="text-align: right">90,218</td></tr>
+<tr><td>Eukaryota</td><td style="text-align: right">0</td><td style="text-align: right">104,261</td><td style="text-align: right">631,437</td><td style="text-align: right">804,447</td><td style="text-align: right">804,447</td></tr>
+<tr><td>Fungi</td><td style="text-align: right">0</td><td style="text-align: right">8,095</td><td style="text-align: right">74,507</td><td style="text-align: right">88,460</td><td style="text-align: right">88,460</td></tr>
+<tr><td>Metazoa</td><td style="text-align: right">0</td><td style="text-align: right">75,546</td><td style="text-align: right">340,416</td><td style="text-align: right">453,240</td><td style="text-align: right">453,240</td></tr>
+<tr><td>Viridiplantae</td><td style="text-align: right">0</td><td style="text-align: right">16,338</td><td style="text-align: right">198,532</td><td style="text-align: right">237,280</td><td style="text-align: right">237,280</td></tr>
+<tr><td>Viruses</td><td style="text-align: right">36</td><td style="text-align: right">3,493</td><td style="text-align: right">14,612</td><td style="text-align: right">200,795</td><td style="text-align: right">201,328</td></tr>
+<tr><td>All taxa</td><td style="text-align: right">54</td><td style="text-align: right">113,878</td><td style="text-align: right">700,762</td><td style="text-align: right">1,097,758</td><td style="text-align: right">1,118,224</td></tr>
+</tbody>
+</table>
+</div>
 <h2 id="ncbi-assembly"><a class="header" href="#ncbi-assembly">NCBI ASSEMBLY</a></h2>
 <ul>
 <li>assembly_level</li>
@@ -354,19 +373,12 @@ nwr ardb --genbank
 <pre><code class="language-shell">for C in refseq genbank; do
     cat ~/.nwr/assembly_summary_${C}.txt |
         sed '1d' |
-        tsv-summarize -H -g assembly_level,genome_rep --count |
-        keep-header -- sort |
-        rgr md stdin --fmt
+        tva stats -H -g assembly_level,genome_rep --count |
+        tva keep-header -- sort |
+        tva to md --fmt
 
     echo -e "\nTable: ${C}\n\n"
 done
-
-#for C in refseq genbank; do
-#    cat ~/.nwr/assembly_summary_${C}.txt |
-#        sed '1d' |
-#        tsv-filter -H --str-eq taxid:na --or --blank taxid
-#done
-
 </code></pre>
 <div class="table-wrapper">
 <table>
@@ -374,13 +386,13 @@ done
 <tr><th>assembly_level</th><th>genome_rep</th><th style="text-align: right">count</th></tr>
 </thead>
 <tbody>
-<tr><td>Chromosome</td><td>Full</td><td style="text-align: right">6,754</td></tr>
-<tr><td>Chromosome</td><td>Partial</td><td style="text-align: right">384</td></tr>
-<tr><td>Complete Genome</td><td>Full</td><td style="text-align: right">59,630</td></tr>
+<tr><td>Chromosome</td><td>Full</td><td style="text-align: right">8,629</td></tr>
+<tr><td>Chromosome</td><td>Partial</td><td style="text-align: right">355</td></tr>
+<tr><td>Complete Genome</td><td>Full</td><td style="text-align: right">76,533</td></tr>
 <tr><td>Complete Genome</td><td>Partial</td><td style="text-align: right">7</td></tr>
-<tr><td>Contig</td><td>Full</td><td style="text-align: right">214,418</td></tr>
-<tr><td>Contig</td><td>Partial</td><td style="text-align: right">1</td></tr>
-<tr><td>Scaffold</td><td>Full</td><td style="text-align: right">129,131</td></tr>
+<tr><td>Contig</td><td>Full</td><td style="text-align: right">280,107</td></tr>
+<tr><td>Contig</td><td>Partial</td><td style="text-align: right">30</td></tr>
+<tr><td>Scaffold</td><td>Full</td><td style="text-align: right">158,032</td></tr>
 </tbody>
 </table>
 </div>
@@ -391,14 +403,14 @@ done
 <tr><th>assembly_level</th><th>genome_rep</th><th style="text-align: right">count</th></tr>
 </thead>
 <tbody>
-<tr><td>Chromosome</td><td>Full</td><td style="text-align: right">24,389</td></tr>
-<tr><td>Chromosome</td><td>Partial</td><td style="text-align: right">1,150</td></tr>
-<tr><td>Complete Genome</td><td>Full</td><td style="text-align: right">232,696</td></tr>
-<tr><td>Complete Genome</td><td>Partial</td><td style="text-align: right">130</td></tr>
-<tr><td>Contig</td><td>Full</td><td style="text-align: right">1,999,863</td></tr>
-<tr><td>Contig</td><td>Partial</td><td style="text-align: right">880</td></tr>
-<tr><td>Scaffold</td><td>Full</td><td style="text-align: right">379,706</td></tr>
-<tr><td>Scaffold</td><td>Partial</td><td style="text-align: right">359</td></tr>
+<tr><td>Chromosome</td><td>Full</td><td style="text-align: right">44,020</td></tr>
+<tr><td>Chromosome</td><td>Partial</td><td style="text-align: right">1,196</td></tr>
+<tr><td>Complete Genome</td><td>Full</td><td style="text-align: right">309,100</td></tr>
+<tr><td>Complete Genome</td><td>Partial</td><td style="text-align: right">131</td></tr>
+<tr><td>Contig</td><td>Full</td><td style="text-align: right">2,549,556</td></tr>
+<tr><td>Contig</td><td>Partial</td><td style="text-align: right">933</td></tr>
+<tr><td>Scaffold</td><td>Full</td><td style="text-align: right">515,294</td></tr>
+<tr><td>Scaffold</td><td>Partial</td><td style="text-align: right">363</td></tr>
 </tbody>
 </table>
 </div>
@@ -471,7 +483,7 @@ done \
     &gt;&gt; groups.tsv
 
 cat groups.tsv |
-    rgr md stdin --num
+    tva to md --num
 
 </code></pre>
 <div class="table-wrapper">
@@ -480,27 +492,27 @@ cat groups.tsv |
 <tr><th>GROUP_NAME</th><th>SCI_NAME</th><th style="text-align: right">Complete Genome</th><th style="text-align: right">Chromosome</th><th style="text-align: right">Scaffold</th><th style="text-align: right">Contig</th></tr>
 </thead>
 <tbody>
-<tr><td>Flatworms</td><td>Platyhelminthes</td><td style="text-align: right">0</td><td style="text-align: right">2</td><td style="text-align: right">2</td><td style="text-align: right">0</td></tr>
+<tr><td>Flatworms</td><td>Platyhelminthes</td><td style="text-align: right">0</td><td style="text-align: right">2</td><td style="text-align: right">5</td><td style="text-align: right">0</td></tr>
 <tr><td>Roundworms</td><td>Nematoda</td><td style="text-align: right">1</td><td style="text-align: right">4</td><td style="text-align: right">3</td><td style="text-align: right">0</td></tr>
-<tr><td>Insects</td><td>Hexapoda</td><td style="text-align: right">1</td><td style="text-align: right">164</td><td style="text-align: right">96</td><td style="text-align: right">32</td></tr>
-<tr><td>Reptiles</td><td>Testudines</td><td style="text-align: right">0</td><td style="text-align: right">11</td><td style="text-align: right">3</td><td style="text-align: right">1</td></tr>
-<tr><td>Reptiles</td><td>Lepidosauria</td><td style="text-align: right">0</td><td style="text-align: right">18</td><td style="text-align: right">9</td><td style="text-align: right">1</td></tr>
-<tr><td>Reptiles</td><td>Crocodylia</td><td style="text-align: right">0</td><td style="text-align: right">1</td><td style="text-align: right">3</td><td style="text-align: right">0</td></tr>
-<tr><td>Fishes</td><td>Chondrichthyes</td><td style="text-align: right">0</td><td style="text-align: right">13</td><td style="text-align: right">1</td><td style="text-align: right">0</td></tr>
+<tr><td>Insects</td><td>Hexapoda</td><td style="text-align: right">1</td><td style="text-align: right">208</td><td style="text-align: right">105</td><td style="text-align: right">30</td></tr>
+<tr><td>Reptiles</td><td>Testudines</td><td style="text-align: right">0</td><td style="text-align: right">17</td><td style="text-align: right">1</td><td style="text-align: right">1</td></tr>
+<tr><td>Reptiles</td><td>Lepidosauria</td><td style="text-align: right">0</td><td style="text-align: right">25</td><td style="text-align: right">9</td><td style="text-align: right">1</td></tr>
+<tr><td>Reptiles</td><td>Crocodylia</td><td style="text-align: right">0</td><td style="text-align: right">1</td><td style="text-align: right">6</td><td style="text-align: right">0</td></tr>
+<tr><td>Fishes</td><td>Chondrichthyes</td><td style="text-align: right">0</td><td style="text-align: right">26</td><td style="text-align: right">1</td><td style="text-align: right">0</td></tr>
 <tr><td>Fishes</td><td>Dipnoi</td><td style="text-align: right">0</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">0</td></tr>
-<tr><td>Fishes</td><td>Actinopterygii</td><td style="text-align: right">0</td><td style="text-align: right">172</td><td style="text-align: right">34</td><td style="text-align: right">2</td></tr>
+<tr><td>Fishes</td><td>Actinopterygii</td><td style="text-align: right">1</td><td style="text-align: right">225</td><td style="text-align: right">39</td><td style="text-align: right">9</td></tr>
 <tr><td>Fishes</td><td>Hyperotreti</td><td style="text-align: right">0</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">0</td></tr>
-<tr><td>Fishes</td><td>Hyperoartia</td><td style="text-align: right">0</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">0</td></tr>
+<tr><td>Fishes</td><td>Hyperoartia</td><td style="text-align: right">0</td><td style="text-align: right">4</td><td style="text-align: right">0</td><td style="text-align: right">0</td></tr>
 <tr><td>Fishes</td><td>Coelacanthimorpha</td><td style="text-align: right">0</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">0</td></tr>
-<tr><td>Mammals</td><td>Mammalia</td><td style="text-align: right">2</td><td style="text-align: right">135</td><td style="text-align: right">94</td><td style="text-align: right">8</td></tr>
-<tr><td>Birds</td><td>Aves</td><td style="text-align: right">0</td><td style="text-align: right">78</td><td style="text-align: right">58</td><td style="text-align: right">5</td></tr>
-<tr><td>Amphibians</td><td>Amphibia</td><td style="text-align: right">0</td><td style="text-align: right">16</td><td style="text-align: right">1</td><td style="text-align: right">0</td></tr>
-<tr><td>Ascomycetes</td><td>Ascomycota</td><td style="text-align: right">45</td><td style="text-align: right">49</td><td style="text-align: right">248</td><td style="text-align: right">157</td></tr>
-<tr><td>Basidiomycetes</td><td>Basidiomycota</td><td style="text-align: right">17</td><td style="text-align: right">13</td><td style="text-align: right">45</td><td style="text-align: right">28</td></tr>
-<tr><td>Green Plants</td><td>Viridiplantae</td><td style="text-align: right">6</td><td style="text-align: right">128</td><td style="text-align: right">43</td><td style="text-align: right">6</td></tr>
-<tr><td>Land Plants</td><td>Embryophyta</td><td style="text-align: right">4</td><td style="text-align: right">125</td><td style="text-align: right">38</td><td style="text-align: right">5</td></tr>
-<tr><td>Apicomplexans</td><td>Apicomplexa</td><td style="text-align: right">4</td><td style="text-align: right">23</td><td style="text-align: right">21</td><td style="text-align: right">3</td></tr>
-<tr><td>Kinetoplasts</td><td>Kinetoplastida</td><td style="text-align: right">1</td><td style="text-align: right">13</td><td style="text-align: right">7</td><td style="text-align: right">1</td></tr>
+<tr><td>Mammals</td><td>Mammalia</td><td style="text-align: right">4</td><td style="text-align: right">173</td><td style="text-align: right">89</td><td style="text-align: right">7</td></tr>
+<tr><td>Birds</td><td>Aves</td><td style="text-align: right">1</td><td style="text-align: right">106</td><td style="text-align: right">54</td><td style="text-align: right">5</td></tr>
+<tr><td>Amphibians</td><td>Amphibia</td><td style="text-align: right">0</td><td style="text-align: right">29</td><td style="text-align: right">3</td><td style="text-align: right">1</td></tr>
+<tr><td>Ascomycetes</td><td>Ascomycota</td><td style="text-align: right">47</td><td style="text-align: right">49</td><td style="text-align: right">276</td><td style="text-align: right">162</td></tr>
+<tr><td>Basidiomycetes</td><td>Basidiomycota</td><td style="text-align: right">27</td><td style="text-align: right">18</td><td style="text-align: right">48</td><td style="text-align: right">32</td></tr>
+<tr><td>Green Plants</td><td>Viridiplantae</td><td style="text-align: right">9</td><td style="text-align: right">155</td><td style="text-align: right">58</td><td style="text-align: right">9</td></tr>
+<tr><td>Land Plants</td><td>Embryophyta</td><td style="text-align: right">7</td><td style="text-align: right">152</td><td style="text-align: right">53</td><td style="text-align: right">8</td></tr>
+<tr><td>Apicomplexans</td><td>Apicomplexa</td><td style="text-align: right">2</td><td style="text-align: right">25</td><td style="text-align: right">39</td><td style="text-align: right">3</td></tr>
+<tr><td>Kinetoplasts</td><td>Kinetoplastida</td><td style="text-align: right">1</td><td style="text-align: right">13</td><td style="text-align: right">7</td><td style="text-align: right">3</td></tr>
 </tbody>
 </table>
 </div>
@@ -511,27 +523,27 @@ cat groups.tsv |
 <tr><th>GROUP_NAME</th><th>SCI_NAME</th><th style="text-align: right">Complete Genome</th><th style="text-align: right">Chromosome</th><th style="text-align: right">Scaffold</th><th style="text-align: right">Contig</th></tr>
 </thead>
 <tbody>
-<tr><td>Flatworms</td><td>Platyhelminthes</td><td style="text-align: right">0</td><td style="text-align: right">34</td><td style="text-align: right">77</td><td style="text-align: right">21</td></tr>
-<tr><td>Roundworms</td><td>Nematoda</td><td style="text-align: right">3</td><td style="text-align: right">110</td><td style="text-align: right">299</td><td style="text-align: right">183</td></tr>
-<tr><td>Insects</td><td>Hexapoda</td><td style="text-align: right">7</td><td style="text-align: right">1971</td><td style="text-align: right">2073</td><td style="text-align: right">2280</td></tr>
-<tr><td>Reptiles</td><td>Testudines</td><td style="text-align: right">0</td><td style="text-align: right">25</td><td style="text-align: right">41</td><td style="text-align: right">13</td></tr>
-<tr><td>Reptiles</td><td>Lepidosauria</td><td style="text-align: right">0</td><td style="text-align: right">67</td><td style="text-align: right">189</td><td style="text-align: right">27</td></tr>
-<tr><td>Reptiles</td><td>Crocodylia</td><td style="text-align: right">0</td><td style="text-align: right">2</td><td style="text-align: right">12</td><td style="text-align: right">0</td></tr>
-<tr><td>Fishes</td><td>Chondrichthyes</td><td style="text-align: right">0</td><td style="text-align: right">33</td><td style="text-align: right">34</td><td style="text-align: right">5</td></tr>
+<tr><td>Flatworms</td><td>Platyhelminthes</td><td style="text-align: right">0</td><td style="text-align: right">47</td><td style="text-align: right">89</td><td style="text-align: right">20</td></tr>
+<tr><td>Roundworms</td><td>Nematoda</td><td style="text-align: right">4</td><td style="text-align: right">157</td><td style="text-align: right">348</td><td style="text-align: right">218</td></tr>
+<tr><td>Insects</td><td>Hexapoda</td><td style="text-align: right">21</td><td style="text-align: right">3513</td><td style="text-align: right">3389</td><td style="text-align: right">2573</td></tr>
+<tr><td>Reptiles</td><td>Testudines</td><td style="text-align: right">1</td><td style="text-align: right">59</td><td style="text-align: right">50</td><td style="text-align: right">10</td></tr>
+<tr><td>Reptiles</td><td>Lepidosauria</td><td style="text-align: right">0</td><td style="text-align: right">117</td><td style="text-align: right">281</td><td style="text-align: right">30</td></tr>
+<tr><td>Reptiles</td><td>Crocodylia</td><td style="text-align: right">0</td><td style="text-align: right">5</td><td style="text-align: right">14</td><td style="text-align: right">0</td></tr>
+<tr><td>Fishes</td><td>Chondrichthyes</td><td style="text-align: right">0</td><td style="text-align: right">56</td><td style="text-align: right">60</td><td style="text-align: right">6</td></tr>
 <tr><td>Fishes</td><td>Dipnoi</td><td style="text-align: right">0</td><td style="text-align: right">4</td><td style="text-align: right">0</td><td style="text-align: right">2</td></tr>
-<tr><td>Fishes</td><td>Actinopterygii</td><td style="text-align: right">4</td><td style="text-align: right">663</td><td style="text-align: right">1703</td><td style="text-align: right">240</td></tr>
+<tr><td>Fishes</td><td>Actinopterygii</td><td style="text-align: right">31</td><td style="text-align: right">1111</td><td style="text-align: right">2107</td><td style="text-align: right">320</td></tr>
 <tr><td>Fishes</td><td>Hyperotreti</td><td style="text-align: right">0</td><td style="text-align: right">4</td><td style="text-align: right">3</td><td style="text-align: right">0</td></tr>
-<tr><td>Fishes</td><td>Hyperoartia</td><td style="text-align: right">0</td><td style="text-align: right">4</td><td style="text-align: right">12</td><td style="text-align: right">2</td></tr>
+<tr><td>Fishes</td><td>Hyperoartia</td><td style="text-align: right">0</td><td style="text-align: right">7</td><td style="text-align: right">14</td><td style="text-align: right">4</td></tr>
 <tr><td>Fishes</td><td>Coelacanthimorpha</td><td style="text-align: right">0</td><td style="text-align: right">1</td><td style="text-align: right">3</td><td style="text-align: right">0</td></tr>
-<tr><td>Mammals</td><td>Mammalia</td><td style="text-align: right">63</td><td style="text-align: right">1179</td><td style="text-align: right">1923</td><td style="text-align: right">755</td></tr>
-<tr><td>Birds</td><td>Aves</td><td style="text-align: right">0</td><td style="text-align: right">274</td><td style="text-align: right">1409</td><td style="text-align: right">99</td></tr>
-<tr><td>Amphibians</td><td>Amphibia</td><td style="text-align: right">0</td><td style="text-align: right">65</td><td style="text-align: right">122</td><td style="text-align: right">17</td></tr>
-<tr><td>Ascomycetes</td><td>Ascomycota</td><td style="text-align: right">353</td><td style="text-align: right">1119</td><td style="text-align: right">9096</td><td style="text-align: right">5059</td></tr>
-<tr><td>Basidiomycetes</td><td>Basidiomycota</td><td style="text-align: right">86</td><td style="text-align: right">127</td><td style="text-align: right">1588</td><td style="text-align: right">1052</td></tr>
-<tr><td>Green Plants</td><td>Viridiplantae</td><td style="text-align: right">104</td><td style="text-align: right">2335</td><td style="text-align: right">1998</td><td style="text-align: right">997</td></tr>
-<tr><td>Land Plants</td><td>Embryophyta</td><td style="text-align: right">90</td><td style="text-align: right">2310</td><td style="text-align: right">1805</td><td style="text-align: right">836</td></tr>
-<tr><td>Apicomplexans</td><td>Apicomplexa</td><td style="text-align: right">20</td><td style="text-align: right">110</td><td style="text-align: right">184</td><td style="text-align: right">83</td></tr>
-<tr><td>Kinetoplasts</td><td>Kinetoplastida</td><td style="text-align: right">14</td><td style="text-align: right">65</td><td style="text-align: right">97</td><td style="text-align: right">97</td></tr>
+<tr><td>Mammals</td><td>Mammalia</td><td style="text-align: right">25</td><td style="text-align: right">1471</td><td style="text-align: right">2280</td><td style="text-align: right">973</td></tr>
+<tr><td>Birds</td><td>Aves</td><td style="text-align: right">3</td><td style="text-align: right">447</td><td style="text-align: right">2191</td><td style="text-align: right">330</td></tr>
+<tr><td>Amphibians</td><td>Amphibia</td><td style="text-align: right">0</td><td style="text-align: right">93</td><td style="text-align: right">186</td><td style="text-align: right">12</td></tr>
+<tr><td>Ascomycetes</td><td>Ascomycota</td><td style="text-align: right">468</td><td style="text-align: right">1312</td><td style="text-align: right">10872</td><td style="text-align: right">6713</td></tr>
+<tr><td>Basidiomycetes</td><td>Basidiomycota</td><td style="text-align: right">127</td><td style="text-align: right">188</td><td style="text-align: right">1746</td><td style="text-align: right">1247</td></tr>
+<tr><td>Green Plants</td><td>Viridiplantae</td><td style="text-align: right">252</td><td style="text-align: right">4203</td><td style="text-align: right">2895</td><td style="text-align: right">1261</td></tr>
+<tr><td>Land Plants</td><td>Embryophyta</td><td style="text-align: right">220</td><td style="text-align: right">4132</td><td style="text-align: right">2688</td><td style="text-align: right">1024</td></tr>
+<tr><td>Apicomplexans</td><td>Apicomplexa</td><td style="text-align: right">20</td><td style="text-align: right">132</td><td style="text-align: right">199</td><td style="text-align: right">89</td></tr>
+<tr><td>Kinetoplasts</td><td>Kinetoplastida</td><td style="text-align: right">16</td><td style="text-align: right">72</td><td style="text-align: right">119</td><td style="text-align: right">104</td></tr>
 </tbody>
 </table>
 </div>
@@ -591,7 +603,7 @@ done  \
     &gt;&gt; groups.tsv
 
 cat groups.tsv |
-    rgr md stdin --right 2-5
+    tva to md --right 2-5
 
 </code></pre>
 <div class="table-wrapper">
@@ -601,59 +613,62 @@ cat groups.tsv |
 </thead>
 <tbody>
 <tr><td>Bacteria</td><td style="text-align: right"></td><td style="text-align: right"></td><td style="text-align: right"></td><td style="text-align: right"></td></tr>
-<tr><td>Abditibacteriota</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">1</td></tr>
-<tr><td>Acidobacteriota</td><td style="text-align: right">40</td><td style="text-align: right">4</td><td style="text-align: right">34</td><td style="text-align: right">51</td></tr>
-<tr><td>Actinomycetota</td><td style="text-align: right">4268</td><td style="text-align: right">694</td><td style="text-align: right">20248</td><td style="text-align: right">16088</td></tr>
-<tr><td>Aquificota</td><td style="text-align: right">17</td><td style="text-align: right">2</td><td style="text-align: right">16</td><td style="text-align: right">20</td></tr>
-<tr><td>Armatimonadota</td><td style="text-align: right">2</td><td style="text-align: right">1</td><td style="text-align: right">4</td><td style="text-align: right">8</td></tr>
-<tr><td>Atribacterota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">1</td><td style="text-align: right">1</td></tr>
-<tr><td>Bacillota</td><td style="text-align: right">10199</td><td style="text-align: right">1259</td><td style="text-align: right">37229</td><td style="text-align: right">53350</td></tr>
-<tr><td>Bacteroidota</td><td style="text-align: right">1443</td><td style="text-align: right">239</td><td style="text-align: right">6589</td><td style="text-align: right">7576</td></tr>
-<tr><td>Balneolota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">13</td><td style="text-align: right">33</td></tr>
-<tr><td>Bdellovibrionota</td><td style="text-align: right">32</td><td style="text-align: right">10</td><td style="text-align: right">25</td><td style="text-align: right">23</td></tr>
-<tr><td>Caldisericota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">0</td></tr>
-<tr><td>Calditrichota</td><td style="text-align: right">1</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">0</td></tr>
-<tr><td>Campylobacterota</td><td style="text-align: right">1232</td><td style="text-align: right">100</td><td style="text-align: right">2249</td><td style="text-align: right">6825</td></tr>
-<tr><td>Chlamydiota</td><td style="text-align: right">219</td><td style="text-align: right">78</td><td style="text-align: right">50</td><td style="text-align: right">182</td></tr>
-<tr><td>Chlorobiota</td><td style="text-align: right">16</td><td style="text-align: right">1</td><td style="text-align: right">9</td><td style="text-align: right">22</td></tr>
-<tr><td>Chloroflexota</td><td style="text-align: right">46</td><td style="text-align: right">1</td><td style="text-align: right">44</td><td style="text-align: right">86</td></tr>
-<tr><td>Chrysiogenota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">2</td><td style="text-align: right">0</td></tr>
+<tr><td>Abditibacteriota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">1</td></tr>
+<tr><td>Acidobacteriota</td><td style="text-align: right">47</td><td style="text-align: right">11</td><td style="text-align: right">38</td><td style="text-align: right">67</td></tr>
+<tr><td>Actinomycetota</td><td style="text-align: right">6050</td><td style="text-align: right">976</td><td style="text-align: right">26124</td><td style="text-align: right">20668</td></tr>
+<tr><td>Aquificota</td><td style="text-align: right">25</td><td style="text-align: right">2</td><td style="text-align: right">26</td><td style="text-align: right">67</td></tr>
+<tr><td>Armatimonadota</td><td style="text-align: right">3</td><td style="text-align: right">4</td><td style="text-align: right">4</td><td style="text-align: right">8</td></tr>
+<tr><td>Atribacterota</td><td style="text-align: right">3</td><td style="text-align: right">0</td><td style="text-align: right">1</td><td style="text-align: right">2</td></tr>
+<tr><td>Bacillota</td><td style="text-align: right">14115</td><td style="text-align: right">1602</td><td style="text-align: right">42966</td><td style="text-align: right">69650</td></tr>
+<tr><td>Bacteroidota</td><td style="text-align: right">1997</td><td style="text-align: right">284</td><td style="text-align: right">7928</td><td style="text-align: right">10745</td></tr>
+<tr><td>Balneolota</td><td style="text-align: right">3</td><td style="text-align: right">1</td><td style="text-align: right">15</td><td style="text-align: right">39</td></tr>
+<tr><td>Bdellovibrionota</td><td style="text-align: right">49</td><td style="text-align: right">10</td><td style="text-align: right">48</td><td style="text-align: right">44</td></tr>
+<tr><td>Caldisericota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">9</td><td style="text-align: right">2</td></tr>
+<tr><td>Calditrichota</td><td style="text-align: right">1</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">3</td></tr>
+<tr><td>Campylobacterota</td><td style="text-align: right">1482</td><td style="text-align: right">116</td><td style="text-align: right">2584</td><td style="text-align: right">8148</td></tr>
+<tr><td>Chlamydiota</td><td style="text-align: right">303</td><td style="text-align: right">90</td><td style="text-align: right">54</td><td style="text-align: right">193</td></tr>
+<tr><td>Chlorobiota</td><td style="text-align: right">16</td><td style="text-align: right">1</td><td style="text-align: right">9</td><td style="text-align: right">36</td></tr>
+<tr><td>Chloroflexota</td><td style="text-align: right">54</td><td style="text-align: right">1</td><td style="text-align: right">63</td><td style="text-align: right">109</td></tr>
+<tr><td>Chrysiogenota</td><td style="text-align: right">3</td><td style="text-align: right">0</td><td style="text-align: right">5</td><td style="text-align: right">0</td></tr>
 <tr><td>Coprothermobacterota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">1</td><td style="text-align: right">2</td></tr>
-<tr><td>Cyanobacteriota</td><td style="text-align: right">291</td><td style="text-align: right">39</td><td style="text-align: right">509</td><td style="text-align: right">1056</td></tr>
-<tr><td>Deferribacterota</td><td style="text-align: right">6</td><td style="text-align: right">0</td><td style="text-align: right">2</td><td style="text-align: right">14</td></tr>
-<tr><td>Deinococcota</td><td style="text-align: right">90</td><td style="text-align: right">3</td><td style="text-align: right">86</td><td style="text-align: right">199</td></tr>
-<tr><td>Dictyoglomota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">2</td><td style="text-align: right">2</td></tr>
-<tr><td>Elusimicrobiota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">1</td></tr>
-<tr><td>Fibrobacterota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">22</td><td style="text-align: right">47</td></tr>
-<tr><td>Fusobacteriota</td><td style="text-align: right">212</td><td style="text-align: right">8</td><td style="text-align: right">146</td><td style="text-align: right">343</td></tr>
-<tr><td>Gemmatimonadota</td><td style="text-align: right">6</td><td style="text-align: right">0</td><td style="text-align: right">5</td><td style="text-align: right">30</td></tr>
-<tr><td>Ignavibacteriota</td><td style="text-align: right">3</td><td style="text-align: right">0</td><td style="text-align: right">2</td><td style="text-align: right">8</td></tr>
+<tr><td>Cyanobacteriota</td><td style="text-align: right">416</td><td style="text-align: right">44</td><td style="text-align: right">803</td><td style="text-align: right">1331</td></tr>
+<tr><td>Deferribacterota</td><td style="text-align: right">9</td><td style="text-align: right">0</td><td style="text-align: right">9</td><td style="text-align: right">22</td></tr>
+<tr><td>Deinococcota</td><td style="text-align: right">113</td><td style="text-align: right">5</td><td style="text-align: right">142</td><td style="text-align: right">234</td></tr>
+<tr><td>Dictyoglomota</td><td style="text-align: right">7</td><td style="text-align: right">0</td><td style="text-align: right">6</td><td style="text-align: right">1</td></tr>
+<tr><td>Elusimicrobiota</td><td style="text-align: right">4</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">1</td></tr>
+<tr><td>Fibrobacterota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">23</td><td style="text-align: right">60</td></tr>
+<tr><td>Fidelibacterota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">0</td></tr>
+<tr><td>Fusobacteriota</td><td style="text-align: right">262</td><td style="text-align: right">9</td><td style="text-align: right">211</td><td style="text-align: right">472</td></tr>
+<tr><td>Gemmatimonadota</td><td style="text-align: right">10</td><td style="text-align: right">1</td><td style="text-align: right">9</td><td style="text-align: right">48</td></tr>
+<tr><td>Ignavibacteriota</td><td style="text-align: right">3</td><td style="text-align: right">0</td><td style="text-align: right">5</td><td style="text-align: right">12</td></tr>
 <tr><td>Kiritimatiellota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">6</td></tr>
-<tr><td>Lentisphaerota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">2</td><td style="text-align: right">13</td></tr>
-<tr><td>Mycoplasmatota</td><td style="text-align: right">700</td><td style="text-align: right">66</td><td style="text-align: right">194</td><td style="text-align: right">841</td></tr>
-<tr><td>Myxococcota</td><td style="text-align: right">63</td><td style="text-align: right">5</td><td style="text-align: right">31</td><td style="text-align: right">133</td></tr>
-<tr><td>Nitrospinota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">1</td><td style="text-align: right">2</td></tr>
-<tr><td>Nitrospirota</td><td style="text-align: right">15</td><td style="text-align: right">0</td><td style="text-align: right">6</td><td style="text-align: right">16</td></tr>
-<tr><td>Planctomycetota</td><td style="text-align: right">59</td><td style="text-align: right">28</td><td style="text-align: right">48</td><td style="text-align: right">94</td></tr>
-<tr><td>Pseudomonadota</td><td style="text-align: right">24186</td><td style="text-align: right">2819</td><td style="text-align: right">56463</td><td style="text-align: right">118746</td></tr>
-<tr><td>Rhodothermota</td><td style="text-align: right">13</td><td style="text-align: right">3</td><td style="text-align: right">38</td><td style="text-align: right">94</td></tr>
-<tr><td>Spirochaetota</td><td style="text-align: right">456</td><td style="text-align: right">227</td><td style="text-align: right">318</td><td style="text-align: right">1103</td></tr>
-<tr><td>Synergistota</td><td style="text-align: right">9</td><td style="text-align: right">4</td><td style="text-align: right">34</td><td style="text-align: right">71</td></tr>
-<tr><td>Thermodesulfobacteriota</td><td style="text-align: right">133</td><td style="text-align: right">9</td><td style="text-align: right">162</td><td style="text-align: right">300</td></tr>
-<tr><td>Thermodesulfobiota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">1</td></tr>
-<tr><td>Thermomicrobiota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">2</td><td style="text-align: right">7</td></tr>
+<tr><td>Lentisphaerota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">1</td><td style="text-align: right">23</td></tr>
+<tr><td>Minisyncoccota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">0</td></tr>
+<tr><td>Mycoplasmatota</td><td style="text-align: right">953</td><td style="text-align: right">71</td><td style="text-align: right">382</td><td style="text-align: right">1135</td></tr>
+<tr><td>Myxococcota</td><td style="text-align: right">131</td><td style="text-align: right">9</td><td style="text-align: right">37</td><td style="text-align: right">148</td></tr>
+<tr><td>Nitrospinota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">1</td><td style="text-align: right">10</td></tr>
+<tr><td>Nitrospirota</td><td style="text-align: right">24</td><td style="text-align: right">0</td><td style="text-align: right">19</td><td style="text-align: right">24</td></tr>
+<tr><td>Planctomycetota</td><td style="text-align: right">86</td><td style="text-align: right">30</td><td style="text-align: right">61</td><td style="text-align: right">117</td></tr>
+<tr><td>Pseudomonadota</td><td style="text-align: right">33304</td><td style="text-align: right">3597</td><td style="text-align: right">71037</td><td style="text-align: right">157832</td></tr>
+<tr><td>Rhodothermota</td><td style="text-align: right">19</td><td style="text-align: right">3</td><td style="text-align: right">41</td><td style="text-align: right">99</td></tr>
+<tr><td>Spirochaetota</td><td style="text-align: right">467</td><td style="text-align: right">284</td><td style="text-align: right">373</td><td style="text-align: right">1411</td></tr>
+<tr><td>Synergistota</td><td style="text-align: right">12</td><td style="text-align: right">4</td><td style="text-align: right">49</td><td style="text-align: right">110</td></tr>
+<tr><td>Thermodesulfobacteriota</td><td style="text-align: right">186</td><td style="text-align: right">12</td><td style="text-align: right">279</td><td style="text-align: right">487</td></tr>
+<tr><td>Thermodesulfobiota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">2</td></tr>
+<tr><td>Thermomicrobiota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">3</td><td style="text-align: right">9</td></tr>
 <tr><td>Thermosulfidibacterota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">0</td></tr>
-<tr><td>Thermotogota</td><td style="text-align: right">43</td><td style="text-align: right">1</td><td style="text-align: right">65</td><td style="text-align: right">60</td></tr>
-<tr><td>Verrucomicrobiota</td><td style="text-align: right">136</td><td style="text-align: right">8</td><td style="text-align: right">205</td><td style="text-align: right">144</td></tr>
+<tr><td>Thermotogota</td><td style="text-align: right">61</td><td style="text-align: right">1</td><td style="text-align: right">105</td><td style="text-align: right">99</td></tr>
+<tr><td>Verrucomicrobiota</td><td style="text-align: right">149</td><td style="text-align: right">9</td><td style="text-align: right">237</td><td style="text-align: right">272</td></tr>
 <tr><td>Vulcanimicrobiota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">0</td></tr>
+<tr><td>Zhurongbacterota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">0</td></tr>
 <tr><td>Archaea</td><td style="text-align: right"></td><td style="text-align: right"></td><td style="text-align: right"></td><td style="text-align: right"></td></tr>
-<tr><td>Methanobacteriota</td><td style="text-align: right">421</td><td style="text-align: right">15</td><td style="text-align: right">468</td><td style="text-align: right">843</td></tr>
+<tr><td>Methanobacteriota</td><td style="text-align: right">523</td><td style="text-align: right">21</td><td style="text-align: right">547</td><td style="text-align: right">1147</td></tr>
 <tr><td>Microcaldota</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">0</td></tr>
 <tr><td>Nanobdellota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">0</td></tr>
-<tr><td>Nitrososphaerota</td><td style="text-align: right">19</td><td style="text-align: right">2</td><td style="text-align: right">11</td><td style="text-align: right">18</td></tr>
+<tr><td>Nitrososphaerota</td><td style="text-align: right">21</td><td style="text-align: right">3</td><td style="text-align: right">12</td><td style="text-align: right">26</td></tr>
 <tr><td>Promethearchaeota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">0</td></tr>
-<tr><td>Thermoplasmatota</td><td style="text-align: right">16</td><td style="text-align: right">0</td><td style="text-align: right">6</td><td style="text-align: right">73</td></tr>
-<tr><td>Thermoproteota</td><td style="text-align: right">110</td><td style="text-align: right">5</td><td style="text-align: right">98</td><td style="text-align: right">113</td></tr>
+<tr><td>Thermoplasmatota</td><td style="text-align: right">16</td><td style="text-align: right">0</td><td style="text-align: right">9</td><td style="text-align: right">75</td></tr>
+<tr><td>Thermoproteota</td><td style="text-align: right">133</td><td style="text-align: right">6</td><td style="text-align: right">117</td><td style="text-align: right">127</td></tr>
 </tbody>
 </table>
 </div>
@@ -665,59 +680,62 @@ cat groups.tsv |
 </thead>
 <tbody>
 <tr><td>Bacteria</td><td style="text-align: right"></td><td style="text-align: right"></td><td style="text-align: right"></td><td style="text-align: right"></td></tr>
-<tr><td>Abditibacteriota</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">1</td><td style="text-align: right">8</td></tr>
-<tr><td>Acidobacteriota</td><td style="text-align: right">41</td><td style="text-align: right">4</td><td style="text-align: right">112</td><td style="text-align: right">383</td></tr>
-<tr><td>Actinomycetota</td><td style="text-align: right">4645</td><td style="text-align: right">760</td><td style="text-align: right">26912</td><td style="text-align: right">25594</td></tr>
-<tr><td>Aquificota</td><td style="text-align: right">17</td><td style="text-align: right">2</td><td style="text-align: right">57</td><td style="text-align: right">74</td></tr>
-<tr><td>Armatimonadota</td><td style="text-align: right">3</td><td style="text-align: right">1</td><td style="text-align: right">28</td><td style="text-align: right">45</td></tr>
-<tr><td>Atribacterota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">3</td><td style="text-align: right">3</td></tr>
-<tr><td>Bacillota</td><td style="text-align: right">12851</td><td style="text-align: right">1491</td><td style="text-align: right">73555</td><td style="text-align: right">340521</td></tr>
-<tr><td>Bacteroidota</td><td style="text-align: right">1590</td><td style="text-align: right">270</td><td style="text-align: right">14467</td><td style="text-align: right">20398</td></tr>
-<tr><td>Balneolota</td><td style="text-align: right">1</td><td style="text-align: right">2</td><td style="text-align: right">37</td><td style="text-align: right">88</td></tr>
-<tr><td>Bdellovibrionota</td><td style="text-align: right">35</td><td style="text-align: right">10</td><td style="text-align: right">117</td><td style="text-align: right">174</td></tr>
-<tr><td>Caldisericota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">8</td><td style="text-align: right">2</td></tr>
-<tr><td>Calditrichota</td><td style="text-align: right">1</td><td style="text-align: right">1</td><td style="text-align: right">7</td><td style="text-align: right">15</td></tr>
-<tr><td>Campylobacterota</td><td style="text-align: right">2494</td><td style="text-align: right">145</td><td style="text-align: right">5123</td><td style="text-align: right">123072</td></tr>
-<tr><td>Chlamydiota</td><td style="text-align: right">375</td><td style="text-align: right">79</td><td style="text-align: right">122</td><td style="text-align: right">211</td></tr>
-<tr><td>Chlorobiota</td><td style="text-align: right">16</td><td style="text-align: right">1</td><td style="text-align: right">30</td><td style="text-align: right">58</td></tr>
-<tr><td>Chloroflexota</td><td style="text-align: right">50</td><td style="text-align: right">1</td><td style="text-align: right">244</td><td style="text-align: right">294</td></tr>
-<tr><td>Chrysiogenota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">2</td><td style="text-align: right">0</td></tr>
-<tr><td>Coprothermobacterota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">14</td><td style="text-align: right">7</td></tr>
-<tr><td>Cyanobacteriota</td><td style="text-align: right">341</td><td style="text-align: right">80</td><td style="text-align: right">1185</td><td style="text-align: right">2784</td></tr>
-<tr><td>Deferribacterota</td><td style="text-align: right">6</td><td style="text-align: right">0</td><td style="text-align: right">512</td><td style="text-align: right">256</td></tr>
-<tr><td>Deinococcota</td><td style="text-align: right">96</td><td style="text-align: right">3</td><td style="text-align: right">128</td><td style="text-align: right">243</td></tr>
-<tr><td>Dictyoglomota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">5</td><td style="text-align: right">5</td></tr>
-<tr><td>Elusimicrobiota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">7</td><td style="text-align: right">47</td></tr>
-<tr><td>Fibrobacterota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">105</td><td style="text-align: right">157</td></tr>
-<tr><td>Fusobacteriota</td><td style="text-align: right">240</td><td style="text-align: right">14</td><td style="text-align: right">215</td><td style="text-align: right">606</td></tr>
-<tr><td>Gemmatimonadota</td><td style="text-align: right">6</td><td style="text-align: right">0</td><td style="text-align: right">27</td><td style="text-align: right">127</td></tr>
-<tr><td>Ignavibacteriota</td><td style="text-align: right">3</td><td style="text-align: right">1</td><td style="text-align: right">51</td><td style="text-align: right">37</td></tr>
-<tr><td>Kiritimatiellota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">4</td><td style="text-align: right">25</td></tr>
-<tr><td>Lentisphaerota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">11</td><td style="text-align: right">26</td></tr>
-<tr><td>Mycoplasmatota</td><td style="text-align: right">761</td><td style="text-align: right">173</td><td style="text-align: right">278</td><td style="text-align: right">1263</td></tr>
-<tr><td>Myxococcota</td><td style="text-align: right">68</td><td style="text-align: right">5</td><td style="text-align: right">69</td><td style="text-align: right">308</td></tr>
-<tr><td>Nitrospinota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">13</td><td style="text-align: right">63</td></tr>
-<tr><td>Nitrospirota</td><td style="text-align: right">20</td><td style="text-align: right">5</td><td style="text-align: right">283</td><td style="text-align: right">381</td></tr>
-<tr><td>Planctomycetota</td><td style="text-align: right">62</td><td style="text-align: right">29</td><td style="text-align: right">125</td><td style="text-align: right">548</td></tr>
-<tr><td>Pseudomonadota</td><td style="text-align: right">30023</td><td style="text-align: right">3604</td><td style="text-align: right">96906</td><td style="text-align: right">1175916</td></tr>
-<tr><td>Rhodothermota</td><td style="text-align: right">14</td><td style="text-align: right">3</td><td style="text-align: right">49</td><td style="text-align: right">246</td></tr>
-<tr><td>Spirochaetota</td><td style="text-align: right">491</td><td style="text-align: right">647</td><td style="text-align: right">599</td><td style="text-align: right">2236</td></tr>
-<tr><td>Synergistota</td><td style="text-align: right">10</td><td style="text-align: right">4</td><td style="text-align: right">103</td><td style="text-align: right">143</td></tr>
-<tr><td>Thermodesulfobacteriota</td><td style="text-align: right">138</td><td style="text-align: right">11</td><td style="text-align: right">569</td><td style="text-align: right">1098</td></tr>
-<tr><td>Thermodesulfobiota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">4</td><td style="text-align: right">5</td></tr>
-<tr><td>Thermomicrobiota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">6</td><td style="text-align: right">27</td></tr>
-<tr><td>Thermosulfidibacterota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">1</td><td style="text-align: right">1</td></tr>
-<tr><td>Thermotogota</td><td style="text-align: right">44</td><td style="text-align: right">1</td><td style="text-align: right">192</td><td style="text-align: right">145</td></tr>
-<tr><td>Verrucomicrobiota</td><td style="text-align: right">143</td><td style="text-align: right">9</td><td style="text-align: right">1262</td><td style="text-align: right">1259</td></tr>
+<tr><td>Abditibacteriota</td><td style="text-align: right">1</td><td style="text-align: right">1</td><td style="text-align: right">5</td><td style="text-align: right">11</td></tr>
+<tr><td>Acidobacteriota</td><td style="text-align: right">56</td><td style="text-align: right">13</td><td style="text-align: right">160</td><td style="text-align: right">612</td></tr>
+<tr><td>Actinomycetota</td><td style="text-align: right">6371</td><td style="text-align: right">845</td><td style="text-align: right">33276</td><td style="text-align: right">33974</td></tr>
+<tr><td>Aquificota</td><td style="text-align: right">22</td><td style="text-align: right">2</td><td style="text-align: right">82</td><td style="text-align: right">172</td></tr>
+<tr><td>Armatimonadota</td><td style="text-align: right">4</td><td style="text-align: right">1</td><td style="text-align: right">30</td><td style="text-align: right">57</td></tr>
+<tr><td>Atribacterota</td><td style="text-align: right">3</td><td style="text-align: right">0</td><td style="text-align: right">5</td><td style="text-align: right">7</td></tr>
+<tr><td>Bacillota</td><td style="text-align: right">16847</td><td style="text-align: right">1906</td><td style="text-align: right">87271</td><td style="text-align: right">465348</td></tr>
+<tr><td>Bacteroidota</td><td style="text-align: right">2143</td><td style="text-align: right">314</td><td style="text-align: right">17096</td><td style="text-align: right">30441</td></tr>
+<tr><td>Balneolota</td><td style="text-align: right">13</td><td style="text-align: right">5</td><td style="text-align: right">43</td><td style="text-align: right">96</td></tr>
+<tr><td>Bdellovibrionota</td><td style="text-align: right">53</td><td style="text-align: right">10</td><td style="text-align: right">147</td><td style="text-align: right">223</td></tr>
+<tr><td>Caldisericota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">20</td><td style="text-align: right">4</td></tr>
+<tr><td>Calditrichota</td><td style="text-align: right">1</td><td style="text-align: right">1</td><td style="text-align: right">7</td><td style="text-align: right">42</td></tr>
+<tr><td>Campylobacterota</td><td style="text-align: right">2799</td><td style="text-align: right">162</td><td style="text-align: right">6074</td><td style="text-align: right">157198</td></tr>
+<tr><td>Chlamydiota</td><td style="text-align: right">408</td><td style="text-align: right">79</td><td style="text-align: right">118</td><td style="text-align: right">225</td></tr>
+<tr><td>Chlorobiota</td><td style="text-align: right">17</td><td style="text-align: right">1</td><td style="text-align: right">30</td><td style="text-align: right">67</td></tr>
+<tr><td>Chloroflexota</td><td style="text-align: right">57</td><td style="text-align: right">1</td><td style="text-align: right">286</td><td style="text-align: right">375</td></tr>
+<tr><td>Chrysiogenota</td><td style="text-align: right">3</td><td style="text-align: right">0</td><td style="text-align: right">2</td><td style="text-align: right">0</td></tr>
+<tr><td>Coprothermobacterota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">14</td><td style="text-align: right">10</td></tr>
+<tr><td>Cyanobacteriota</td><td style="text-align: right">468</td><td style="text-align: right">81</td><td style="text-align: right">1466</td><td style="text-align: right">3874</td></tr>
+<tr><td>Deferribacterota</td><td style="text-align: right">7</td><td style="text-align: right">0</td><td style="text-align: right">520</td><td style="text-align: right">266</td></tr>
+<tr><td>Deinococcota</td><td style="text-align: right">118</td><td style="text-align: right">5</td><td style="text-align: right">193</td><td style="text-align: right">282</td></tr>
+<tr><td>Dictyoglomota</td><td style="text-align: right">7</td><td style="text-align: right">0</td><td style="text-align: right">15</td><td style="text-align: right">5</td></tr>
+<tr><td>Elusimicrobiota</td><td style="text-align: right">4</td><td style="text-align: right">0</td><td style="text-align: right">1</td><td style="text-align: right">45</td></tr>
+<tr><td>Fibrobacterota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">109</td><td style="text-align: right">199</td></tr>
+<tr><td>Fidelibacterota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">0</td></tr>
+<tr><td>Fusobacteriota</td><td style="text-align: right">293</td><td style="text-align: right">14</td><td style="text-align: right">258</td><td style="text-align: right">906</td></tr>
+<tr><td>Gemmatimonadota</td><td style="text-align: right">8</td><td style="text-align: right">1</td><td style="text-align: right">33</td><td style="text-align: right">167</td></tr>
+<tr><td>Ignavibacteriota</td><td style="text-align: right">3</td><td style="text-align: right">1</td><td style="text-align: right">62</td><td style="text-align: right">45</td></tr>
+<tr><td>Kiritimatiellota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">13</td><td style="text-align: right">48</td></tr>
+<tr><td>Lentisphaerota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">12</td><td style="text-align: right">55</td></tr>
+<tr><td>Minisyncoccota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">1</td></tr>
+<tr><td>Mycoplasmatota</td><td style="text-align: right">1132</td><td style="text-align: right">262</td><td style="text-align: right">447</td><td style="text-align: right">1561</td></tr>
+<tr><td>Myxococcota</td><td style="text-align: right">137</td><td style="text-align: right">10</td><td style="text-align: right">78</td><td style="text-align: right">351</td></tr>
+<tr><td>Nitrospinota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">13</td><td style="text-align: right">67</td></tr>
+<tr><td>Nitrospirota</td><td style="text-align: right">35</td><td style="text-align: right">5</td><td style="text-align: right">307</td><td style="text-align: right">456</td></tr>
+<tr><td>Planctomycetota</td><td style="text-align: right">105</td><td style="text-align: right">33</td><td style="text-align: right">172</td><td style="text-align: right">699</td></tr>
+<tr><td>Pseudomonadota</td><td style="text-align: right">42025</td><td style="text-align: right">4639</td><td style="text-align: right">122719</td><td style="text-align: right">1437144</td></tr>
+<tr><td>Rhodothermota</td><td style="text-align: right">20</td><td style="text-align: right">3</td><td style="text-align: right">52</td><td style="text-align: right">260</td></tr>
+<tr><td>Spirochaetota</td><td style="text-align: right">578</td><td style="text-align: right">713</td><td style="text-align: right">677</td><td style="text-align: right">2696</td></tr>
+<tr><td>Synergistota</td><td style="text-align: right">14</td><td style="text-align: right">4</td><td style="text-align: right">127</td><td style="text-align: right">239</td></tr>
+<tr><td>Thermodesulfobacteriota</td><td style="text-align: right">189</td><td style="text-align: right">11</td><td style="text-align: right">687</td><td style="text-align: right">1767</td></tr>
+<tr><td>Thermodesulfobiota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">5</td><td style="text-align: right">6</td></tr>
+<tr><td>Thermomicrobiota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">8</td><td style="text-align: right">34</td></tr>
+<tr><td>Thermosulfidibacterota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">1</td><td style="text-align: right">3</td></tr>
+<tr><td>Thermotogota</td><td style="text-align: right">56</td><td style="text-align: right">1</td><td style="text-align: right">232</td><td style="text-align: right">219</td></tr>
+<tr><td>Verrucomicrobiota</td><td style="text-align: right">164</td><td style="text-align: right">11</td><td style="text-align: right">1432</td><td style="text-align: right">2010</td></tr>
 <tr><td>Vulcanimicrobiota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">0</td></tr>
+<tr><td>Zhurongbacterota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">0</td></tr>
 <tr><td>Archaea</td><td style="text-align: right"></td><td style="text-align: right"></td><td style="text-align: right"></td><td style="text-align: right"></td></tr>
-<tr><td>Methanobacteriota</td><td style="text-align: right">449</td><td style="text-align: right">19</td><td style="text-align: right">1158</td><td style="text-align: right">1763</td></tr>
+<tr><td>Methanobacteriota</td><td style="text-align: right">543</td><td style="text-align: right">25</td><td style="text-align: right">1296</td><td style="text-align: right">2504</td></tr>
 <tr><td>Microcaldota</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">0</td></tr>
 <tr><td>Nanobdellota</td><td style="text-align: right">2</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">1</td></tr>
-<tr><td>Nitrososphaerota</td><td style="text-align: right">21</td><td style="text-align: right">5</td><td style="text-align: right">145</td><td style="text-align: right">548</td></tr>
+<tr><td>Nitrososphaerota</td><td style="text-align: right">43</td><td style="text-align: right">22</td><td style="text-align: right">200</td><td style="text-align: right">653</td></tr>
 <tr><td>Promethearchaeota</td><td style="text-align: right">1</td><td style="text-align: right">0</td><td style="text-align: right">0</td><td style="text-align: right">6</td></tr>
-<tr><td>Thermoplasmatota</td><td style="text-align: right">17</td><td style="text-align: right">0</td><td style="text-align: right">41</td><td style="text-align: right">196</td></tr>
-<tr><td>Thermoproteota</td><td style="text-align: right">120</td><td style="text-align: right">5</td><td style="text-align: right">431</td><td style="text-align: right">325</td></tr>
+<tr><td>Thermoplasmatota</td><td style="text-align: right">18</td><td style="text-align: right">0</td><td style="text-align: right">46</td><td style="text-align: right">213</td></tr>
+<tr><td>Thermoproteota</td><td style="text-align: right">137</td><td style="text-align: right">6</td><td style="text-align: right">476</td><td style="text-align: right">436</td></tr>
 </tbody>
 </table>
 </div>
@@ -775,7 +793,7 @@ echo '
     " |
     sqlite3 -tabs ~/.nwr/ar_refseq.sqlite |
     sed '1s/^/#/' |
-    rgr md stdin
+    tva to md
 
 </code></pre>
 <div class="table-wrapper">
@@ -797,63 +815,63 @@ echo '
 <h2 id="strain-info"><a class="header" href="#strain-info">Strain info</a></h2>
 <pre><code class="language-shell">cat ~/.nwr/assembly_summary_refseq.txt |
     sed '1d' |
-    tsv-summarize -H --missing-count infraspecific_name,isolate,biosample |
-    rgr md stdin --fmt
+    tva stats -H --missing-count infraspecific_name,isolate,biosample |
+    tva to md --fmt
 
 # infraspecific_name
 cat ~/.nwr/assembly_summary_refseq.txt |
     sed '1d' |
-    tsv-select -H -f infraspecific_name |
+    tva select -H -f infraspecific_name |
     perl -nla -F"=" -e 'print $F[0]' |
-    keep-header -- sort |
+    tva keep-header -- sort |
     uniq -c
-#      1 infraspecific_name
-#     40 breed
-#     92 cultivar
-#     77 ecotype
-#  53829 na
-# 356287 strain
+#       1 infraspecific_name
+#      38 breed
+#     109 cultivar
+#      82 ecotype
+#   67134 na
+#  456330 strain
 
 cat ~/.nwr/assembly_summary_genbank.txt |
     sed '1d' |
-    tsv-select -H -f infraspecific_name |
+    tva select -H -f infraspecific_name |
     perl -nla -F"=" -e 'print $F[0]' |
-    keep-header -- sort |
+    tva keep-header -- sort |
     uniq -c
-#      1 infraspecific_name
-#    453 breed
-#   1886 cultivar
-#    802 ecotype
-# 876578 na
-#1759454 strain
+#       1 infraspecific_name
+#     565 breed
+#    2587 cultivar
+#    1098 ecotype
+# 1264802 na
+# 2151541 strain
 
 cat ~/.nwr/assembly_summary_refseq.txt ~/.nwr/assembly_summary_genbank.txt |
     grep -v "^#" |
-    tsv-select -f 9 | # infraspecific_name
+    tva select -f 9 | # infraspecific_name
     perl -nla -F"=" -e 'print $F[1]' |
-    sort |
+    tva keep-header -- sort |
     uniq -c |
     sort -nr |
     head
-# 930439
-#   2482 Human
-#   2451 clinical isolate of L. monocytogenes
-#   2362 MSSA
-#   1363 MRSA
-#    927 microbial
-#    814 Escherichia coli
-#    788 CT18
-#    781 n/a
-#    710 ExPEC
+# 1331958
+#    3722 GPSC3
+#    2491 Human
+#    2451 clinical isolate of L. monocytogenes
+#    2360 MSSA
+#    1612 ExPEC
+#    1377 MRSA
+#    1285 GPSC12
+#     898 GPSC16
+#     854 GPSC55
 
 # String length
 cat ~/.nwr/assembly_summary_refseq.txt |
     sed '1d' |
-    tsv-select -H -f organism_name,infraspecific_name,asm_name,ftp_path |
+    tva select -H -f organism_name,infraspecific_name,asm_name,ftp_path |
     sed '1d' |
     perl -nla -F"\t" -e 'print join qq(\t), map {length} @F ;' |
-    tsv-summarize --exclude-missing --max 1,2,3,4
-#91      88      92      165
+    tva stats --exclude-missing --max 1,2,3,4
+#91      88      92      166
 
 </code></pre>
 <div class="table-wrapper">

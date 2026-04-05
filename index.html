@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-16c63539.js";
+            window.path_to_searchindex_js = "searchindex-4752db73.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-6f521977.js"></script>
@@ -188,7 +188,6 @@
 <img src="https://img.shields.io/crates/d/nwr?label=downloads%20%28crates.io%29" alt="">
 <a href="https://github.com//wang-q/nwr"><img src="https://www.aschey.tech/tokei/github/wang-q/nwr" alt="Lines of code"></a>
 <a href="https://wang-q.github.io/nwr/"><img src="https://img.shields.io/badge/docs-online-blue" alt="Documentation"></a></p>
-<p><code>nwr</code> is a command line <strong>N</strong>CBI taxonomy and assembly <strong>WR</strong>angler.</p>
 <h2 id="install"><a class="header" href="#install">Install</a></h2>
 <p>Current release: 0.9.0</p>
 <pre><code class="language-shell">cargo install nwr
@@ -235,14 +234,38 @@ Subcommand groups:
     * info / lineage / member / append / restrict / common
 * Assembly
     * template / kb / seqdb
-
 </code></pre>
 <h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
+<h3 id="initiate-local-databases"><a class="header" href="#initiate-local-databases">Initiate local databases</a></h3>
+<p>The date <code>date --utc</code> of executing <code>nwr download</code> is <code>Sun Apr  5 15:59:45 UTC 2026</code></p>
+<p>The database doesn’t need frequent updates. In our lab, we update it approximately once a year. For reproducibility, I provide database files for the above date in <a href="https://github.com/wang-q/nwr/releases/tag/v0.9.0">the Releases</a> page.</p>
+<pre><code class="language-shell">cbp install nwr
+
+nwr download
+nwr txdb
+
+nwr ardb
+nwr ardb --genbank
+
+cd $HOME/.nwr
+tar cvfz ncbi.$(date +"%Y%m%d").tar.gz \
+    taxdump.tar.gz \
+    taxdump.tar.gz.md5 \
+    assembly_summary_genbank.txt \
+    assembly_summary_refseq.txt
+
+rm \
+    *.dmp \
+    taxdump.tar.gz \
+    taxdump.tar.gz.md5 \
+    assembly_summary_genbank.txt \
+    assembly_summary_refseq.txt
+</code></pre>
 <h3 id="usage-of-each-command"><a class="header" href="#usage-of-each-command">Usage of each command</a></h3>
 <p>For practical uses of <code>nwr</code> and other awesome companions, follow this <a href="ncbi_ar.html">page</a>.</p>
-<pre><code class="language-shell">nwr download
+<pre><code class="language-shell"># nwr download
 
-nwr txdb
+# nwr txdb
 
 nwr info "Homo sapiens" 4932
 
@@ -257,8 +280,8 @@ nwr member "Homo"
 
 nwr append tests/nwr/taxon.tsv -c 2 -r species -r family --id
 
-nwr ardb
-nwr ardb --genbank
+# nwr ardb
+# nwr ardb --genbank
 
 nwr common "Escherichia coli" 4932 Drosophila_melanogaster 9606 Mus_musculus
 </code></pre>
@@ -312,8 +335,6 @@ echo "
     WHERE 1=1
     " |
     sqlite3 -tabs ${SEQ_DIR}/seq.sqlite
-
-
 </code></pre>
 
                     </main>
