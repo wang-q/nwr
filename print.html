@@ -36,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-74b5025e.js";
+            window.path_to_searchindex_js = "searchindex-16c63539.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc-65c3b4e4.js"></script>
+        <script src="toc-6f521977.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -194,6 +194,12 @@
 # or
 cargo install --path . --force # --offline
 </code></pre>
+<p>Or install the pre-compiled binary via the cross-platform package
+manager <a href="https://github.com/wang-q/cbp">cbp</a> (supports older Linux systems with glibc 2.17+):</p>
+<pre><code class="language-bash">cbp install nwr
+</code></pre>
+<p>You can also download the pre-compiled binaries from
+the <a href="https://github.com/wang-q/nwr/releases">Releases</a> page.</p>
 <h2 id="nwr-help"><a class="header" href="#nwr-help"><code>nwr help</code></a></h2>
 <pre><code class="language-console">$ nwr help
 `nwr` is a command line **N**CBI taxonomy and assembly **WR**angler.
@@ -253,25 +259,6 @@ nwr ardb
 nwr ardb --genbank
 
 nwr common "Escherichia coli" 4932 Drosophila_melanogaster 9606 Mus_musculus
-
-# rm ~/.nwr/*.dmp
-
-</code></pre>
-<h3 id="development"><a class="header" href="#development">Development</a></h3>
-<pre><code class="language-shell">cargo test --color=always --package nwr --test cli_nwr command_template -- --show-output
-
-# debug mode has a slow connection
-cargo run --release --bin nwr download
-
-# tests/nwr/
-cargo run --bin nwr txdb -d tests/nwr/
-
-cargo run --bin nwr info -d tests/nwr/ --tsv Viruses "Actinophage JHJ-1" "Bacillus phage bg1"
-
-cargo run --bin nwr common -d tests/nwr/ "Actinophage JHJ-1" "Bacillus phage bg1"
-
-cargo run --bin nwr template tests/assembly/Trichoderma.assembly.tsv --ass -o stdout
-
 </code></pre>
 <h3 id="seqdb"><a class="header" href="#seqdb">seqdb</a></h3>
 <pre><code class="language-shell">export SPECIES="$HOME/data/Archaea/Protein/Sulfolobus_acidocaldarius"
@@ -326,68 +313,6 @@ echo "
 
 
 </code></pre>
-<h3 id="plots"><a class="header" href="#plots">Plots</a></h3>
-<pre><code class="language-shell"># venn
-nwr plot venn \
-    tests/plot/rocauc.result.tsv \
-    tests/plot/mcox.05.result.tsv |
-    tectonic - &amp;&amp;
-    mv texput.pdf venn2.pdf
-
-nwr plot venn \
-    tests/plot/rocauc.result.tsv \
-    tests/plot/mcox.05.result.tsv \
-    tests/plot/mcox.result.tsv |
-    tectonic - &amp;&amp;
-    mv texput.pdf venn3.pdf
-
-nwr plot venn \
-    tests/plot/rocauc.result.tsv \
-    tests/plot/rocauc.result.tsv \
-    tests/plot/mcox.05.result.tsv \
-    tests/plot/mcox.result.tsv |
-    tectonic - &amp;&amp;
-    mv texput.pdf venn4.pdf
-
-plotr venn tests/plot/rocauc.result.tsv tests/plot/mcox.05.result.tsv
-
-tectonic docs/venn4.tex
-
-# histo
-nwr plot hh tests/plot/hist.tsv -g 2 --bins 20 --xl "" --unit 0.5,1.5 |
-    tectonic - &amp;&amp;
-    mv texput.pdf hist.pdf
-
-nwr plot hh tests/plot/hist.tsv --bins 30 --xl "" --xmm 45,75 --unit 0.5,1.5 |
-    tectonic - &amp;&amp;
-    mv texput.pdf hist.pdf
-
-cargo run --bin nwr plot hh tests/plot/adomain.tsv -g 2 --bins 40 --xl "" --yl "" --unit 0.3,0.5 |
-    tectonic - &amp;&amp;
-    mv texput.pdf hist.pdf
-
-tectonic docs/heatmap.tex
-
-# nrps
-cargo run --bin nwr plot nrps tests/plot/srf.tsv --legend --color blue |
-    tectonic - &amp;&amp;
-    mv texput.pdf srf.pdf
-
-tectonic docs/nrps.tex
-
-tectonic docs/da.tex
-
-</code></pre>
-<h2 id="database-schema"><a class="header" href="#database-schema">Database schema</a></h2>
-<pre><code class="language-shell">brew install k1LoW/tap/tbls
-
-tbls doc sqlite://./tests/nwr/taxonomy.sqlite docs/txdb
-
-tbls doc sqlite://./tests/nwr/ar_refseq.sqlite docs/ardb
-
-</code></pre>
-<p><a href="docs/txdb/README.html">txdb</a></p>
-<p><a href="docs/ardb/README.html">ardb</a></p>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="ncbi-assembly-reports"><a class="header" href="#ncbi-assembly-reports">NCBI Assembly Reports</a></h1>
 <!-- TOC -->
@@ -1771,6 +1696,46 @@ CREATE INDEX seq_idx_anno ON seq(anno COLLATE NOCASE);
 <code>nwr seqdb --rep f1=features.tsv</code></p>
 </li>
 </ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="taxonomysqlite"><a class="header" href="#taxonomysqlite">taxonomy.sqlite</a></h1>
+<h2 id="tables"><a class="header" href="#tables">Tables</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Name</th><th>Columns</th><th>Comment</th><th>Type</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="txdb/division.html">division</a></td><td>2</td><td></td><td>table</td></tr>
+<tr><td><a href="txdb/node.html">node</a></td><td>5</td><td></td><td>table</td></tr>
+<tr><td><a href="txdb/name.html">name</a></td><td>4</td><td></td><td>table</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="relations"><a class="header" href="#relations">Relations</a></h2>
+<p><img src="txdb/schema.svg" alt="er"></p>
+<hr>
+<blockquote>
+<p>Generated by <a href="https://github.com/k1LoW/tbls">tbls</a></p>
+</blockquote>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="ar_refseqsqlite"><a class="header" href="#ar_refseqsqlite">ar_refseq.sqlite</a></h1>
+<h2 id="tables-1"><a class="header" href="#tables-1">Tables</a></h2>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Name</th><th>Columns</th><th>Comment</th><th>Type</th></tr>
+</thead>
+<tbody>
+<tr><td><a href="ardb/ar.html">ar</a></td><td>17</td><td></td><td>table</td></tr>
+</tbody>
+</table>
+</div>
+<h2 id="relations-1"><a class="header" href="#relations-1">Relations</a></h2>
+<p><img src="ardb/schema.svg" alt="er"></p>
+<hr>
+<blockquote>
+<p>Generated by <a href="https://github.com/k1LoW/tbls">tbls</a></p>
+</blockquote>
 
                     </main>
 
