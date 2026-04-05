@@ -497,8 +497,14 @@ mod tests {
             rank: "species".to_string(),
             division: "Phages".to_string(),
             names: HashMap::from([
-                ("scientific name".to_string(), vec!["Test Phage".to_string()]),
-                ("synonym".to_string(), vec!["Synonym1".to_string(), "Synonym2".to_string()]),
+                (
+                    "scientific name".to_string(),
+                    vec!["Test Phage".to_string()],
+                ),
+                (
+                    "synonym".to_string(),
+                    vec!["Synonym1".to_string(), "Synonym2".to_string()],
+                ),
             ]),
             ..Default::default()
         };
@@ -542,7 +548,7 @@ mod tests {
         let path = std::path::PathBuf::from("tests/nwr/");
         let conn = connect_txdb(&path).unwrap();
         let mut stmts = vec![String::from("BEGIN;")];
-        
+
         // Test at 1000 boundary - should trigger COMMIT
         let result = batch_exec(&conn, &mut stmts, 1001);
         assert!(result.is_ok());
@@ -553,9 +559,222 @@ mod tests {
         let path = std::path::PathBuf::from("tests/nwr/");
         let conn = connect_txdb(&path).unwrap();
         let mut stmts = vec![String::from("BEGIN;")];
-        
+
         // Test at 10000 boundary - should print progress dot
         let result = batch_exec(&conn, &mut stmts, 10001);
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_batch_exec_with_finalize() {
+        let path = std::path::PathBuf::from("tests/nwr/");
+        let conn = connect_txdb(&path).unwrap();
+        let mut stmts = vec![String::from("BEGIN;")];
+
+        // Test finalization with usize::MAX
+        let result = batch_exec(&conn, &mut stmts, usize::MAX);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_batch_exec_normal_iteration() {
+        let path = std::path::PathBuf::from("tests/nwr/");
+        let conn = connect_txdb(&path).unwrap();
+        let mut stmts = vec![String::from("BEGIN;")];
+
+        // Test normal iteration (no special boundary)
+        let result = batch_exec(&conn, &mut stmts, 500);
+        assert!(result.is_ok());
+        // Statements should not be cleared at 500
+        assert_eq!(stmts.len(), 1);
+    }
+
+    #[test]
+    fn test_taxon_display_with_genbank_name() {
+        let taxon = Taxon {
+            tax_id: 12340,
+            rank: "species".to_string(),
+            division: "Phages".to_string(),
+            names: HashMap::from([
+                (
+                    "scientific name".to_string(),
+                    vec!["Test Phage".to_string()],
+                ),
+                ("genbank common name".to_string(), vec!["Testy".to_string()]),
+            ]),
+            ..Default::default()
+        };
+        let display = format!("{}", taxon);
+        assert!(display.contains("Commonly named Testy"));
+    }
+
+    #[test]
+    fn test_taxon_display_with_common_names() {
+        let taxon = Taxon {
+            tax_id: 12340,
+            rank: "species".to_string(),
+            division: "Phages".to_string(),
+            names: HashMap::from([
+                (
+                    "scientific name".to_string(),
+                    vec!["Test Phage".to_string()],
+                ),
+                (
+                    "common name".to_string(),
+                    vec!["Common1".to_string(), "Common2".to_string()],
+                ),
+            ]),
+            ..Default::default()
+        };
+        let display = format!("{}", taxon);
+        assert!(display.contains("Also known as:"));
+        assert!(display.contains("Common1"));
+        assert!(display.contains("Common2"));
+    }
+
+    #[test]
+    fn test_taxon_display_with_authority() {
+        let taxon = Taxon {
+            tax_id: 12340,
+            rank: "species".to_string(),
+            division: "Phages".to_string(),
+            names: HashMap::from([
+                (
+                    "scientific name".to_string(),
+                    vec!["Test Phage".to_string()],
+                ),
+                (
+                    "authority".to_string(),
+                    vec!["Smith et al. 2020".to_string()],
+                ),
+            ]),
+            ..Default::default()
+        };
+        let display = format!("{}", taxon);
+        assert!(display.contains("First description:"));
+        assert!(display.contains("Smith et al. 2020"));
+    }
+
+    #[test]
+    fn test_taxon_display_with_comments() {
+        let taxon = Taxon {
+            tax_id: 12340,
+            rank: "species".to_string(),
+            division: "Phages".to_string(),
+            names: HashMap::from([(
+                "scientific name".to_string(),
+                vec!["Test Phage".to_string()],
+            )]),
+            comments: Some("This is a test comment".to_string()),
+            ..Default::default()
+        };
+        let display = format!("{}", taxon);
+        assert!(display.contains("Comments:"));
+        assert!(display.contains("This is a test comment"));
+    }
+
+    #[test]
+    fn test_taxon_display_without_scientific_name() {
+        let taxon = Taxon {
+            tax_id: 12340,
+            rank: "species".to_string(),
+            division: "Phages".to_string(),
+            names: HashMap::new(),
+            ..Default::default()
+        };
+        let display = format!("{}", taxon);
+        assert!(display.contains("Unknown"));
+    }
+
+    #[test]
+    fn test_term_to_tax_id_with_numeric() {
+        let path = std::path::PathBuf::from("tests/nwr/");
+        let conn = connect_txdb(&path).unwrap();
+
+        // Test with numeric string
+        let id = term_to_tax_id(&conn, "10239").unwrap();
+        assert_eq!(id, 10239);
+    }
+
+    #[test]
+    fn test_term_to_tax_id_with_underscores() {
+        let path = std::path::PathBuf::from("tests/nwr/");
+        let conn = connect_txdb(&path).unwrap();
+
+        // Test with underscores replacing spaces
+        let id = term_to_tax_id(&conn, "Lactobacillus_phage_mv4").unwrap();
+        assert_eq!(id, 12392);
+    }
+
+    #[test]
+    fn test_term_to_tax_id_not_found() {
+        let path = std::path::PathBuf::from("tests/nwr/");
+        let conn = connect_txdb(&path).unwrap();
+
+        let result = term_to_tax_id(&conn, "NonExistentTaxonName12345");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_get_ancestor() {
+        let path = std::path::PathBuf::from("tests/nwr/");
+        let conn = connect_txdb(&path).unwrap();
+
+        // 12340 is Enterobacteria phage 933J, parent is 12333
+        let ancestor = get_ancestor(&conn, 12340).unwrap();
+        assert_eq!(ancestor.tax_id, 12333);
+    }
+
+    #[test]
+    fn test_get_descendent() {
+        let path = std::path::PathBuf::from("tests/nwr/");
+        let conn = connect_txdb(&path).unwrap();
+
+        // 375032 is Synechococcus phage S
+        let descendents = get_descendent(&conn, 375032).unwrap();
+        assert!(!descendents.is_empty());
+    }
+
+    #[test]
+    fn test_get_all_descendent() {
+        let path = std::path::PathBuf::from("tests/nwr/");
+        let conn = connect_txdb(&path).unwrap();
+
+        // 375032 is Synechococcus phage S
+        let descendents = get_all_descendent(&conn, 375032).unwrap();
+        assert!(descendents.contains(&375032)); // Should include self
+        assert!(descendents.len() > 1); // Should have children
+    }
+
+    #[test]
+    fn test_nwr_path() {
+        let path = nwr_path().unwrap();
+        assert!(path.exists());
+        assert!(path.to_string_lossy().contains(".nwr"));
+    }
+
+    #[test]
+    fn test_get_nwr_dir_with_arg() {
+        use clap::{Arg, Command};
+
+        let cmd = Command::new("test").arg(Arg::new("dir").long("dir").num_args(1));
+        let matches = cmd
+            .try_get_matches_from(["test", "--dir", "tests/nwr/"])
+            .unwrap();
+
+        let path = get_nwr_dir(&matches, "dir").unwrap();
+        assert_eq!(path.to_string_lossy(), "tests/nwr/");
+    }
+
+    #[test]
+    fn test_get_nwr_dir_default() {
+        use clap::{Arg, Command};
+
+        let cmd = Command::new("test").arg(Arg::new("dir").long("dir").num_args(1));
+        let matches = cmd.try_get_matches_from(["test"]).unwrap();
+
+        let path = get_nwr_dir(&matches, "dir").unwrap();
+        // Should return default nwr path
+        assert!(path.to_string_lossy().contains(".nwr"));
     }
 }

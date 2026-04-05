@@ -62,3 +62,165 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_lineage_basic() {
+        let temp_dir = TempDir::new().unwrap();
+        let output_file = temp_dir.path().join("output.tsv");
+
+        let cmd = make_subcommand();
+        let matches = cmd
+            .try_get_matches_from([
+                "lineage",
+                "--dir",
+                "tests/nwr/",
+                "-o",
+                output_file.to_str().unwrap(),
+                "Actinophage JHJ-1",
+            ])
+            .unwrap();
+
+        let result = execute(&matches);
+        assert!(result.is_ok());
+
+        let output = std::fs::read_to_string(&output_file).unwrap();
+        // Should contain lineage information
+        assert!(output.contains("no rank"));
+        assert!(output.contains("root"));
+        assert!(output.contains("10239")); // Viruses
+    }
+
+    #[test]
+    fn test_lineage_with_tax_id() {
+        let temp_dir = TempDir::new().unwrap();
+        let output_file = temp_dir.path().join("output.tsv");
+
+        let cmd = make_subcommand();
+        let matches = cmd
+            .try_get_matches_from([
+                "lineage",
+                "--dir",
+                "tests/nwr/",
+                "-o",
+                output_file.to_str().unwrap(),
+                "12347", // Actinophage JHJ-1
+            ])
+            .unwrap();
+
+        let result = execute(&matches);
+        assert!(result.is_ok());
+
+        let output = std::fs::read_to_string(&output_file).unwrap();
+        assert!(output.contains("12347"));
+    }
+
+    #[test]
+    fn test_lineage_tsv_format() {
+        let temp_dir = TempDir::new().unwrap();
+        let output_file = temp_dir.path().join("output.tsv");
+
+        let cmd = make_subcommand();
+        let matches = cmd
+            .try_get_matches_from([
+                "lineage",
+                "--dir",
+                "tests/nwr/",
+                "--tsv",
+                "-o",
+                output_file.to_str().unwrap(),
+                "Viruses",
+            ])
+            .unwrap();
+
+        let result = execute(&matches);
+        assert!(result.is_ok());
+
+        let output = std::fs::read_to_string(&output_file).unwrap();
+        // TSV format should have rank, name, and tax_id columns
+        for line in output.lines() {
+            let fields: Vec<&str> = line.split('\t').collect();
+            assert_eq!(fields.len(), 3);
+        }
+    }
+
+    #[test]
+    fn test_lineage_stdout() {
+        let temp_dir = TempDir::new().unwrap();
+        let output_file = temp_dir.path().join("output.tsv");
+
+        let cmd = make_subcommand();
+        let matches = cmd
+            .try_get_matches_from([
+                "lineage",
+                "--dir",
+                "tests/nwr/",
+                "-o",
+                output_file.to_str().unwrap(),
+                "10239",
+            ])
+            .unwrap();
+
+        let result = execute(&matches);
+        assert!(result.is_ok());
+
+        // Verify output file was created and has content
+        let output = std::fs::read_to_string(&output_file).unwrap();
+        assert!(output.contains("Viruses"));
+        assert!(output.contains("10239"));
+    }
+
+    #[test]
+    fn test_lineage_root() {
+        let temp_dir = TempDir::new().unwrap();
+        let output_file = temp_dir.path().join("output.tsv");
+
+        let cmd = make_subcommand();
+        let matches = cmd
+            .try_get_matches_from([
+                "lineage",
+                "--dir",
+                "tests/nwr/",
+                "-o",
+                output_file.to_str().unwrap(),
+                "root",
+            ])
+            .unwrap();
+
+        let result = execute(&matches);
+        assert!(result.is_ok());
+
+        let output = std::fs::read_to_string(&output_file).unwrap();
+        // Root should only have one line
+        assert_eq!(output.lines().count(), 1);
+        assert!(output.contains("1")); // Root tax_id
+    }
+
+    #[test]
+    fn test_lineage_with_underscores() {
+        let temp_dir = TempDir::new().unwrap();
+        let output_file = temp_dir.path().join("output.tsv");
+
+        let cmd = make_subcommand();
+        let matches = cmd
+            .try_get_matches_from([
+                "lineage",
+                "--dir",
+                "tests/nwr/",
+                "-o",
+                output_file.to_str().unwrap(),
+                "Lactobacillus_phage_mv4", // With underscores
+            ])
+            .unwrap();
+
+        let result = execute(&matches);
+        assert!(result.is_ok());
+
+        let output = std::fs::read_to_string(&output_file).unwrap();
+        assert!(output.contains("12392")); // Lactobacillus phage mv4
+    }
+}

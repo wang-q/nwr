@@ -234,3 +234,92 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     Ok(())
 }
+
+/// Check if organism name should be skipped based on incompetent patterns
+#[allow(dead_code)]
+fn is_incompetent(organism_name: &str) -> bool {
+    RE_INCOMPETENT.is_match(organism_name) || RE_VIRUS.is_match(organism_name)
+}
+
+/// Clean NA/na values from infraspecific name
+#[allow(dead_code)]
+fn clean_infraspecific_name(name: &str) -> &str {
+    if name == "NA" || name == "na" {
+        ""
+    } else {
+        name
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_is_incompetent_uncultured() {
+        assert!(is_incompetent("uncultured bacterium"));
+        assert!(is_incompetent("Uncultured archaeon"));
+    }
+
+    #[test]
+    fn test_is_incompetent_unidentified() {
+        assert!(is_incompetent("unidentified organism"));
+    }
+
+    #[test]
+    fn test_is_incompetent_bacterium() {
+        assert!(is_incompetent("Some bacterium"));
+    }
+
+    #[test]
+    fn test_is_incompetent_archaeon() {
+        assert!(is_incompetent("Some archaeon"));
+    }
+
+    #[test]
+    fn test_is_incompetent_metagenome() {
+        assert!(is_incompetent("soil metagenome"));
+    }
+
+    #[test]
+    fn test_is_incompetent_virus() {
+        assert!(is_incompetent("Influenza A virus"));
+        assert!(is_incompetent("lambda phage"));
+    }
+
+    #[test]
+    fn test_is_not_incompetent() {
+        assert!(!is_incompetent("Escherichia coli"));
+        assert!(!is_incompetent("Homo sapiens"));
+    }
+
+    #[test]
+    fn test_clean_infraspecific_name_na() {
+        assert_eq!(clean_infraspecific_name("NA"), "");
+        assert_eq!(clean_infraspecific_name("na"), "");
+    }
+
+    #[test]
+    fn test_clean_infraspecific_name_normal() {
+        assert_eq!(clean_infraspecific_name("strain=K-12"), "strain=K-12");
+        assert_eq!(clean_infraspecific_name("ATCC 12345"), "ATCC 12345");
+    }
+
+    #[test]
+    fn test_re_incompetent_patterns() {
+        // Test regex patterns directly
+        assert!(RE_INCOMPETENT.is_match("uncultured"));
+        assert!(RE_INCOMPETENT.is_match("UNIDENTIFIED"));
+        assert!(RE_INCOMPETENT.is_match("Bacterium"));
+        assert!(RE_INCOMPETENT.is_match("Archaeon"));
+        assert!(RE_INCOMPETENT.is_match("Metagenome"));
+    }
+
+    #[test]
+    fn test_re_virus_patterns() {
+        assert!(RE_VIRUS.is_match("virus"));
+        assert!(RE_VIRUS.is_match("VIRUS"));
+        assert!(RE_VIRUS.is_match("phage"));
+        assert!(RE_VIRUS.is_match("PHAGE"));
+    }
+}

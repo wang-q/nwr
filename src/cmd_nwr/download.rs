@@ -176,9 +176,37 @@ fn readable(n: String) -> String {
     c
 }
 
+/// Verify MD5 checksum of a file against expected digest
+#[allow(dead_code)]
+fn verify_md5(
+    file_path: &std::path::Path,
+    expected_digest: &str,
+) -> anyhow::Result<bool> {
+    let mut file = File::open(file_path)?;
+    let mut hasher = md5::Context::new();
+    io::copy(&mut file, &mut hasher)?;
+    let digest = format!("{:x}", hasher.compute());
+    Ok(digest == expected_digest)
+}
+
+/// Extract tar.gz file to destination directory
+#[allow(dead_code)]
+fn extract_tarball(
+    tarball_path: &std::path::Path,
+    dest_dir: &std::path::Path,
+) -> anyhow::Result<()> {
+    let tar_gz = File::open(tarball_path)?;
+    let tar = flate2::read::GzDecoder::new(tar_gz);
+    let mut archive = tar::Archive::new(tar);
+    archive.unpack(dest_dir)?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::Write;
+    use tempfile::TempDir;
 
     #[test]
     fn test_readable_small_number() {
@@ -203,5 +231,105 @@ mod tests {
     #[test]
     fn test_readable_large_number() {
         assert_eq!(readable("1234567890".to_string()), "1,234,567,890");
+    }
+
+    #[test]
+    fn test_readable_empty_string() {
+        assert_eq!(readable("".to_string()), "");
+    }
+
+    #[test]
+    fn test_readable_exact_boundary() {
+        // Test exactly at thousand boundaries
+        assert_eq!(readable("1000".to_string()), "1,000");
+        assert_eq!(readable("1000000".to_string()), "1,000,000");
+    }
+
+    #[test]
+    fn test_verify_md5_correct() {
+        let temp_dir = TempDir::new().unwrap();
+        let file_path = temp_dir.path().join("test.txt");
+        let mut file = File::create(&file_path).unwrap();
+        file.write_all(b"Hello, World!").unwrap();
+        file.flush().unwrap();
+        drop(file);
+
+        // MD5 of "Hello, World!"
+        let result = verify_md5(&file_path, "65a8e27d8879283831b664bd8b7f0ad4");
+        assert!(result.is_ok());
+        assert!(result.unwrap());
+    }
+
+    #[test]
+    fn test_verify_md5_incorrect() {
+        let temp_dir = TempDir::new().unwrap();
+        let file_path = temp_dir.path().join("test.txt");
+        let mut file = File::create(&file_path).unwrap();
+        file.write_all(b"Hello, World!").unwrap();
+        file.flush().unwrap();
+        drop(file);
+
+        // Wrong MD5
+        let result = verify_md5(&file_path, "00000000000000000000000000000000");
+        assert!(result.is_ok());
+        assert!(!result.unwrap());
+    }
+
+    #[test]
+    fn test_verify_md5_nonexistent_file() {
+        let temp_dir = TempDir::new().unwrap();
+        let file_path = temp_dir.path().join("nonexistent.txt");
+
+        let result = verify_md5(&file_path, "any_digest");
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_extract_tarball() {
+        use flate2::write::GzEncoder;
+        use flate2::Compression;
+        use tar::Builder;
+
+        let temp_dir = TempDir::new().unwrap();
+        let tarball_path = temp_dir.path().join("test.tar.gz");
+        let extract_dir = temp_dir.path().join("extracted");
+        std::fs::create_dir(&extract_dir).unwrap();
+
+        // Create a simple tar.gz file
+        {
+            let tar_gz = File::create(&tarball_path).unwrap();
+            let enc = GzEncoder::new(tar_gz, Compression::default());
+            let mut tar = Builder::new(enc);
+
+            // Add a test file to the archive
+            let test_content = b"Hello from tar archive!";
+            let mut header = tar::Header::new_gnu();
+            header.set_path("test_file.txt").unwrap();
+            header.set_size(test_content.len() as u64);
+            header.set_mode(0o644);
+            header.set_cksum();
+            tar.append(&header, &test_content[..]).unwrap();
+            // Builder will be dropped here, finishing the archive
+        }
+
+        // Extract the tarball
+        let result = extract_tarball(&tarball_path, &extract_dir);
+        assert!(result.is_ok(), "Failed to extract tarball: {:?}", result);
+
+        // Verify the extracted file
+        let extracted_file = extract_dir.join("test_file.txt");
+        assert!(extracted_file.exists(), "Extracted file does not exist");
+        let content = std::fs::read_to_string(extracted_file).unwrap();
+        assert_eq!(content, "Hello from tar archive!");
+    }
+
+    #[test]
+    fn test_extract_tarball_nonexistent() {
+        let temp_dir = TempDir::new().unwrap();
+        let tarball_path = temp_dir.path().join("nonexistent.tar.gz");
+        let extract_dir = temp_dir.path().join("extracted");
+
+        let result = extract_tarball(&tarball_path, &extract_dir);
+        assert!(result.is_err());
     }
 }

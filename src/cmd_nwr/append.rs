@@ -156,3 +156,190 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::io::Write;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_append_with_valid_taxon() {
+        let temp_dir = TempDir::new().unwrap();
+        let input_file = temp_dir.path().join("input.tsv");
+        let output_file = temp_dir.path().join("output.tsv");
+
+        // Create input file with a valid taxon name
+        let mut file = std::fs::File::create(&input_file).unwrap();
+        writeln!(file, "#header").unwrap();
+        writeln!(file, "Actinophage JHJ-1").unwrap();
+        drop(file);
+
+        // Create mock args for testing
+        let cmd = make_subcommand();
+        let matches = cmd
+            .try_get_matches_from([
+                "append",
+                "--dir",
+                "tests/nwr/",
+                "-o",
+                output_file.to_str().unwrap(),
+                input_file.to_str().unwrap(),
+            ])
+            .unwrap();
+
+        let result = execute(&matches);
+        assert!(result.is_ok());
+
+        // Check output
+        let output = std::fs::read_to_string(&output_file).unwrap();
+        assert!(output.contains("Actinophage JHJ-1"));
+        assert!(output.contains("sci_name"));
+    }
+
+    #[test]
+    fn test_append_with_invalid_taxon() {
+        let temp_dir = TempDir::new().unwrap();
+        let input_file = temp_dir.path().join("input.tsv");
+        let output_file = temp_dir.path().join("output.tsv");
+
+        // Create input file with an invalid taxon name
+        let mut file = std::fs::File::create(&input_file).unwrap();
+        writeln!(file, "#header").unwrap();
+        writeln!(file, "NonExistentTaxon12345").unwrap();
+        drop(file);
+
+        let cmd = make_subcommand();
+        let matches = cmd
+            .try_get_matches_from([
+                "append",
+                "--dir",
+                "tests/nwr/",
+                "-o",
+                output_file.to_str().unwrap(),
+                input_file.to_str().unwrap(),
+            ])
+            .unwrap();
+
+        let result = execute(&matches);
+        assert!(result.is_ok()); // Should not error, just skip invalid lines
+
+        let output = std::fs::read_to_string(&output_file).unwrap();
+        assert!(output.contains("#header"));
+        // Invalid line should be skipped
+        assert!(!output.contains("NonExistentTaxon12345"));
+    }
+
+    #[test]
+    fn test_append_with_column_option() {
+        let temp_dir = TempDir::new().unwrap();
+        let input_file = temp_dir.path().join("input.tsv");
+        let output_file = temp_dir.path().join("output.tsv");
+
+        let mut file = std::fs::File::create(&input_file).unwrap();
+        writeln!(file, "name\tvalue").unwrap();
+        writeln!(file, "other\tActinophage JHJ-1").unwrap();
+        drop(file);
+
+        let cmd = make_subcommand();
+        let matches = cmd
+            .try_get_matches_from([
+                "append",
+                "--dir",
+                "tests/nwr/",
+                "-c",
+                "2",
+                "-o",
+                output_file.to_str().unwrap(),
+                input_file.to_str().unwrap(),
+            ])
+            .unwrap();
+
+        let result = execute(&matches);
+        assert!(result.is_ok());
+
+        let output = std::fs::read_to_string(&output_file).unwrap();
+        assert!(output.contains("Actinophage JHJ-1"));
+    }
+
+    #[test]
+    fn test_append_with_rank_option() {
+        let temp_dir = TempDir::new().unwrap();
+        let input_file = temp_dir.path().join("input.tsv");
+        let output_file = temp_dir.path().join("output.tsv");
+
+        let mut file = std::fs::File::create(&input_file).unwrap();
+        writeln!(file, "#name").unwrap();
+        writeln!(file, "Actinophage JHJ-1").unwrap();
+        drop(file);
+
+        let cmd = make_subcommand();
+        let matches = cmd
+            .try_get_matches_from([
+                "append",
+                "--dir",
+                "tests/nwr/",
+                "-r",
+                "species",
+                "-r",
+                "family",
+                "-o",
+                output_file.to_str().unwrap(),
+                input_file.to_str().unwrap(),
+            ])
+            .unwrap();
+
+        let result = execute(&matches);
+        assert!(result.is_ok());
+
+        let output = std::fs::read_to_string(&output_file).unwrap();
+        assert!(output.contains("species"));
+        assert!(output.contains("family"));
+    }
+
+    #[test]
+    fn test_append_with_id_option() {
+        let temp_dir = TempDir::new().unwrap();
+        let input_file = temp_dir.path().join("input.tsv");
+        let output_file = temp_dir.path().join("output.tsv");
+
+        let mut file = std::fs::File::create(&input_file).unwrap();
+        writeln!(file, "#name").unwrap();
+        writeln!(file, "Actinophage JHJ-1").unwrap();
+        drop(file);
+
+        let cmd = make_subcommand();
+        let matches = cmd
+            .try_get_matches_from([
+                "append",
+                "--dir",
+                "tests/nwr/",
+                "-r",
+                "species",
+                "--id",
+                "-o",
+                output_file.to_str().unwrap(),
+                input_file.to_str().unwrap(),
+            ])
+            .unwrap();
+
+        let result = execute(&matches);
+        assert!(result.is_ok());
+
+        let output = std::fs::read_to_string(&output_file).unwrap();
+        assert!(output.contains("species_id"));
+    }
+
+    #[test]
+    fn test_append_with_stdin() {
+        // Test stdin input
+        let cmd = make_subcommand();
+        let matches = cmd
+            .try_get_matches_from(["append", "--dir", "tests/nwr/", "stdin"])
+            .unwrap();
+
+        // This would require mocking stdin, which is complex
+        // For now, just verify the command parses correctly
+        assert_eq!(matches.get_one::<String>("outfile").unwrap(), "stdout");
+    }
+}

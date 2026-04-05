@@ -101,3 +101,170 @@ fn add_taxon(
     };
     Ok(node_id)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::TempDir;
+
+    #[test]
+    fn test_common_single_term() {
+        let temp_dir = TempDir::new().unwrap();
+        let output_file = temp_dir.path().join("output.nwk");
+
+        let cmd = make_subcommand();
+        let matches = cmd
+            .try_get_matches_from([
+                "common",
+                "--dir",
+                "tests/nwr/",
+                "-o",
+                output_file.to_str().unwrap(),
+                "Actinophage JHJ-1",
+            ])
+            .unwrap();
+
+        let result = execute(&matches);
+        assert!(result.is_ok());
+
+        let output = std::fs::read_to_string(&output_file).unwrap();
+        assert!(output.contains("Actinophage JHJ-1"));
+        assert!(output.contains("root"));
+    }
+
+    #[test]
+    fn test_common_multiple_terms() {
+        let temp_dir = TempDir::new().unwrap();
+        let output_file = temp_dir.path().join("output.nwk");
+
+        let cmd = make_subcommand();
+        let matches = cmd
+            .try_get_matches_from([
+                "common",
+                "--dir",
+                "tests/nwr/",
+                "-o",
+                output_file.to_str().unwrap(),
+                "Actinophage JHJ-1",
+                "Bacillus phage bg1",
+            ])
+            .unwrap();
+
+        let result = execute(&matches);
+        assert!(result.is_ok());
+
+        let output = std::fs::read_to_string(&output_file).unwrap();
+        // Both terms should be in the output
+        assert!(
+            output.contains("Actinophage JHJ-1")
+                || output.contains("Bacillus phage bg1")
+        );
+    }
+
+    #[test]
+    fn test_common_with_tax_id() {
+        let temp_dir = TempDir::new().unwrap();
+        let output_file = temp_dir.path().join("output.nwk");
+
+        let cmd = make_subcommand();
+        let matches = cmd
+            .try_get_matches_from([
+                "common",
+                "--dir",
+                "tests/nwr/",
+                "-o",
+                output_file.to_str().unwrap(),
+                "12347", // Actinophage JHJ-1
+            ])
+            .unwrap();
+
+        let result = execute(&matches);
+        assert!(result.is_ok());
+
+        let output = std::fs::read_to_string(&output_file).unwrap();
+        assert!(output.contains("Actinophage"));
+    }
+
+    #[test]
+    fn test_common_stdout() {
+        let temp_dir = TempDir::new().unwrap();
+        let output_file = temp_dir.path().join("output.nwk");
+
+        let cmd = make_subcommand();
+        let matches = cmd
+            .try_get_matches_from([
+                "common",
+                "--dir",
+                "tests/nwr/",
+                "-o",
+                output_file.to_str().unwrap(),
+                "10239", // Viruses
+            ])
+            .unwrap();
+
+        let result = execute(&matches);
+        assert!(result.is_ok());
+
+        // Verify output file was created and has content
+        let output = std::fs::read_to_string(&output_file).unwrap();
+        assert!(output.contains("Viruses"));
+    }
+
+    #[test]
+    fn test_add_taxon_with_parent() {
+        let mut tree = phylotree::tree::Tree::new();
+        let root_node = phylotree::tree::Node::new();
+        let root_id = tree.add(root_node);
+
+        let taxon = Taxon {
+            tax_id: 12340,
+            rank: "species".to_string(),
+            parent_tax_id: 1,
+            names: HashMap::from([(
+                "scientific name".to_string(),
+                vec!["Test Phage".to_string()],
+            )]),
+            ..Default::default()
+        };
+
+        let node_id = add_taxon(&mut tree, &taxon, Some(root_id)).unwrap();
+        assert_ne!(node_id, root_id);
+    }
+
+    #[test]
+    fn test_add_taxon_without_parent() {
+        let mut tree = phylotree::tree::Tree::new();
+
+        let taxon = Taxon {
+            tax_id: 1,
+            rank: "no rank".to_string(),
+            parent_tax_id: 1,
+            names: HashMap::from([(
+                "scientific name".to_string(),
+                vec!["root".to_string()],
+            )]),
+            ..Default::default()
+        };
+
+        let node_id = add_taxon(&mut tree, &taxon, None).unwrap();
+        assert_eq!(node_id, 0); // First node in tree
+    }
+
+    #[test]
+    fn test_add_taxon_without_scientific_name() {
+        let mut tree = phylotree::tree::Tree::new();
+
+        let taxon = Taxon {
+            tax_id: 12340,
+            rank: "species".to_string(),
+            parent_tax_id: 1,
+            names: HashMap::new(),
+            ..Default::default()
+        };
+
+        let node_id = add_taxon(&mut tree, &taxon, None).unwrap();
+        // Should use "Unknown" as name
+        let node = tree.get(&node_id).unwrap();
+        assert_eq!(node.name.as_ref().unwrap(), "Unknown");
+    }
+}
