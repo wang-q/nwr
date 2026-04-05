@@ -1,6 +1,6 @@
 [package]
 name = "nwr"
-version = "0.8.5"
+version = "0.9.0"
 authors = ["wang-q <wang-q@outlook.com>"]
 description = "**N**CBI taxonomy and assembly **WR**angler"
 documentation = "https://github.com/wang-q/nwr"

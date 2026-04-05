@@ -2,6 +2,8 @@
 
 ## Unreleased - ReleaseDate
 
+## 0.9.0 - 2026-04-05
+
 * **Breaking Changes**
     * Remove Newick-related functionality
         * Remove `nwr data` (label, stat, distance)
