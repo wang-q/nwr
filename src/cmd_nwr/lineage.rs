@@ -52,11 +52,15 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let lineage = nwr::get_lineage(&conn, id)?;
 
     for node in lineage.iter() {
+        let sci_name = node
+            .names
+            .get("scientific name")
+            .and_then(|v| v.first())
+            .map(|s| s.as_str())
+            .unwrap_or("Unknown");
         writer.write_fmt(format_args!(
             "{}\t{}\t{}\n",
-            node.rank,
-            node.names.get("scientific name").unwrap()[0],
-            node.tax_id
+            node.rank, sci_name, node.tax_id
         ))?;
     }
 

@@ -288,8 +288,11 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     // Parse columns
     let cols: Vec<usize> = column_str
         .split(',')
-        .map(|s| s.parse().unwrap_or(1))
-        .collect();
+        .map(|s| {
+            s.parse()
+                .map_err(|_| anyhow::anyhow!("Invalid column number: '{}'", s))
+        })
+        .collect::<anyhow::Result<Vec<_>>>()?;
     if cols.len() != 3 {
         return Err(anyhow::anyhow!(
             "Column must be in format 's,p,g' (three numbers)"

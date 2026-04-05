@@ -116,6 +116,11 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
         let fields: Vec<String> = line.split('\t').map(|s| s.to_string()).collect();
         if fields.len() < 19 {
+            debug!(
+                "Skipping line {}: insufficient fields ({} < 19)",
+                i,
+                fields.len()
+            );
             continue;
         }
 
@@ -173,6 +178,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
         // Skip incompetent strains
         if RE_INCOMPETENT.is_match(organism_name) || RE_VIRUS.is_match(organism_name) {
+            debug!(
+                "Skipping line {}: incompetent organism name '{}'",
+                i, organism_name
+            );
             continue;
         }
 

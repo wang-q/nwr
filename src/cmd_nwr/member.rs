@@ -86,12 +86,13 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 continue;
             }
 
-            tsv_wtr.serialize((
-                node.tax_id,
-                &node.names.get("scientific name").unwrap()[0],
-                &node.rank,
-                &node.division,
-            ))?;
+            let sci_name = node
+                .names
+                .get("scientific name")
+                .and_then(|v| v.first())
+                .map(|s| s.as_str())
+                .unwrap_or("Unknown");
+            tsv_wtr.serialize((node.tax_id, sci_name, &node.rank, &node.division))?;
         }
     }
     tsv_wtr.flush()?;
