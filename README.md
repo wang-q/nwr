@@ -8,8 +8,6 @@
 [![Lines of code](https://www.aschey.tech/tokei/github/wang-q/nwr)](https://github.com//wang-q/nwr)
 [![Documentation](https://img.shields.io/badge/docs-online-blue)](https://wang-q.github.io/nwr/)
 
-`nwr` is a command line **N**CBI taxonomy and assembly **WR**angler.
-
 ## Install
 
 Current release: 0.9.0
