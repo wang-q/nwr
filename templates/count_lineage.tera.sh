@@ -30,11 +30,11 @@ log_warn Count/lineage.sh
 {% set cols = count_lineages | length() + 1 -%}
 
 cat strains.taxon.tsv |
-    tsv-summarize -g {% for rank in count_lineages %}{{ rank_col_of[rank] ~ "," }}{% endfor %}2 --count |
-    tsv-filter --ge "{{ count_lineages | length() + 2 }}:${N_COUNT}" |
-    tsv-sort -k{{ count_lineages | length() + 1 }},{{ count_lineages | length() + 1 }} |
+    tva stats -g {% for rank in count_lineages %}{{ rank_col_of[rank] ~ "," }}{% endfor %}2 --count |
+    tva filter --ge "{{ count_lineages | length() + 2 }}:${N_COUNT}" |
+    tva sort -k{{ count_lineages | length() + 1 }} |
 {% for i in range(start=1, end=cols) | reverse -%}
-    tsv-sort -k{{ i }},{{ i }} |
+    tva sort -k{{ i }} |
 {% endfor -%}
     perl -nla -F'\t' -e '
             BEGIN {
