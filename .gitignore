@@ -139,6 +139,7 @@ Cargo.lock
 *.sqlite
 *.dmp
 *.tsv
+!tests/nwr/*.tsv
 /docs/src/
 
 # mdBook output directory
