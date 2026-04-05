@@ -26,3 +26,7 @@
 - [abbr](help/abbr.md)
 - [kb](help/kb.md)
 - [seqdb](help/seqdb.md)
+
+# Database schema
+- [txdb](txdb/README.md)
+- [ardb](ardb/README.md)

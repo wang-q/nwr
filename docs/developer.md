@@ -37,3 +37,33 @@ cargo build
 cargo zigbuild --target x86_64-unknown-linux-gnu.2.17 --release
 ll $CARGO_TARGET_DIR/x86_64-unknown-linux-gnu/release/
 ```
+
+## Testing dataset
+
+```shell
+cargo test --color=always --package nwr --test cli_nwr command_template -- --show-output
+
+# debug mode has a slow connection
+cargo run --release --bin nwr download
+
+# tests/nwr/
+cargo run --bin nwr txdb -d tests/nwr/
+
+cargo run --bin nwr info -d tests/nwr/ --tsv Viruses "Actinophage JHJ-1" "Bacillus phage bg1"
+
+cargo run --bin nwr common -d tests/nwr/ "Actinophage JHJ-1" "Bacillus phage bg1"
+
+cargo run --bin nwr template tests/assembly/Trichoderma.assembly.tsv --ass -o stdout
+
+```
+
+## Database schema
+
+```shell
+brew install k1LoW/tap/tbls
+
+tbls doc sqlite://./tests/nwr/taxonomy.sqlite docs/txdb
+
+tbls doc sqlite://./tests/nwr/ar_refseq.sqlite docs/ardb
+
+```

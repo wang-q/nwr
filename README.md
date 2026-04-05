@@ -21,6 +21,16 @@ cargo install nwr
 cargo install --path . --force # --offline
 ```
 
+Or install the pre-compiled binary via the cross-platform package
+manager [cbp](https://github.com/wang-q/cbp) (supports older Linux systems with glibc 2.17+):
+
+```bash
+cbp install nwr
+```
+
+You can also download the pre-compiled binaries from
+the [Releases](https://github.com/wang-q/nwr/releases) page.
+
 ## `nwr help`
 
 ```console
@@ -87,28 +97,6 @@ nwr ardb
 nwr ardb --genbank
 
 nwr common "Escherichia coli" 4932 Drosophila_melanogaster 9606 Mus_musculus
-
-# rm ~/.nwr/*.dmp
-
-```
-
-### Development
-
-```shell
-cargo test --color=always --package nwr --test cli_nwr command_template -- --show-output
-
-# debug mode has a slow connection
-cargo run --release --bin nwr download
-
-# tests/nwr/
-cargo run --bin nwr txdb -d tests/nwr/
-
-cargo run --bin nwr info -d tests/nwr/ --tsv Viruses "Actinophage JHJ-1" "Bacillus phage bg1"
-
-cargo run --bin nwr common -d tests/nwr/ "Actinophage JHJ-1" "Bacillus phage bg1"
-
-cargo run --bin nwr template tests/assembly/Trichoderma.assembly.tsv --ass -o stdout
-
 ```
 
 ### seqdb
@@ -166,73 +154,3 @@ echo "
 
 
 ```
-
-### Plots
-
-```shell
-# venn
-nwr plot venn \
-    tests/plot/rocauc.result.tsv \
-    tests/plot/mcox.05.result.tsv |
-    tectonic - &&
-    mv texput.pdf venn2.pdf
-
-nwr plot venn \
-    tests/plot/rocauc.result.tsv \
-    tests/plot/mcox.05.result.tsv \
-    tests/plot/mcox.result.tsv |
-    tectonic - &&
-    mv texput.pdf venn3.pdf
-
-nwr plot venn \
-    tests/plot/rocauc.result.tsv \
-    tests/plot/rocauc.result.tsv \
-    tests/plot/mcox.05.result.tsv \
-    tests/plot/mcox.result.tsv |
-    tectonic - &&
-    mv texput.pdf venn4.pdf
-
-plotr venn tests/plot/rocauc.result.tsv tests/plot/mcox.05.result.tsv
-
-tectonic docs/venn4.tex
-
-# histo
-nwr plot hh tests/plot/hist.tsv -g 2 --bins 20 --xl "" --unit 0.5,1.5 |
-    tectonic - &&
-    mv texput.pdf hist.pdf
-
-nwr plot hh tests/plot/hist.tsv --bins 30 --xl "" --xmm 45,75 --unit 0.5,1.5 |
-    tectonic - &&
-    mv texput.pdf hist.pdf
-
-cargo run --bin nwr plot hh tests/plot/adomain.tsv -g 2 --bins 40 --xl "" --yl "" --unit 0.3,0.5 |
-    tectonic - &&
-    mv texput.pdf hist.pdf
-
-tectonic docs/heatmap.tex
-
-# nrps
-cargo run --bin nwr plot nrps tests/plot/srf.tsv --legend --color blue |
-    tectonic - &&
-    mv texput.pdf srf.pdf
-
-tectonic docs/nrps.tex
-
-tectonic docs/da.tex
-
-```
-
-## Database schema
-
-```shell
-brew install k1LoW/tap/tbls
-
-tbls doc sqlite://./tests/nwr/taxonomy.sqlite docs/txdb
-
-tbls doc sqlite://./tests/nwr/ar_refseq.sqlite docs/ardb
-
-```
-
-[txdb](./docs/txdb/README.md)
-
-[ardb](./docs/ardb/README.md)
