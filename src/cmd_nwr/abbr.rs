@@ -189,7 +189,12 @@ fn clean_name(name: &str) -> String {
         .chars()
         .map(|c| if c.is_alphanumeric() { c } else { '_' })
         .collect();
-    cleaned.replace("__", "_").trim_matches('_').to_string()
+    // Collapse consecutive underscores into a single one
+    let mut result = cleaned;
+    while result.contains("__") {
+        result = result.replace("__", "_");
+    }
+    result.trim_matches('_').to_string()
 }
 
 /// Clean subspecies parts using word boundary regex (equivalent to Perl \b).
