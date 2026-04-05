@@ -68,34 +68,6 @@ Subcommand groups:
 
 ## Examples
 
-### Usage of each command
-
-For practical uses of `nwr` and other awesome companions, follow this [page](docs/ncbi_ar.md).
-
-```shell
-nwr download
-
-nwr txdb
-
-nwr info "Homo sapiens" 4932
-
-nwr lineage "Homo sapiens"
-nwr lineage 4932
-
-nwr restrict "Vertebrata" -c 2 -f tests/nwr/taxon.tsv
-##sci_name       tax_id
-#Human   9606
-
-nwr member "Homo"
-
-nwr append tests/nwr/taxon.tsv -c 2 -r species -r family --id
-
-nwr ardb
-nwr ardb --genbank
-
-nwr common "Escherichia coli" 4932 Drosophila_melanogaster 9606 Mus_musculus
-```
-
 ### Initiate local databases
 
 The date `date --utc` of executing `nwr download` is `Sun Apr  5 15:59:45 UTC 2026`
@@ -124,6 +96,34 @@ rm \
     taxdump.tar.gz.md5 \
     assembly_summary_genbank.txt \
     assembly_summary_refseq.txt
+```
+
+### Usage of each command
+
+For practical uses of `nwr` and other awesome companions, follow this [page](docs/ncbi_ar.md).
+
+```shell
+# nwr download
+
+# nwr txdb
+
+nwr info "Homo sapiens" 4932
+
+nwr lineage "Homo sapiens"
+nwr lineage 4932
+
+nwr restrict "Vertebrata" -c 2 -f tests/nwr/taxon.tsv
+##sci_name       tax_id
+#Human   9606
+
+nwr member "Homo"
+
+nwr append tests/nwr/taxon.tsv -c 2 -r species -r family --id
+
+# nwr ardb
+# nwr ardb --genbank
+
+nwr common "Escherichia coli" 4932 Drosophila_melanogaster 9606 Mus_musculus
 ```
 
 ### seqdb
