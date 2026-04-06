@@ -26,10 +26,10 @@ log_warn rsync.sh
 touch check.lst
 
 cat url.tsv |
-    tsv-join -f check.lst -k 1 -e |
+    tva join -f check.lst -k 1 -e |
     if [ "$#" -gt 0 ]; then
         # Initialize an string to store the cmd
-        result="tsv-filter --or"
+        result="tva filter --or"
 
         # Iterate over each argument and prepend the fixed string
         for arg in "$@"; do
@@ -42,7 +42,7 @@ cat url.tsv |
         # Execute the result string as a Bash command
         eval "$result"
     else
-        rgr dedup stdin
+        tva uniq
     fi |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
         echo >&2

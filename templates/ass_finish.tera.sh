@@ -15,16 +15,16 @@ cat url.tsv |
             echo {1}
         fi
     ' |
-    rgr dedup stdin \
+    tva uniq \
     > omit.lst
 
 log_info "ASMs passes the N50 check"
 cat collect.tsv |
-    tsv-join \
+    tva join \
         -H --key-fields 1 \
         --filter-file n50.pass.tsv \
         --append-fields N50,C |
-    tsv-join \
+    tva join \
         -H --key-fields 1 \
         --filter-file <(
             cat omit.lst |
@@ -36,20 +36,20 @@ cat collect.tsv |
 
 cat "collect.pass.tsv" |
     sed '1d' |
-    tsv-select -f 1 \
+    tva select -f 1 \
     > pass.lst
 
 log_info "Representative or reference strains"
 cat collect.pass.tsv |
-    tsv-filter -H --not-empty "RefSeq_category" |
-    tsv-select -f 1 |
+    tva filter -H --not-empty "RefSeq_category" |
+    tva select -f 1 |
     sed '1d' \
     > rep.lst
 
 log_info " sp. strains"
 cat collect.pass.tsv |
-    tsv-filter -H --str-in-fld "Organism_name: sp." |
-    tsv-select -f 1 |
+    tva filter -H --str-in-fld "Organism_name: sp." |
+    tva select -f 1 |
     sed '1d' \
     > sp.lst
 
@@ -64,7 +64,7 @@ for FILE in \
     omit.lst rep.lst sp.lst \
     ; do
     cat ${FILE} |
-        datamash check |
+        tva check |
         FILE=${FILE} perl -nl -e '
             m/(\d+)\s*lines?.+?(\d+)\s*fields?/ or next;
             printf qq($ENV{FILE}\t%s\t%s\n), $2, $1;

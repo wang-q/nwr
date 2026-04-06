@@ -45,12 +45,12 @@ find . -maxdepth 3 -mindepth 2 -type f -name "*_genomic.fna.gz" |
 cat misplaced.tsv |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
         SPECIES=$(
-            tsv-filter url.tsv --str-in-fld "1:{2}" |
-                tsv-select -f 3
+            tva filter url.tsv --str-in-fld "1:{2}" |
+                tva select -f 3
             )
         NAME=$(
-            tsv-filter url.tsv --str-in-fld "1:{2}" |
-                tsv-select -f 1
+            tva filter url.tsv --str-in-fld "1:{2}" |
+                tva select -f 1
             )
         if [ ! -z "${NAME}" ]; then
             if [ -e "${SPECIES}/${NAME}" ]; then
@@ -70,13 +70,13 @@ find . -type f -name ".*" |
 
 log_info "List dirs (species/assembly) not in the list"
 cat url.tsv |
-    tsv-select -f 3 |
-    rgr dedup stdin |
+    tva select -f 3 |
+    tva uniq |
 while read SPECIES; do
     find "./${SPECIES}" -maxdepth 1 -mindepth 1 -type d |
         tr "/" "\t" |
-        tsv-select -f 3 |
-        tsv-join --exclude -k 1 -f url.tsv -d 1 |
+        tva select -f 3 |
+        tva join --exclude -k 1 -f url.tsv -d 1 |
         xargs -I[] echo "./${SPECIES}/[]"
 done \
     >> remove.lst
@@ -84,8 +84,8 @@ done \
 log_info "List dirs (species) not in the list"
 find . -maxdepth 1 -mindepth 1 -type d |
     tr "/" "\t" |
-    tsv-select -f 2 |
-    tsv-join --exclude -k 3 -f url.tsv -d 1 |
+    tva select -f 2 |
+    tva join --exclude -k 3 -f url.tsv -d 1 |
     xargs -I[] echo "./[]" \
     >> remove.lst
 

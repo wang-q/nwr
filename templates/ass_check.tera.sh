@@ -10,13 +10,13 @@ touch check.lst
 # Keep only the results in the list
 cat check.lst |
     sort |
-    rgr dedup stdin |
-    tsv-join -f url.tsv -k 1 \
+    tva uniq |
+    tva join -f url.tsv -k 1 \
     > tmp.list
 mv tmp.list check.lst
 
 cat url.tsv |
-    tsv-join -f check.lst -k 1 -e |
+    tva join -f check.lst -k 1 -e |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j {{ parallel }} '
         if [[ ! -e "{3}/{1}" ]]; then
             exit
