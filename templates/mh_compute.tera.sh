@@ -11,10 +11,10 @@ log_warn compute.sh
 
 cat species.tsv |
 {% for i in ins -%}
-    tsv-join -f ../{{ i }} -k 1 |
+    tva join -f ../{{ i }} -k 1 |
 {% endfor -%}
 {% for i in not_ins -%}
-    tsv-join -e -f ../{{ i }} -k 1 |
+    tva join -e -f ../{{ i }} -k 1 |
 {% endfor -%}
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j {{ parallel2 }} '
         if [[ -s "{2}/msh/{1}.msh" ]]; then
