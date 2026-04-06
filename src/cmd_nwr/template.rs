@@ -330,9 +330,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         gen_ass_data(&context)?;
         render_shell_script(
             &context,
-            include_str!("../../templates/ass_rsync.tera.sh"),
+            include_str!("../../templates/ass_aria2.tera.sh"),
             "ASSEMBLY",
-            "rsync.sh",
+            "aria2.sh",
         )?;
         render_shell_script(
             &context,
@@ -512,7 +512,9 @@ fn render_shell_script(
 //----------------------------
 fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
     let outname = "url.tsv";
+    let outname_rsync = "url_rsync.tsv";
     eprintln!("Create ASSEMBLY/{}", outname);
+    eprintln!("Create ASSEMBLY/{}", outname_rsync);
 
     let outdir = context.get("outdir").unwrap().as_str().unwrap();
     let ass_url_of = context.get("ass_url_of").unwrap().as_object().unwrap();
@@ -524,19 +526,24 @@ fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
         intspan::writer(format!("{}/ASSEMBLY/{}", outdir, outname).as_ref())
     };
 
+    let mut writer_rsync = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/ASSEMBLY/{}", outdir, outname_rsync).as_ref())
+    };
+
     for (key, value) in ass_url_of {
         let url = value.as_str().unwrap();
         let species = ass_species_of.get(key).unwrap().as_str().unwrap();
 
+        // Write HTTPS URL to url.tsv
+        writer.write_all(format!("{}\t{}\t{}\n", key, url, species).as_ref())?;
+
+        // Write RSYNC URL to url_rsync.tsv for reference
         // ftp   - ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/167/675/GCA_000167675.2_v2.0
         // rsync - ftp.ncbi.nlm.nih.gov::genomes/all/GCA/000/167/675/GCA_000167675.2_v2.0
         let rsync = RE_URL.replace(url, "ftp.ncbi.nlm.nih.gov::");
-
-        if url == rsync {
-            eprintln!("Check the ftp url: [{}] {}", key, url);
-        } else {
-            writer.write_all(format!("{}\t{}\t{}\n", key, rsync, species).as_ref())?;
-        }
+        writer_rsync.write_all(format!("{}\t{}\t{}\n", key, rsync, species).as_ref())?;
     }
 
     Ok(())
