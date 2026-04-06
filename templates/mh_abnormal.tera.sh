@@ -42,7 +42,7 @@ while read SPECIES; do
     fi
 
     D_MAX=$(cat "${SPECIES}/mash.ab.tsv" |
-        tsv-summarize --max 3
+        tva stats --max 3
     )
     if (( $(echo "$D_MAX < $ANI_VALUE" | bc -l) )); then
         continue
@@ -51,7 +51,7 @@ while read SPECIES; do
     # "Link assemblies with the median ANI smaller than $ANI_VALUE"
     D_MEDIAN=$(
         cat "${SPECIES}/mash.ab.tsv" |
-            tsv-filter --lt "3:$ANI_VALUE" |
+            tva filter --lt "3:$ANI_VALUE" |
             SPECIES=${SPECIES} perl -nla -MPath::Tiny -F"\t" -e '
                 BEGIN {
                     # To reduce computation and storage overhead
@@ -96,7 +96,7 @@ while read SPECIES; do
     fi
 
     cat "${SPECIES}/mash.ab.tsv" |
-        tsv-filter --ff-str-ne 1:2 --le "3:$D_MEDIAN" |
+        tva filter --ff-str-ne 1:2 --le "3:$D_MEDIAN" |
         hnsm cluster stdin --mode cc |
         tr '\t' '\n' \
         > "${SPECIES}/cc.lst"

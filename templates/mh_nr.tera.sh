@@ -11,13 +11,13 @@ log_info Non-redundant strains
 
 cat species.tsv |
 {% for i in ins -%}
-    tsv-join -f ../{{ i }} -k 1 |
+    tva join -f ../{{ i }} -k 1 |
 {% endfor -%}
 {% for i in not_ins -%}
-    tsv-join -e -f ../{{ i }} -k 1 |
+    tva join -e -f ../{{ i }} -k 1 |
 {% endfor -%}
-    tsv-select -f 2 |
-    rgr dedup stdin \
+    tva select -f 2 |
+    tva uniq \
     > species.lst
 
 cat species.lst |
@@ -32,13 +32,13 @@ while read SPECIES; do
 
     cat species.tsv |
 {% for i in ins -%}
-    tsv-join -f ../{{ i }} -k 1 |
+    tva join -f ../{{ i }} -k 1 |
 {% endfor -%}
 {% for i in not_ins -%}
-    tsv-join -e -f ../{{ i }} -k 1 |
+    tva join -e -f ../{{ i }} -k 1 |
 {% endfor -%}
-        tsv-filter --str-eq "2:${SPECIES}" |
-        tsv-select -f 1 \
+        tva filter --str-eq "2:${SPECIES}" |
+        tva select -f 1 \
         > "${SPECIES}/assembly.lst"
 
     # Number of assemblies >= 2
@@ -60,7 +60,7 @@ while read SPECIES; do
 
     if [[ ! -s "${SPECIES}/mash.nr.tsv" ]]; then
         mash triangle -E -p 8 -l "${SPECIES}/msh.lst" |
-        tsv-filter --ff-str-ne 1:2 --le "3:${ANI_VALUE}" \
+        tva filter --ff-str-ne 1:2 --le "3:${ANI_VALUE}" \
             > "${SPECIES}/mash.nr.tsv"
     fi
 
@@ -71,9 +71,9 @@ while read SPECIES; do
 
     echo >&2 "    Scoring based on rep.lst, omit.lst, and assembly_level"
     cat ${SPECIES}/assembly.lst |
-        tsv-join -f ../ASSEMBLY/rep.lst -k 1 -a 1 --write-all "0" |
-        tsv-join -f ../ASSEMBLY/omit.lst -k 1 -a 1 --write-all "0" |
-        tsv-join -f species.tsv -k 1 -a 3 \
+        tva join -f ../ASSEMBLY/rep.lst -k 1 -a 1 --write-all "0" |
+        tva join -f ../ASSEMBLY/omit.lst -k 1 -a 1 --write-all "0" |
+        tva join -f species.tsv -k 1 -a 3 \
         > ${SPECIES}/scores.tsv
 
     cat "${SPECIES}/RED.cc.tsv" |
@@ -113,7 +113,7 @@ while read SPECIES; do
         > "${SPECIES}/redundant.lst"
 
     cat "${SPECIES}/assembly.lst" |
-        tsv-join --exclude -f "${SPECIES}/redundant.lst" \
+        tva join --exclude -f "${SPECIES}/redundant.lst" \
         > "${SPECIES}/NR.lst"
 
 done

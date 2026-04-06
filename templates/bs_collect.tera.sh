@@ -29,7 +29,7 @@ log_warn collect.sh
 
 log_info attributes.lst
 cat sample.tsv |
-    tsv-filter --istr-ne "1:na" |
+    tva filter --istr-ne "1:na" |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 4 '
         if [ -s "{3}/{1}.txt" ]; then
             cat "{3}/{1}.txt" |
@@ -38,7 +38,7 @@ cat sample.tsv |
                 '\''
         fi
     ' |
-    tsv-uniq --at-least ${N_ATTR} | # ignore rare attributes
+    tva uniq --at-least ${N_ATTR} | # ignore rare attributes
     grep -v "^INSDC" |
     grep -v "^ENA" \
     > attributes.lst
@@ -53,7 +53,7 @@ cat attributes.lst |
     > biosample.tsv
 
 cat sample.tsv |
-    tsv-filter --istr-ne "1:na" |
+    tva filter --istr-ne "1:na" |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
         log_debug "{1}"
 

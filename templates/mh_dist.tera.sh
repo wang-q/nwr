@@ -8,10 +8,10 @@ log_warn dist.sh
 log_info Distances between assembly sketches
 cat species.tsv |
 {% for i in ins -%}
-    tsv-join -f ../{{ i }} -k 1 |
+    tva join -f ../{{ i }} -k 1 |
 {% endfor -%}
 {% for i in not_ins -%}
-    tsv-join -e -f ../{{ i }} -k 1 |
+    tva join -e -f ../{{ i }} -k 1 |
 {% endfor -%}
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j 1 '
         if [[ -e "{2}/msh/{1}.msh" ]]; then
@@ -24,11 +24,11 @@ mash triangle -E -p {{ parallel }} -l msh.lst \
     > mash.dist.tsv
 
 log_info Fill distance matrix with lower triangle
-tsv-select -f 1-3 mash.dist.tsv |
-    (tsv-select -f 2,1,3 mash.dist.tsv && cat) |
+tva select -f 1-3 mash.dist.tsv |
+    (tva select -f 2,1,3 mash.dist.tsv && cat) |
     (
         cut -f 1 mash.dist.tsv |
-            rgr dedup stdin |
+            tva uniq |
             parallel -j 1 --keep-order 'echo -e "{}\t{}\t0"' &&
         cat
     ) \
