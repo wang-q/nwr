@@ -97,7 +97,7 @@ while read SPECIES; do
 
     cat "${SPECIES}/mash.ab.tsv" |
         tva filter --ff-str-ne 1:2 --le "3:$D_MEDIAN" |
-        hnsm clust cc stdin |
+        pgr clust cc stdin |
         tr '\t' '\n' \
         > "${SPECIES}/cc.lst"
 

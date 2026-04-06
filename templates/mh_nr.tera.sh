@@ -66,7 +66,7 @@ while read SPECIES; do
 
     echo >&2 "    Finding redundants"
     cat "${SPECIES}/mash.nr.tsv" |
-        hnsm clust cc stdin \
+        pgr clust cc stdin \
         > "${SPECIES}/RED.cc.tsv"
 
     echo >&2 "    Scoring based on rep.lst, omit.lst, and assembly_level"
