@@ -31,7 +31,7 @@ cat species.tsv |
     sort |
     if [ "$#" -gt 0 ]; then
         # Initialize an string to store the cmd
-        result="tsv-filter --or"
+        result="tva filter --or"
 
         # Iterate over each argument and prepend the fixed string
         for arg in "$@"; do
@@ -44,13 +44,13 @@ cat species.tsv |
         # Execute the result string as a Bash command
         eval "$result"
     else
-        rgr dedup stdin
+        tva uniq
     fi |
 {% for i in ins -%}
-    tsv-join -f ../{{ i }} -k 1 |
+    tva join -f ../{{ i }} -k 1 |
 {% endfor -%}
 {% for i in not_ins -%}
-    tsv-join -e -f ../{{ i }} -k 1 |
+    tva join -e -f ../{{ i }} -k 1 |
 {% endfor -%}
     cat \
     > species-f.tsv
@@ -60,8 +60,8 @@ cat species.tsv |
 #----------------------------#
 log_info "Unique proteins"
 cat species-f.tsv |
-    tsv-select -f 2 |
-    rgr dedup stdin |
+    tva select -f 2 |
+    tva uniq |
 while read SPECIES; do
     if [[ -s "${SPECIES}"/pro.fa.gz ]]; then
         continue
@@ -71,7 +71,7 @@ while read SPECIES; do
     mkdir -p "${SPECIES}"
 
     cat species-f.tsv |
-        tsv-filter --str-eq "2:${SPECIES}" \
+        tva filter --str-eq "2:${SPECIES}" \
         > "${SPECIES}"/strains.tsv
 
     rm -f "${SPECIES}"/detail.tsv
@@ -101,8 +101,8 @@ while read SPECIES; do
         hnsm filter stdin -u |
         hnsm gz stdin -p 4 -o "${SPECIES}"/pro.fa
 
-    tsv-select -f 1,3 "${SPECIES}"/detail.tsv | rgr dedup stdin | gzip > "${SPECIES}"/anno.tsv.gz
-    tsv-select -f 1,2 "${SPECIES}"/detail.tsv | rgr dedup stdin | gzip > "${SPECIES}"/asmseq.tsv.gz
+    tva select -f 1,3 "${SPECIES}"/detail.tsv | tva uniq | gzip > "${SPECIES}"/anno.tsv.gz
+    tva select -f 1,2 "${SPECIES}"/detail.tsv | tva uniq | gzip > "${SPECIES}"/asmseq.tsv.gz
     rm -f "${SPECIES}"/detail.tsv
 
 done

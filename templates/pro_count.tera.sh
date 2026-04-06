@@ -11,10 +11,10 @@ log_warn Protein/count.sh
 log_info "Protein/species-f.tsv"
 cat species.tsv |
 {% for i in ins -%}
-    tsv-join -f ../{{ i }} -k 1 |
+    tva join -f ../{{ i }} -k 1 |
 {% endfor -%}
 {% for i in not_ins -%}
-    tsv-join -e -f ../{{ i }} -k 1 |
+    tva join -e -f ../{{ i }} -k 1 |
 {% endfor -%}
     cat \
     > species-f.tsv
@@ -24,8 +24,8 @@ cat species.tsv |
 #----------------------------#
 log_info "Count each species"
 cat species-f.tsv |
-    tsv-select -f 2 |
-    rgr dedup stdin |
+    tva select -f 2 |
+    tva uniq |
 while read SPECIES; do
     if [[ -f "${SPECIES}"/counts.tsv ]]; then
         continue
@@ -62,8 +62,8 @@ done
 #----------------------------#
 log_info "Count total"
 cat species-f.tsv |
-    tsv-select -f 2 |
-    rgr dedup stdin |
+    tva select -f 2 |
+    tva uniq |
 while read SPECIES; do
     if [[ ! -f "${SPECIES}"/counts.tsv ]]; then
         continue
@@ -71,7 +71,7 @@ while read SPECIES; do
 
     cat "${SPECIES}"/counts.tsv
 done |
-    rgr dedup stdin \
+    tva uniq \
     > counts.tsv
 
 log_info Done.

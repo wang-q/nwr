@@ -35,7 +35,7 @@ cat species.tsv |
     sort |
     if [ "$#" -gt 0 ]; then
         # Initialize an string to store the cmd
-        result="tsv-filter --or"
+        result="tva filter --or"
 
         # Iterate over each argument and prepend the fixed string
         for arg in "$@"; do
@@ -48,13 +48,13 @@ cat species.tsv |
         # Execute the result string as a Bash command
         eval "$result"
     else
-        rgr dedup stdin
+        tva uniq
     fi |
 {% for i in ins -%}
-    tsv-join -f ../{{ i }} -k 1 |
+    tva join -f ../{{ i }} -k 1 |
 {% endfor -%}
 {% for i in not_ins -%}
-    tsv-join -e -f ../{{ i }} -k 1 |
+    tva join -e -f ../{{ i }} -k 1 |
 {% endfor -%}
     cat \
     > species-f.tsv
@@ -66,8 +66,8 @@ cat species.tsv |
 # The min coverage of query and target for clustering
 log_info "Clustering .95 .95"
 cat species-f.tsv |
-    tsv-select -f 2 |
-    rgr dedup stdin |
+    tva select -f 2 |
+    tva uniq |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j {{ parallel2 }} '
         if [[ ! -s {}/pro.fa.gz ]]; then
             exit
@@ -93,8 +93,8 @@ cat species-f.tsv |
 #----------------------------#
 log_info "Family .8 .8"
 cat species-f.tsv |
-    tsv-select -f 2 |
-    rgr dedup stdin |
+    tva select -f 2 |
+    tva uniq |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j {{ parallel2 }} '
         if [[ ! -s {}/pro.fa.gz ]]; then
             exit
@@ -122,8 +122,8 @@ cat species-f.tsv |
 #----------------------------#
 log_info "Family .3 .8"
 cat species-f.tsv |
-    tsv-select -f 2 |
-    rgr dedup stdin |
+    tva select -f 2 |
+    tva uniq |
     parallel --colsep '\t' --no-run-if-empty --linebuffer -k -j {{ parallel2 }} '
         if [[ ! -s {}/pro.fa.gz ]]; then
             exit
