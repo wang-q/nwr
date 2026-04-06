@@ -20,6 +20,8 @@ lazy_static! {
     static ref RE_S2: Regex = Regex::new(r#"(?xi)_+"#).unwrap();
     static ref RE_S3: Regex = Regex::new(r#"(?xi)_$"#).unwrap();
     static ref RE_S4: Regex = Regex::new(r#"(?xi)^_"#).unwrap();
+    static ref RE_URL: Regex =
+        Regex::new(r#"(?xi)(ftp|https?)://ftp.ncbi.nlm.nih.gov/"#).unwrap();
 }
 
 // Create clap subcommand arguments
@@ -326,12 +328,42 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             fs::create_dir_all(format!("{}/ASSEMBLY", outdir))?;
         }
         gen_ass_data(&context)?;
-        gen_ass_rsync(&context)?;
-        gen_ass_check(&context)?;
-        gen_ass_reorder(&context)?;
-        gen_ass_n50(&context)?;
-        gen_ass_collect(&context)?;
-        gen_ass_finish(&context)?;
+        render_shell_script(
+            &context,
+            include_str!("../../templates/ass_rsync.tera.sh"),
+            "ASSEMBLY",
+            "rsync.sh",
+        )?;
+        render_shell_script(
+            &context,
+            include_str!("../../templates/ass_check.tera.sh"),
+            "ASSEMBLY",
+            "check.sh",
+        )?;
+        render_shell_script(
+            &context,
+            include_str!("../../templates/ass_reorder.tera.sh"),
+            "ASSEMBLY",
+            "reorder.sh",
+        )?;
+        render_shell_script(
+            &context,
+            include_str!("../../templates/ass_n50.tera.sh"),
+            "ASSEMBLY",
+            "n50.sh",
+        )?;
+        render_shell_script(
+            &context,
+            include_str!("../../templates/ass_collect.tera.sh"),
+            "ASSEMBLY",
+            "collect.sh",
+        )?;
+        render_shell_script(
+            &context,
+            include_str!("../../templates/ass_finish.tera.sh"),
+            "ASSEMBLY",
+            "finish.sh",
+        )?;
     }
 
     if args.get_flag("bs") {
@@ -339,8 +371,18 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             fs::create_dir_all(format!("{}/BioSample", outdir))?;
         }
         gen_bs_data(&context)?;
-        gen_bs_download(&context)?;
-        gen_bs_collect(&context)?;
+        render_shell_script(
+            &context,
+            include_str!("../../templates/bs_download.tera.sh"),
+            "BioSample",
+            "download.sh",
+        )?;
+        render_shell_script(
+            &context,
+            include_str!("../../templates/bs_collect.tera.sh"),
+            "BioSample",
+            "collect.sh",
+        )?;
     }
 
     if args.get_flag("mh") {
@@ -348,10 +390,30 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             fs::create_dir_all(format!("{}/MinHash", outdir))?;
         }
         gen_mh_data(&context)?;
-        gen_mh_compute(&context)?;
-        gen_mh_nr(&context)?;
-        gen_mh_abnormal(&context)?;
-        gen_mh_dist(&context)?;
+        render_shell_script(
+            &context,
+            include_str!("../../templates/mh_compute.tera.sh"),
+            "MinHash",
+            "compute.sh",
+        )?;
+        render_shell_script(
+            &context,
+            include_str!("../../templates/mh_nr.tera.sh"),
+            "MinHash",
+            "nr.sh",
+        )?;
+        render_shell_script(
+            &context,
+            include_str!("../../templates/mh_abnormal.tera.sh"),
+            "MinHash",
+            "abnormal.sh",
+        )?;
+        render_shell_script(
+            &context,
+            include_str!("../../templates/mh_dist.tera.sh"),
+            "MinHash",
+            "dist.sh",
+        )?;
     }
 
     if args.get_flag("count") {
@@ -359,9 +421,24 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             fs::create_dir_all(format!("{}/Count", outdir))?;
         }
         gen_count_data(&context)?;
-        gen_count_strains(&context)?;
-        gen_count_rank(&context)?;
-        gen_count_lineage(&context)?;
+        render_shell_script(
+            &context,
+            include_str!("../../templates/count_strains.tera.sh"),
+            "Count",
+            "strains.sh",
+        )?;
+        render_shell_script(
+            &context,
+            include_str!("../../templates/count_rank.tera.sh"),
+            "Count",
+            "rank.sh",
+        )?;
+        render_shell_script(
+            &context,
+            include_str!("../../templates/count_lineage.tera.sh"),
+            "Count",
+            "lineage.sh",
+        )?;
     }
 
     if args.get_flag("pro") {
@@ -369,11 +446,63 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             fs::create_dir_all(format!("{}/Protein", outdir))?;
         }
         gen_pro_data(&context)?;
-        gen_pro_collect(&context)?;
-        gen_pro_cluster(&context)?;
-        gen_pro_info(&context)?;
-        gen_pro_count(&context)?;
+        render_shell_script(
+            &context,
+            include_str!("../../templates/pro_collect.tera.sh"),
+            "Protein",
+            "collect.sh",
+        )?;
+        render_shell_script(
+            &context,
+            include_str!("../../templates/pro_cluster.tera.sh"),
+            "Protein",
+            "cluster.sh",
+        )?;
+        render_shell_script(
+            &context,
+            include_str!("../../templates/pro_info.tera.sh"),
+            "Protein",
+            "info.sh",
+        )?;
+        render_shell_script(
+            &context,
+            include_str!("../../templates/pro_count.tera.sh"),
+            "Protein",
+            "count.sh",
+        )?;
     }
+
+    Ok(())
+}
+
+//----------------------------
+// Helper function to render shell scripts from Tera templates
+//----------------------------
+fn render_shell_script(
+    context: &Context,
+    template_content: &str,
+    subdir: &str,
+    outname: &str,
+) -> anyhow::Result<()> {
+    eprintln!("Create {}/{}", subdir, outname);
+
+    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+
+    let mut writer = if outdir == "stdout" {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/{}/{}", outdir, subdir, outname).as_ref())
+    };
+
+    let mut tera = Tera::default();
+    tera.add_raw_templates(vec![
+        ("header", include_str!("../../templates/header.tera.sh")),
+        ("t", template_content),
+    ])
+    .unwrap();
+
+    let rendered = tera.render("t", context).unwrap();
+    writer.write_all(rendered.as_ref())?;
 
     Ok(())
 }
@@ -401,10 +530,6 @@ fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
 
         // ftp   - ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/000/167/675/GCA_000167675.2_v2.0
         // rsync - ftp.ncbi.nlm.nih.gov::genomes/all/GCA/000/167/675/GCA_000167675.2_v2.0
-        lazy_static! {
-            static ref RE_URL: Regex =
-                Regex::new(r#"(?xi)(ftp|https?)://ftp.ncbi.nlm.nih.gov/"#).unwrap();
-        }
         let rsync = RE_URL.replace(url, "ftp.ncbi.nlm.nih.gov::");
 
         if url == rsync {
@@ -413,174 +538,6 @@ fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
             writer.write_all(format!("{}\t{}\t{}\n", key, rsync, species).as_ref())?;
         }
     }
-
-    Ok(())
-}
-
-//----------------------------
-// ASSEMBLY/rsync.sh
-//----------------------------
-fn gen_ass_rsync(context: &Context) -> anyhow::Result<()> {
-    let outname = "rsync.sh";
-    eprintln!("Create ASSEMBLY/{}", outname);
-
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-
-    let mut writer = if outdir == "stdout" {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/ASSEMBLY/{}", outdir, outname).as_ref())
-    };
-
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/ass_rsync.tera.sh")),
-    ])
-    .unwrap();
-
-    let rendered = tera.render("t", context).unwrap();
-    writer.write_all(rendered.as_ref())?;
-
-    Ok(())
-}
-
-//----------------------------
-// ASSEMBLY/check.sh
-//----------------------------
-fn gen_ass_check(context: &Context) -> anyhow::Result<()> {
-    let outname = "check.sh";
-    eprintln!("Create ASSEMBLY/{}", outname);
-
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-
-    let mut writer = if outdir == "stdout" {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/ASSEMBLY/{}", outdir, outname).as_ref())
-    };
-
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/ass_check.tera.sh")),
-    ])
-    .unwrap();
-
-    let rendered = tera.render("t", context).unwrap();
-    writer.write_all(rendered.as_ref())?;
-
-    Ok(())
-}
-
-//----------------------------
-// ASSEMBLY/n50.sh
-//----------------------------
-fn gen_ass_n50(context: &Context) -> anyhow::Result<()> {
-    let outname = "n50.sh";
-    eprintln!("Create ASSEMBLY/{}", outname);
-
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-
-    let mut writer = if outdir == "stdout" {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/ASSEMBLY/{}", outdir, outname).as_ref())
-    };
-
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/ass_n50.tera.sh")),
-    ])
-    .unwrap();
-
-    let rendered = tera.render("t", context).unwrap();
-    writer.write_all(rendered.as_ref())?;
-
-    Ok(())
-}
-
-//----------------------------
-// ASSEMBLY/collect.sh
-//----------------------------
-fn gen_ass_collect(context: &Context) -> anyhow::Result<()> {
-    let outname = "collect.sh";
-    eprintln!("Create ASSEMBLY/{}", outname);
-
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-
-    let mut writer = if outdir == "stdout" {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/ASSEMBLY/{}", outdir, outname).as_ref())
-    };
-
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/ass_collect.tera.sh")),
-    ])
-    .unwrap();
-
-    let rendered = tera.render("t", context).unwrap();
-    writer.write_all(rendered.as_ref())?;
-
-    Ok(())
-}
-
-//----------------------------
-// ASSEMBLY/finish.sh
-//----------------------------
-fn gen_ass_finish(context: &Context) -> anyhow::Result<()> {
-    let outname = "finish.sh";
-    eprintln!("Create ASSEMBLY/{}", outname);
-
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-
-    let mut writer = if outdir == "stdout" {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/ASSEMBLY/{}", outdir, outname).as_ref())
-    };
-
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/ass_finish.tera.sh")),
-    ])
-    .unwrap();
-
-    let rendered = tera.render("t", context).unwrap();
-    writer.write_all(rendered.as_ref())?;
-
-    Ok(())
-}
-
-//----------------------------
-// ASSEMBLY/clean.sh
-//----------------------------
-fn gen_ass_reorder(context: &Context) -> anyhow::Result<()> {
-    let outname = "reorder.sh";
-    eprintln!("Create ASSEMBLY/{}", outname);
-
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-
-    let mut writer = if outdir == "stdout" {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/ASSEMBLY/{}", outdir, outname).as_ref())
-    };
-
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/ass_reorder.tera.sh")),
-    ])
-    .unwrap();
-
-    let rendered = tera.render("t", context).unwrap();
-    writer.write_all(rendered.as_ref())?;
 
     Ok(())
 }
@@ -613,62 +570,6 @@ fn gen_bs_data(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// BioSample/download.sh
-//----------------------------
-fn gen_bs_download(context: &Context) -> anyhow::Result<()> {
-    let outname = "download.sh";
-    eprintln!("Create BioSample/{}", outname);
-
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-
-    let mut writer = if outdir == "stdout" {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/BioSample/{}", outdir, outname).as_ref())
-    };
-
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/bs_download.tera.sh")),
-    ])
-    .unwrap();
-
-    let rendered = tera.render("t", context).unwrap();
-    writer.write_all(rendered.as_ref())?;
-
-    Ok(())
-}
-
-//----------------------------
-// BioSample/collect.sh
-//----------------------------
-fn gen_bs_collect(context: &Context) -> anyhow::Result<()> {
-    let outname = "collect.sh";
-    eprintln!("Create BioSample/{}", outname);
-
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-
-    let mut writer = if outdir == "stdout" {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/BioSample/{}", outdir, outname).as_ref())
-    };
-
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/bs_collect.tera.sh")),
-    ])
-    .unwrap();
-
-    let rendered = tera.render("t", context).unwrap();
-    writer.write_all(rendered.as_ref())?;
-
-    Ok(())
-}
-
-//----------------------------
 // MinHash/species.tsv - name, species, level
 //----------------------------
 fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
@@ -691,118 +592,6 @@ fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
 
         writer.write_all(format!("{}\t{}\t{}\n", key, species, level).as_ref())?;
     }
-
-    Ok(())
-}
-
-//----------------------------
-// MinHash/compute.sh
-//----------------------------
-fn gen_mh_compute(context: &Context) -> anyhow::Result<()> {
-    let outname = "compute.sh";
-    eprintln!("Create MinHash/{}", outname);
-
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-
-    let mut writer = if outdir == "stdout" {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/MinHash/{}", outdir, outname).as_ref())
-    };
-
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/mh_compute.tera.sh")),
-    ])
-    .unwrap();
-
-    let rendered = tera.render("t", context).unwrap();
-    writer.write_all(rendered.as_ref())?;
-
-    Ok(())
-}
-
-//----------------------------
-// MinHash/nr.sh
-//----------------------------
-fn gen_mh_nr(context: &Context) -> anyhow::Result<()> {
-    let outname = "nr.sh";
-    eprintln!("Create MinHash/{}", outname);
-
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-
-    let mut writer = if outdir == "stdout" {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/MinHash/{}", outdir, outname).as_ref())
-    };
-
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/mh_nr.tera.sh")),
-    ])
-    .unwrap();
-
-    let rendered = tera.render("t", context).unwrap();
-    writer.write_all(rendered.as_ref())?;
-
-    Ok(())
-}
-
-//----------------------------
-// MinHash/abnormal.sh
-//----------------------------
-fn gen_mh_abnormal(context: &Context) -> anyhow::Result<()> {
-    let outname = "abnormal.sh";
-    eprintln!("Create MinHash/{}", outname);
-
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-
-    let mut writer = if outdir == "stdout" {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/MinHash/{}", outdir, outname).as_ref())
-    };
-
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/mh_abnormal.tera.sh")),
-    ])
-    .unwrap();
-
-    let rendered = tera.render("t", context).unwrap();
-    writer.write_all(rendered.as_ref())?;
-
-    Ok(())
-}
-
-//----------------------------
-// MinHash/dist.sh
-//----------------------------
-fn gen_mh_dist(context: &Context) -> anyhow::Result<()> {
-    let outname = "dist.sh";
-    eprintln!("Create MinHash/{}", outname);
-
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-
-    let mut writer = if outdir == "stdout" {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/MinHash/{}", outdir, outname).as_ref())
-    };
-
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/mh_dist.tera.sh")),
-    ])
-    .unwrap();
-
-    let rendered = tera.render("t", context).unwrap();
-    writer.write_all(rendered.as_ref())?;
 
     Ok(())
 }
@@ -837,90 +626,6 @@ fn gen_count_data(context: &Context) -> anyhow::Result<()> {
 }
 
 //----------------------------
-// Count/strains.sh
-//----------------------------
-fn gen_count_strains(context: &Context) -> anyhow::Result<()> {
-    let outname = "strains.sh";
-    eprintln!("Create Count/{}", outname);
-
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-
-    let mut writer = if outdir == "stdout" {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/Count/{}", outdir, outname).as_ref())
-    };
-
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/count_strains.tera.sh")),
-    ])
-    .unwrap();
-
-    let rendered = tera.render("t", context).unwrap();
-    writer.write_all(rendered.as_ref())?;
-
-    Ok(())
-}
-
-//----------------------------
-// Count/rank.sh
-//----------------------------
-fn gen_count_rank(context: &Context) -> anyhow::Result<()> {
-    let outname = "rank.sh";
-    eprintln!("Create Count/{}", outname);
-
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-
-    let mut writer = if outdir == "stdout" {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/Count/{}", outdir, outname).as_ref())
-    };
-
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/count_rank.tera.sh")),
-    ])
-    .unwrap();
-
-    let rendered = tera.render("t", context).unwrap();
-    writer.write_all(rendered.as_ref())?;
-
-    Ok(())
-}
-
-//----------------------------
-// Count/lineage.sh
-//----------------------------
-fn gen_count_lineage(context: &Context) -> anyhow::Result<()> {
-    let outname = "lineage.sh";
-    eprintln!("Create Count/{}", outname);
-
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-
-    let mut writer = if outdir == "stdout" {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/Count/{}", outdir, outname).as_ref())
-    };
-
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/count_lineage.tera.sh")),
-    ])
-    .unwrap();
-
-    let rendered = tera.render("t", context).unwrap();
-    writer.write_all(rendered.as_ref())?;
-
-    Ok(())
-}
-
-//----------------------------
 // Protein/species.tsv - name, species
 //----------------------------
 fn gen_pro_data(context: &Context) -> anyhow::Result<()> {
@@ -941,118 +646,6 @@ fn gen_pro_data(context: &Context) -> anyhow::Result<()> {
 
         writer.write_all(format!("{}\t{}\n", key, species).as_ref())?;
     }
-
-    Ok(())
-}
-
-//----------------------------
-// Protein/collect.sh
-//----------------------------
-fn gen_pro_collect(context: &Context) -> anyhow::Result<()> {
-    let outname = "collect.sh";
-    eprintln!("Create Protein/{}", outname);
-
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-
-    let mut writer = if outdir == "stdout" {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/Protein/{}", outdir, outname).as_ref())
-    };
-
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/pro_collect.tera.sh")),
-    ])
-    .unwrap();
-
-    let rendered = tera.render("t", context).unwrap();
-    writer.write_all(rendered.as_ref())?;
-
-    Ok(())
-}
-
-//----------------------------
-// Protein/cluster.sh
-//----------------------------
-fn gen_pro_cluster(context: &Context) -> anyhow::Result<()> {
-    let outname = "cluster.sh";
-    eprintln!("Create Protein/{}", outname);
-
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-
-    let mut writer = if outdir == "stdout" {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/Protein/{}", outdir, outname).as_ref())
-    };
-
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/pro_cluster.tera.sh")),
-    ])
-    .unwrap();
-
-    let rendered = tera.render("t", context).unwrap();
-    writer.write_all(rendered.as_ref())?;
-
-    Ok(())
-}
-
-//----------------------------
-// Protein/info.sh
-//----------------------------
-fn gen_pro_info(context: &Context) -> anyhow::Result<()> {
-    let outname = "info.sh";
-    eprintln!("Create Protein/{}", outname);
-
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-
-    let mut writer = if outdir == "stdout" {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/Protein/{}", outdir, outname).as_ref())
-    };
-
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/pro_info.tera.sh")),
-    ])
-    .unwrap();
-
-    let rendered = tera.render("t", context).unwrap();
-    writer.write_all(rendered.as_ref())?;
-
-    Ok(())
-}
-
-//----------------------------
-// Protein/count.sh
-//----------------------------
-fn gen_pro_count(context: &Context) -> anyhow::Result<()> {
-    let outname = "count.sh";
-    eprintln!("Create Protein/{}", outname);
-
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-
-    let mut writer = if outdir == "stdout" {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/Protein/{}", outdir, outname).as_ref())
-    };
-
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", include_str!("../../templates/pro_count.tera.sh")),
-    ])
-    .unwrap();
-
-    let rendered = tera.render("t", context).unwrap();
-    writer.write_all(rendered.as_ref())?;
 
     Ok(())
 }
