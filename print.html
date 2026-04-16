@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-4752db73.js";
+            window.path_to_searchindex_js = "searchindex-abfc047f.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-6f521977.js"></script>
@@ -290,7 +290,7 @@ cargo run --bin nwr seqdb -d ${SPECIES} --init --strain
 
 cargo run --bin nwr seqdb -d ${SPECIES} \
     --size &lt;(
-        hnsm size ${SPECIES}/pro.fa.gz
+        pgr fa size ${SPECIES}/pro.fa.gz
     ) \
     --clust
 
