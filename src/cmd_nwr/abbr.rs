@@ -1,7 +1,40 @@
 use clap::*;
+use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::HashMap;
 use std::io::BufRead;
+
+lazy_static! {
+    static ref SUBSPECIES_REGEXS: Vec<Regex> = {
+        let patterns = [
+            "subsp",
+            "serovar",
+            "str",
+            "strain",
+            "substr",
+            "serotype",
+            "biovar",
+            "var",
+            "group",
+            "variant",
+            "genomovar",
+            "genomosp",
+            "breed",
+            "cultivar",
+            "ecotype",
+            "n/a",
+            "NA",
+            "microbial",
+            "clinical",
+            "pathogenic",
+            "isolate",
+        ];
+        patterns
+            .iter()
+            .filter_map(|p| Regex::new(&format!(r"(?i)\b{}\b", regex::escape(p))).ok())
+            .collect()
+    };
+}
 
 /// Structure to hold name parts
 struct NameParts {
@@ -188,16 +221,20 @@ fn abbr_most(words: &[String], min_len: usize, creat: bool) -> HashMap<String, S
 /// # Returns
 /// The cleaned name containing only alphanumeric characters and single underscores
 fn clean_name(name: &str) -> String {
-    let cleaned: String = name
-        .chars()
-        .map(|c| if c.is_alphanumeric() { c } else { '_' })
-        .collect();
-    // Collapse consecutive underscores into a single one
-    let mut result = cleaned;
-    while result.contains("__") {
-        result = result.replace("__", "_");
+    let mut result = String::with_capacity(name.len());
+    let mut prev_underscore = false;
+
+    for c in name.chars() {
+        if c.is_alphanumeric() {
+            result.push(c);
+            prev_underscore = false;
+        } else if !prev_underscore && !result.is_empty() {
+            result.push('_');
+            prev_underscore = true;
+        }
     }
-    result.trim_matches('_').to_string()
+
+    result
 }
 
 /// Clean subspecies parts using word boundary regex (equivalent to Perl \b).
@@ -211,37 +248,9 @@ fn clean_name(name: &str) -> String {
 /// # Returns
 /// The strain name with subspecies designations removed
 fn clean_subspecies(strain: &str) -> String {
-    let patterns = [
-        "subsp",
-        "serovar",
-        "str",
-        "strain",
-        "substr",
-        "serotype",
-        "biovar",
-        "var",
-        "group",
-        "variant",
-        "genomovar",
-        "genomosp",
-        "breed",
-        "cultivar",
-        "ecotype",
-        "n/a",
-        "NA",
-        "microbial",
-        "clinical",
-        "pathogenic",
-        "isolate",
-    ];
-
     let mut result = strain.to_string();
-    for pattern in &patterns {
-        // Create regex with word boundaries, case-insensitive
-        let regex_str = format!(r"(?i)\b{}\b", regex::escape(pattern));
-        if let Ok(re) = Regex::new(&regex_str) {
-            result = re.replace_all(&result, "").to_string();
-        }
+    for re in SUBSPECIES_REGEXS.iter() {
+        result = re.replace_all(&result, "").to_string();
     }
     result
 }
