@@ -221,20 +221,16 @@ fn abbr_most(words: &[String], min_len: usize, creat: bool) -> HashMap<String, S
 /// # Returns
 /// The cleaned name containing only alphanumeric characters and single underscores
 fn clean_name(name: &str) -> String {
-    let mut result = String::with_capacity(name.len());
-    let mut prev_underscore = false;
-
-    for c in name.chars() {
-        if c.is_alphanumeric() {
-            result.push(c);
-            prev_underscore = false;
-        } else if !prev_underscore && !result.is_empty() {
-            result.push('_');
-            prev_underscore = true;
-        }
+    let cleaned: String = name
+        .chars()
+        .map(|c| if c.is_alphanumeric() { c } else { '_' })
+        .collect();
+    // Collapse consecutive underscores into a single one
+    let mut result = cleaned;
+    while result.contains("__") {
+        result = result.replace("__", "_");
     }
-
-    result
+    result.trim_matches('_').to_string()
 }
 
 /// Clean subspecies parts using word boundary regex (equivalent to Perl \b).

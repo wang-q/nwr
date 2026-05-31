@@ -56,6 +56,25 @@ fn command_abbr_shortsub() -> anyhow::Result<()> {
 }
 
 #[test]
+fn command_abbr_shortsub_no_double_underscore() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("abbr")
+        .arg("tests/nwr/strains_shortsub.tsv")
+        .arg("--shortsub")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    // When species is "sp." and shortsub removes it, strain becomes "TW21990-1"
+    // Should produce "T_sp_TW21990_1" not "T_sp__TW21990_1" (no double underscore)
+    assert!(stdout.contains("T_sp_TW21990_1"));
+    assert!(!stdout.contains("T_sp__TW21990"));
+
+    Ok(())
+}
+
+#[test]
 fn command_abbr_custom_min() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
