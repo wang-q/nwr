@@ -23,43 +23,14 @@ cat species.tsv |
 mash triangle -E -p {{ parallel }} -l msh.lst \
     > mash.dist.tsv
 
-log_info Fill distance matrix with lower triangle
-tva select -f 1-3 mash.dist.tsv |
-    (tva select -f 2,1,3 mash.dist.tsv && cat) |
-    (
-        cut -f 1 mash.dist.tsv |
-            tva uniq |
-            parallel -j 1 --keep-order 'echo -e "{}\t{}\t0"' &&
-        cat
-    ) \
-    > mash.dist_full.tsv
+log_info Pairwise distances to phylip matrix
+pgr mat to-phylip mash.dist.tsv -o mash.dist.phylip
 
-log_info "Clustering via R hclust(), and grouping by cutree(h={{ mh_height }})"
-cat mash.dist_full.tsv |
-    Rscript -e '
-        library(readr);
-        library(tidyr);
-        library(ape);
+log_info "Clustering via pgr clust hier --method ward"
+pgr clust hier --method ward mash.dist.phylip -o tree.nwk
 
-        pair_dist <- read_tsv(file("stdin"), col_names=F);
-        tmp <- pair_dist %>%
-            pivot_wider( names_from = X2, values_from = X3, values_fill = list(X3 = 1.0) )
-        tmp <- as.matrix(tmp)
-        mat <- tmp[,-1]
-        rownames(mat) <- tmp[,1]
-
-        dist_mat <- as.dist(mat)
-        clusters <- hclust(dist_mat, method = "ward.D2")
-        tree <- as.phylo(clusters)
-        write.tree(phy=tree, file="tree.nwk")
-
-        group <- cutree(clusters, h={{ mh_height }})
-        groups <- as.data.frame(group)
-        groups$ids <- rownames(groups)
-        rownames(groups) <- NULL
-        groups <- groups[order(groups$group), ]
-        write_tsv(groups, "groups.tsv")
-    '
+log_info "Grouping by pgr clust cut --height {{ mh_height }}"
+pgr clust cut --height {{ mh_height }} tree.nwk -o groups.tsv
 
 log_info Done.
 
