@@ -84,7 +84,7 @@ cat species-f.tsv |
             --min-seq-id 0.95 -c 0.95
 
         rm "{}"/rep_all_seqs.fasta
-        pgr fa gz "{}"/rep_rep_seq.fasta -o "{}"/rep_seq.fa
+        pgr fa gz "{}"/rep_rep_seq.fasta -o "{}"/rep_seq.fa.gz
         rm "{}"/rep_rep_seq.fasta
     '
 
