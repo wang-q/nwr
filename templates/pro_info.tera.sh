@@ -77,7 +77,7 @@ while read SPECIES; do
 
     nwr seqdb -d ${SPECIES} \
         --size <(
-            hnsm size ${SPECIES}/pro.fa.gz
+            pgr fa size ${SPECIES}/pro.fa.gz
         ) \
         --clust
 

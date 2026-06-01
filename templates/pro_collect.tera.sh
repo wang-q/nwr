@@ -98,8 +98,8 @@ while read SPECIES; do
 
             gzip -dcf ../ASSEMBLY/{2}/{1}/*_protein.faa.gz
         ' |
-        hnsm filter stdin -u |
-        hnsm gz stdin -p 4 -o "${SPECIES}"/pro.fa
+        pgr fa filter stdin -u |
+        pgr fa gz stdin -p 4 -o "${SPECIES}"/pro.fa
 
     tva select -f 1,3 "${SPECIES}"/detail.tsv | tva uniq | gzip > "${SPECIES}"/anno.tsv.gz
     tva select -f 1,2 "${SPECIES}"/detail.tsv | tva uniq | gzip > "${SPECIES}"/asmseq.tsv.gz
