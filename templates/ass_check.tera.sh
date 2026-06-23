@@ -25,25 +25,7 @@ cat url.tsv |
         cd "{3}/{1}"
         md5sum --check <(
             cat md5checksums.txt |
-                grep -v "assembly_structure" |
-                grep -v "Evidence_alignments" |
-                grep -v "Gnomon_models" |
-                grep -v "RNASeq_coverage_graphs" |
-                grep -v "RefSeq_transcripts_alignments" |
-                grep -v "annotation_hashes.txt" |
-                grep -v "_ani_contam_ranges.tsv" |
-                grep -v "_ani_report.txt" |
-                grep -v "assembly_status.txt" |
-                grep -v "_assembly_stats.txt" |
-                grep -v "_fcs_report.txt" |
-                grep -v "_feature_table.txt.gz" |
-                grep -v "_genomic_gaps.txt.gz" |
-                grep -v "_genomic.gbff.gz" |
-                grep -v "_genomic.gtf.gz" |
-                grep -v "_protein.gpff.gz" |
-                grep -v "_translated_cds.faa.gz" |
-                grep -v "_wgsmaster.gbff.gz" |
-                grep -v "uncompressed_checksums.txt"
+                grep -E "(_assembly_report\.txt|_feature_count\.txt\.gz|_genomic\.fna\.gz|_genomic\.gff\.gz|_protein\.faa\.gz)$"
             ) --status
         if [ "$?" -eq "0" ]; then
             echo "{1}" >> ../../check.lst
