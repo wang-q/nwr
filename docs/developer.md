@@ -1,12 +1,12 @@
 # 开发者文档
 
-本文档为 clmd 项目开发者提供内部指南和开发工具。
+本文档为 nwr 项目开发者提供内部指南和开发工具。
 
 ## Changelog
 
 ```bash
-git log v0.8.5..HEAD > gitlog.txt
-git diff v0.8.5 HEAD -- "*.rs" "*.md" > gitdiff.txt
+git log v0.9.0..HEAD > gitlog.txt
+git diff v0.9.0 HEAD -- "*.rs" "*.md" > gitdiff.txt
 ```
 
 ## Code coverage
