@@ -59,7 +59,7 @@ jobs:
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: nwr.tar.gz
-          asset_name: nwr-x86_64-apple-darwin.tar.gz
+          asset_name: nwr-aarch64-apple-darwin.tar.gz
           tag: ${{ github.ref }}
           overwrite: true
   windows:
