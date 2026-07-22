@@ -129,7 +129,7 @@ pub fn run(nwrdir: &std::path::Path) -> anyhow::Result<()> {
 
             stmt.execute(rusqlite::params![tax_id, name, name_class])?;
 
-            if i > 0 && i % 10000 == 0 {
+            if i > 0 && i.is_multiple_of(10000) {
                 print!(".");
                 std::io::stdout().flush()?;
             }
@@ -196,7 +196,7 @@ pub fn run(nwrdir: &std::path::Path) -> anyhow::Result<()> {
                 comments
             ])?;
 
-            if i > 0 && i % 10000 == 0 {
+            if i > 0 && i.is_multiple_of(10000) {
                 print!(".");
                 std::io::stdout().flush()?;
             }

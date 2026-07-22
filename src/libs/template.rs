@@ -33,6 +33,13 @@ pub fn validate_shell_safe(s: &str) -> anyhow::Result<&str> {
     if s.is_empty() {
         return Err(anyhow::anyhow!("Shell-safe identifier must not be empty"));
     }
+    // Reject "." and ".." to prevent path traversal when used as file/directory names.
+    if s == "." || s == ".." {
+        return Err(anyhow::anyhow!(
+            "Shell-safe identifier must not be '.' or '..': '{}'",
+            s
+        ));
+    }
     if s.chars()
         .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-' || c == '.')
     {
@@ -499,6 +506,11 @@ pub fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
 
         writeln!(writer, "{}\t{}\t{}", key, url, species)?;
     }
+
+    // Flush url.tsv before creating the second writer so buffered data is not
+    // silently lost (BufWriter swallows flush errors on drop) if the next
+    // open_writer call fails.
+    writer.flush()?;
 
     let mut writer_rsync = open_writer(outdir, "ASSEMBLY", outname_rsync)?;
     for (key, value) in ass_url_of {
