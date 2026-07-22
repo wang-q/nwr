@@ -238,7 +238,7 @@ pub fn insert_strain(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<
         rank_stmt.execute([&rank])?;
         asm_stmt.execute(rusqlite::params![&strain, &rank])?;
 
-        if i > 0 && i % 10000 == 0 {
+        if i > 0 && i.is_multiple_of(10000) {
             print!(".");
             std::io::stdout().flush()?;
         }
@@ -274,7 +274,7 @@ pub fn insert_size(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<()
 
         stmt.execute(rusqlite::params![&name, size])?;
 
-        if i > 0 && i % 10000 == 0 {
+        if i > 0 && i.is_multiple_of(10000) {
             print!(".");
             std::io::stdout().flush()?;
         }
@@ -329,7 +329,7 @@ pub fn insert_clust(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<(
         rep_stmt.execute([&rep])?;
         rep_seq_stmt.execute(rusqlite::params![&rep, &seq])?;
 
-        if i > 0 && i % 10000 == 0 {
+        if i > 0 && i.is_multiple_of(10000) {
             print!(".");
             std::io::stdout().flush()?;
         }
@@ -375,7 +375,7 @@ pub fn insert_anno(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<()
 
         stmt.execute(rusqlite::params![&anno, &name])?;
 
-        if i > 0 && i % 10000 == 0 {
+        if i > 0 && i.is_multiple_of(10000) {
             print!(".");
             std::io::stdout().flush()?;
         }
@@ -440,7 +440,7 @@ pub fn insert_asmseq(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<
 
         stmt.execute(rusqlite::params![&asm, &seq])?;
 
-        if i > 0 && i % 10000 == 0 {
+        if i > 0 && i.is_multiple_of(10000) {
             print!(".");
             std::io::stdout().flush()?;
         }
@@ -481,7 +481,7 @@ pub fn insert_rep(
 
         stmt.execute(rusqlite::params![&value, &rep])?;
 
-        if i > 0 && i % 10000 == 0 {
+        if i > 0 && i.is_multiple_of(10000) {
             print!(".");
             std::io::stdout().flush()?;
         }

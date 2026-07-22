@@ -172,8 +172,7 @@ pub fn get_tax_id(
     let mut stmt = conn.prepare(
         "
         SELECT tax_id FROM name
-        WHERE 1=1
-        AND name_class IN ('scientific name', 'synonym', 'genbank synonym')
+        WHERE name_class IN ('scientific name', 'synonym', 'genbank synonym')
         AND name=?
         ORDER BY tax_id
         ",
@@ -282,12 +281,23 @@ pub fn get_taxon(
         }
     }
 
+    // When the caller passes duplicate IDs, we must keep the map intact so
+    // every occurrence can be resolved. In the common (no-duplicates) case we
+    // drain the map via `remove` to avoid cloning each `Taxon` (which owns a
+    // `HashMap` of names) — a significant win for large clade queries.
+    let has_duplicates = ids.len() != unique_ids.len();
     let mut taxa = Vec::with_capacity(ids.len());
     for id in ids {
-        let taxon = taxa_map
-            .get(id)
-            .ok_or_else(|| anyhow::anyhow!("No such ID: {}", id))?
-            .clone();
+        let taxon = if has_duplicates {
+            taxa_map
+                .get(id)
+                .ok_or_else(|| anyhow::anyhow!("No such ID: {}", id))?
+                .clone()
+        } else {
+            taxa_map
+                .remove(id)
+                .ok_or_else(|| anyhow::anyhow!("No such ID: {}", id))?
+        };
         taxa.push(taxon);
     }
 

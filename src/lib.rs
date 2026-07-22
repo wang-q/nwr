@@ -4,8 +4,6 @@
 //! Subcommand implementations are split into [`libs`] modules; thin CLI
 //! handlers live in [`cmd_nwr`](crate) (binary-only).
 
-extern crate log;
-
 /// Internal shared libraries used by `nwr` subcommands.
 pub mod libs;
 

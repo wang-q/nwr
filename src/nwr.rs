@@ -1,4 +1,3 @@
-extern crate clap;
 use clap::*;
 
 pub mod cmd_nwr;

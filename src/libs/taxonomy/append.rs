@@ -83,9 +83,9 @@ pub fn run(options: &AppendOptions) -> anyhow::Result<()> {
 
             if options.ranks.is_empty() {
                 let node = match crate::get_taxon(&conn, &[id]) {
-                    Ok(x) => x.into_iter().next().ok_or_else(|| {
-                        anyhow::anyhow!("No taxon found for ID: {}", id)
-                    })?,
+                    Ok(x) => x.into_iter().next().expect(
+                        "get_taxon returns one element for non-empty input slice",
+                    ),
                     Err(err) => {
                         warn!("Error getting taxon {}: {}", id, err);
                         continue 'line;
