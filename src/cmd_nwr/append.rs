@@ -72,7 +72,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         .cloned()
         .collect();
 
-    nwr::libs::append::run(&nwr::libs::append::AppendOptions {
+    nwr::libs::taxonomy::append::run(&nwr::libs::taxonomy::append::AppendOptions {
         nwrdir,
         infiles,
         outfile: args.get_one::<String>("outfile").unwrap().clone(),

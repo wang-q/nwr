@@ -179,3 +179,17 @@ fn command_abbr_invalid_column_format() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn command_abbr_zero_column() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    cmd.arg("abbr")
+        .arg("tests/nwr/strains.tsv")
+        .arg("--column")
+        .arg("0,2,3")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("positive integer"));
+
+    Ok(())
+}

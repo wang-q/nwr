@@ -28,5 +28,5 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     let nwrdir = nwr::get_nwr_dir(args, "dir")?;
     let tx_conn = nwr::connect_txdb(&nwrdir)?;
-    nwr::libs::ardb::run(&nwrdir, args.get_flag("genbank"), &tx_conn)
+    nwr::libs::db::ardb::run(&nwrdir, args.get_flag("genbank"), &tx_conn)
 }

@@ -83,7 +83,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
     }
 
-    nwr::libs::abbr::run(&nwr::libs::abbr::AbbrOptions {
+    nwr::libs::taxonomy::abbr::run(&nwr::libs::taxonomy::abbr::AbbrOptions {
         infile: args.get_one::<String>("infile").unwrap().clone(),
         outfile: args.get_one::<String>("outfile").unwrap().clone(),
         columns: (cols[0], cols[1], cols[2]),
@@ -92,22 +92,4 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         tight: args.get_flag("tight"),
         shortsub: args.get_flag("shortsub"),
     })
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_abbr_with_zero_column() {
-        let cmd = make_subcommand();
-        let matches = cmd
-            .try_get_matches_from(["abbr", "tests/nwr/strains.tsv", "--column", "0,2,3"])
-            .unwrap();
-
-        let result = execute(&matches);
-        assert!(result.is_err());
-        let err_msg = result.unwrap_err().to_string();
-        assert!(err_msg.contains("positive integer"));
-    }
 }

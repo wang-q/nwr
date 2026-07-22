@@ -54,6 +54,78 @@ fn command_lineage() -> anyhow::Result<()> {
 }
 
 #[test]
+fn command_lineage_tax_id() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("lineage")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("12347") // Actinophage JHJ-1
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert!(stdout.contains("12347"));
+
+    Ok(())
+}
+
+#[test]
+fn command_lineage_format() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("lineage")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("Viruses")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    for line in stdout.lines() {
+        let fields: Vec<&str> = line.split('\t').collect();
+        assert_eq!(fields.len(), 3);
+    }
+
+    Ok(())
+}
+
+#[test]
+fn command_lineage_root() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("lineage")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("root")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert_eq!(stdout.lines().count(), 1);
+    assert!(stdout.contains("1")); // Root tax_id
+
+    Ok(())
+}
+
+#[test]
+fn command_lineage_underscores() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("lineage")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("Lactobacillus_phage_mv4")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert!(stdout.contains("12392")); // Lactobacillus phage mv4
+
+    Ok(())
+}
+
+#[test]
 fn command_restrict() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd

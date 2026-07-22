@@ -21,5 +21,5 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     SimpleLogger::init(LevelFilter::Debug, Config::default())?;
 
     let nwrdir = nwr::get_nwr_dir(args, "dir")?;
-    nwr::libs::txdb::run(&nwrdir)
+    nwr::libs::db::txdb::run(&nwrdir)
 }

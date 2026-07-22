@@ -74,7 +74,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         .cloned()
         .collect();
 
-    nwr::libs::restrict::run(&nwr::libs::restrict::RestrictOptions {
+    nwr::libs::taxonomy::restrict::run(&nwr::libs::taxonomy::restrict::RestrictOptions {
         nwrdir,
         terms,
         files,

@@ -61,7 +61,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
     }
 
-    nwr::libs::member::run(&nwr::libs::member::MemberOptions {
+    nwr::libs::taxonomy::member::run(&nwr::libs::taxonomy::member::MemberOptions {
         nwrdir,
         terms,
         ranks,

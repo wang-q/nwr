@@ -100,7 +100,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         None
     };
 
-    nwr::libs::seqdb::run(&nwr::libs::seqdb::SeqdbOptions {
+    nwr::libs::db::seqdb::run(&nwr::libs::db::seqdb::SeqdbOptions {
         dir,
         is_init: args.get_flag("init"),
         opt_strain,
