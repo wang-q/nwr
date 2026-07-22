@@ -43,7 +43,7 @@ pub fn writer(output: &str) -> anyhow::Result<Box<dyn Write>> {
 /// Interval (in iterations) between progress dots printed by [`progress_dot`].
 const PROGRESS_INTERVAL: usize = 10000;
 
-/// Print a progress dot every [`PROGRESS_INTERVAL`] iterations.
+/// Print a progress dot every `PROGRESS_INTERVAL` iterations.
 ///
 /// Pass the current 0-based or 1-based loop counter as `i`; the leading dot
 /// at `i == 0` is suppressed so callers that enumerate from 0 do not emit a
