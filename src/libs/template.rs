@@ -182,7 +182,7 @@ pub fn run(options: &TemplateOptions) -> anyhow::Result<()> {
             };
 
             // ass
-            if options.do_ass && ass_url_of.contains_key(name) {
+            if ass_url_of.contains_key(name) {
                 eprintln!(
                     "Warning: duplicate strain name '{}', overwriting previous entry",
                     name
@@ -454,6 +454,7 @@ pub fn render_shell_script(
 
     let rendered = tera.render("t", context)?;
     writer.write_all(rendered.as_ref())?;
+    writer.flush()?;
 
     Ok(())
 }
@@ -517,6 +518,8 @@ pub fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
         let rsync = RE_URL.replace(url, "ftp.ncbi.nlm.nih.gov::");
         writer_rsync.write_all(format!("{}\t{}\t{}\n", key, rsync, species).as_ref())?;
     }
+    writer.flush()?;
+    writer_rsync.flush()?;
 
     Ok(())
 }
@@ -558,6 +561,7 @@ pub fn gen_bs_data(context: &Context) -> anyhow::Result<()> {
 
         writer.write_all(format!("{}\t{}\t{}\n", key, name, species).as_ref())?;
     }
+    writer.flush()?;
 
     Ok(())
 }
@@ -598,6 +602,7 @@ pub fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
 
         writer.write_all(format!("{}\t{}\t{}\n", key, species, level).as_ref())?;
     }
+    writer.flush()?;
 
     Ok(())
 }
@@ -627,6 +632,7 @@ pub fn gen_count_data(context: &Context) -> anyhow::Result<()> {
 
         writer.write_all(format!("{}\t{}\n", key, species).as_ref())?;
     }
+    writer.flush()?;
 
     Ok(())
 }
@@ -656,6 +662,7 @@ pub fn gen_pro_data(context: &Context) -> anyhow::Result<()> {
 
         writer.write_all(format!("{}\t{}\n", key, species).as_ref())?;
     }
+    writer.flush()?;
 
     Ok(())
 }

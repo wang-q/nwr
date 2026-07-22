@@ -72,6 +72,7 @@ pub fn run(options: &RestrictOptions) -> anyhow::Result<()> {
             }
         }
     }
+    writer.flush()?;
 
     Ok(())
 }

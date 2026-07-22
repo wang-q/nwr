@@ -119,6 +119,7 @@ pub fn run(options: &AppendOptions) -> anyhow::Result<()> {
             writer.write_fmt(format_args!("{}\n", new_line))?;
         }
     }
+    writer.flush()?;
 
     Ok(())
 }

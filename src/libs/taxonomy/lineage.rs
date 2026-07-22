@@ -29,6 +29,7 @@ pub fn run(options: &LineageOptions) -> anyhow::Result<()> {
             node.rank, sci_name, node.tax_id
         ))?;
     }
+    writer.flush()?;
 
     Ok(())
 }

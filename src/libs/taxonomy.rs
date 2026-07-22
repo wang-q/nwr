@@ -35,7 +35,7 @@ impl std::fmt::Display for Taxon {
 
         let sciname = self.scientific_name().unwrap_or("Unknown");
         let l1 = format!("{} - {}\n", sciname, self.rank);
-        let l2 = "-".repeat(l1.len() - 1);
+        let l2 = "-".repeat(l1.chars().count() - 1);
         lines.push_str(&l1);
         lines.push_str(&l2);
         write!(lines, "\nNCBI Taxonomy ID: {}\n", self.tax_id)?;
@@ -294,6 +294,13 @@ pub fn get_ancestor(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Taxo
         ",
     )?;
     let parent_id = stmt.query_row([id], |row| row.get(0))?;
+
+    // Only the canonical root (tax_id 1) may be self-referential. Any other
+    // node that is its own parent indicates corrupt data; bail out instead of
+    // returning the node itself as its own ancestor.
+    if parent_id == id {
+        anyhow::bail!("Taxon {} is its own parent (not root)", id);
+    }
 
     let ancestor = get_taxon(conn, &[parent_id])?
         .into_iter()

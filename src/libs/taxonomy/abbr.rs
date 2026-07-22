@@ -343,6 +343,7 @@ pub fn run(options: &AbbrOptions) -> anyhow::Result<()> {
 
         writer.write_fmt(format_args!("{}\t{}\n", original_line, abbr))?;
     }
+    writer.flush()?;
 
     Ok(())
 }
