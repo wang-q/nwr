@@ -203,7 +203,11 @@ pub fn process_line(
     }
 
     let fields: Vec<String> = line.split(separator).map(|s| s.to_string()).collect();
-    if fields.len() < columns.2 {
+    // Require enough fields for the largest requested column index; columns
+    // may be in any order (e.g. `--columns 3,2,1`), so checking only
+    // `columns.2` would under-validate.
+    let max_col = columns.0.max(columns.1).max(columns.2);
+    if fields.len() < max_col {
         return None;
     }
 
