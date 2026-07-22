@@ -539,7 +539,6 @@ pub fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
         let rsync = RE_URL.replace(url, "ftp.ncbi.nlm.nih.gov::");
         writeln!(writer_rsync, "{}\t{}\t{}", key, rsync, species)?;
     }
-    writer.flush()?;
     writer_rsync.flush()?;
 
     Ok(())
