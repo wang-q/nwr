@@ -1,6 +1,4 @@
 use clap::*;
-use std::collections::HashSet;
-use std::io::BufRead;
 
 /// Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
@@ -63,15 +61,7 @@ pub fn make_subcommand() -> Command {
 
 /// Command implementation
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    let infile = args.get_one::<String>("infile").unwrap();
-    let outfile = args.get_one::<String>("outfile").unwrap();
     let column_str = args.get_one::<String>("column").unwrap();
-    let separator = args.get_one::<String>("separator").unwrap();
-    let min_len: usize = *args.get_one("min").unwrap();
-    let tight = args.get_flag("tight");
-    let shortsub = args.get_flag("shortsub");
-
-    // Parse columns
     let cols: Vec<usize> = column_str
         .split(',')
         .map(|s| {
@@ -92,76 +82,16 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             ));
         }
     }
-    let columns = (cols[0], cols[1], cols[2]);
 
-    // Read all lines
-    let reader = intspan::reader(infile);
-    let mut all_fields: Vec<Vec<String>> = Vec::new();
-    let mut all_parts: Vec<nwr::libs::abbr::NameParts> = Vec::new();
-
-    for line in reader.lines() {
-        let line = line?;
-        if let Some((fields, parts)) =
-            nwr::libs::abbr::process_line(&line, columns, separator, shortsub)
-        {
-            all_fields.push(fields);
-            all_parts.push(parts);
-        }
-    }
-
-    // Collect unique genus and species for normal entries
-    let genus_list: Vec<String> = all_parts
-        .iter()
-        .filter(|p| p.is_normal)
-        .map(|p| p.genus.clone())
-        .collect::<HashSet<_>>()
-        .into_iter()
-        .collect();
-
-    let species_list: Vec<String> = all_parts
-        .iter()
-        .filter(|p| p.is_normal)
-        .map(|p| p.species.clone())
-        .filter(|s| !s.is_empty())
-        .collect::<HashSet<_>>()
-        .into_iter()
-        .collect();
-
-    // Generate abbreviations
-    let genus_abbr = nwr::libs::abbr::abbr_most(&genus_list, 1, true);
-    let species_abbr = nwr::libs::abbr::abbr_most(&species_list, min_len, true);
-
-    // Output results
-    let mut writer = intspan::writer(outfile);
-
-    for (i, parts) in all_parts.iter().enumerate() {
-        let fields = &all_fields[i];
-        let original_line = fields.join(separator);
-
-        let abbr = if parts.is_normal {
-            let spacer = if tight { "" } else { "_" };
-            let ge = genus_abbr.get(&parts.genus).unwrap_or(&parts.genus);
-            let sp = species_abbr.get(&parts.species).unwrap_or(&parts.species);
-
-            let ge_sp = if parts.species.is_empty() {
-                ge.to_string()
-            } else {
-                format!("{}{}{}", ge, spacer, sp)
-            };
-
-            if parts.strain.is_empty() {
-                ge_sp
-            } else {
-                format!("{}_{}", ge_sp, parts.strain)
-            }
-        } else {
-            parts.strain.clone()
-        };
-
-        writer.write_fmt(format_args!("{}\t{}\n", original_line, abbr))?;
-    }
-
-    Ok(())
+    nwr::libs::abbr::run(&nwr::libs::abbr::AbbrOptions {
+        infile: args.get_one::<String>("infile").unwrap().clone(),
+        outfile: args.get_one::<String>("outfile").unwrap().clone(),
+        columns: (cols[0], cols[1], cols[2]),
+        separator: args.get_one::<String>("separator").unwrap().clone(),
+        min_len: *args.get_one("min").unwrap(),
+        tight: args.get_flag("tight"),
+        shortsub: args.get_flag("shortsub"),
+    })
 }
 
 #[cfg(test)]
