@@ -91,6 +91,41 @@ pub fn open_writer(
     }
 }
 
+/// Retrieve the `outdir` string from a Tera context.
+fn get_outdir(context: &Context) -> anyhow::Result<&str> {
+    context
+        .get("outdir")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' in template context"))
+}
+
+/// Write a two-column `species.tsv` (`key<TAB>species`) from a single map in
+/// the context. Used by the Count and Protein output stages.
+fn write_species_tsv(
+    context: &Context,
+    subdir: &str,
+    map_key: &str,
+) -> anyhow::Result<()> {
+    let outname = "species.tsv";
+    eprintln!("Create {}/{}", subdir, outname);
+
+    let outdir = get_outdir(context)?;
+    let map = context
+        .get(map_key)
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| anyhow::anyhow!("Missing '{}' in template context", map_key))?;
+
+    let mut writer = open_writer(outdir, subdir, outname)?;
+    for (key, value) in map {
+        let species = value.as_str().ok_or_else(|| {
+            anyhow::anyhow!("'{}' value for '{}' is not a string", map_key, key)
+        })?;
+        writeln!(writer, "{}\t{}", key, species)?;
+    }
+    writer.flush()?;
+    Ok(())
+}
+
 /// Parsed options for template generation.
 pub struct TemplateOptions {
     /// Output directory (or "stdout" for dry-run output).
@@ -197,18 +232,20 @@ pub fn run(options: &TemplateOptions) -> anyhow::Result<()> {
             };
 
             // ass
-            if ass_url_of.contains_key(name) {
-                eprintln!(
-                    "Warning: duplicate strain name '{}', overwriting previous entry",
-                    name
-                );
+            if options.do_ass {
+                if ass_url_of.contains_key(name) {
+                    eprintln!(
+                        "Warning: duplicate strain name '{}', overwriting previous entry",
+                        name
+                    );
+                }
+                ass_url_of.insert(name.to_string(), url.to_string());
+                ass_species_of.insert(name.to_string(), species_.to_string());
             }
-            ass_url_of.insert(name.to_string(), url.to_string());
-            ass_species_of.insert(name.to_string(), species_.to_string());
 
             // bs
-            if !sample.is_empty() {
-                if options.do_bs && bs_name_of.contains_key(sample) {
+            if options.do_bs && !sample.is_empty() {
+                if bs_name_of.contains_key(sample) {
                     eprintln!(
                         "Warning: duplicate sample name '{}', overwriting previous entry",
                         sample
@@ -220,14 +257,20 @@ pub fn run(options: &TemplateOptions) -> anyhow::Result<()> {
 
             // mh, count, pro: keyed by `name`; duplicate warnings already
             // emitted by the `ass` block above.
-            mh_species_of.insert(name.to_string(), species_.to_string());
-            mh_level_of.insert(name.to_string(), level.to_string());
+            if options.do_mh {
+                mh_species_of.insert(name.to_string(), species_.to_string());
+                mh_level_of.insert(name.to_string(), level.to_string());
+            }
 
             // count
-            count_species_of.insert(name.to_string(), species_.to_string());
+            if options.do_count {
+                count_species_of.insert(name.to_string(), species_.to_string());
+            }
 
             // pro
-            pro_species_of.insert(name.to_string(), species_.to_string());
+            if options.do_pro {
+                pro_species_of.insert(name.to_string(), species_.to_string());
+            }
         }
     }
 
@@ -455,10 +498,7 @@ pub fn render_shell_script(
 ) -> anyhow::Result<()> {
     eprintln!("Create {}/{}", subdir, outname);
 
-    let outdir = context
-        .get("outdir")
-        .and_then(|v| v.as_str())
-        .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' in template context"))?;
+    let outdir = get_outdir(context)?;
 
     let mut writer = open_writer(outdir, subdir, outname)?;
 
@@ -482,10 +522,7 @@ pub fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
     eprintln!("Create ASSEMBLY/{}", outname);
     eprintln!("Create ASSEMBLY/{}", outname_rsync);
 
-    let outdir = context
-        .get("outdir")
-        .and_then(|v| v.as_str())
-        .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' in template context"))?;
+    let outdir = get_outdir(context)?;
     let ass_url_of = context
         .get("ass_url_of")
         .and_then(|v| v.as_object())
@@ -549,10 +586,7 @@ pub fn gen_bs_data(context: &Context) -> anyhow::Result<()> {
     let outname = "sample.tsv";
     eprintln!("Create BioSample/{}", outname);
 
-    let outdir = context
-        .get("outdir")
-        .and_then(|v| v.as_str())
-        .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' in template context"))?;
+    let outdir = get_outdir(context)?;
     let bs_name_of = context
         .get("bs_name_of")
         .and_then(|v| v.as_object())
@@ -591,10 +625,7 @@ pub fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
     let outname = "species.tsv";
     eprintln!("Create MinHash/{}", outname);
 
-    let outdir = context
-        .get("outdir")
-        .and_then(|v| v.as_str())
-        .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' in template context"))?;
+    let outdir = get_outdir(context)?;
     let mh_species_of = context
         .get("mh_species_of")
         .and_then(|v| v.as_object())
@@ -629,60 +660,10 @@ pub fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
 
 /// Generate Count/species.tsv.
 pub fn gen_count_data(context: &Context) -> anyhow::Result<()> {
-    let outname = "species.tsv";
-    eprintln!("Create Count/{}", outname);
-
-    let outdir = context
-        .get("outdir")
-        .and_then(|v| v.as_str())
-        .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' in template context"))?;
-    let count_species_of = context
-        .get("count_species_of")
-        .and_then(|v| v.as_object())
-        .ok_or_else(|| {
-            anyhow::anyhow!("Missing 'count_species_of' in template context")
-        })?;
-
-    let mut writer = open_writer(outdir, "Count", outname)?;
-
-    for (key, value) in count_species_of {
-        let species = value.as_str().ok_or_else(|| {
-            anyhow::anyhow!("count_species_of value for '{}' is not a string", key)
-        })?;
-
-        writeln!(writer, "{}\t{}", key, species)?;
-    }
-    writer.flush()?;
-
-    Ok(())
+    write_species_tsv(context, "Count", "count_species_of")
 }
 
 /// Generate Protein/species.tsv.
 pub fn gen_pro_data(context: &Context) -> anyhow::Result<()> {
-    let outname = "species.tsv";
-    eprintln!("Create Protein/{}", outname);
-
-    let outdir = context
-        .get("outdir")
-        .and_then(|v| v.as_str())
-        .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' in template context"))?;
-    let species_of = context
-        .get("pro_species_of")
-        .and_then(|v| v.as_object())
-        .ok_or_else(|| {
-            anyhow::anyhow!("Missing 'pro_species_of' in template context")
-        })?;
-
-    let mut writer = open_writer(outdir, "Protein", outname)?;
-
-    for (key, value) in species_of {
-        let species = value.as_str().ok_or_else(|| {
-            anyhow::anyhow!("pro_species_of value for '{}' is not a string", key)
-        })?;
-
-        writeln!(writer, "{}\t{}", key, species)?;
-    }
-    writer.flush()?;
-
-    Ok(())
+    write_species_tsv(context, "Protein", "pro_species_of")
 }

@@ -458,6 +458,8 @@ pub fn insert_rep(
         .from_reader(dmp);
 
     let mut stmt = conn.prepare(rep_update_sql(field)?)?;
+    let mut rep_exists =
+        conn.prepare("SELECT EXISTS(SELECT 1 FROM rep WHERE name = ?1)")?;
 
     conn.execute_batch("BEGIN;")?;
     // Empty the field before updating so that the clear and the following
@@ -468,6 +470,8 @@ pub fn insert_rep(
         require_min_fields(&record, 2, i, path)?;
         let value: String = record[0].trim().to_string();
         let rep: String = record[1].trim().to_string();
+
+        ensure_exists(&mut rep_exists, &rep, "rep", i, path)?;
 
         stmt.execute(rusqlite::params![&value, &rep])?;
 

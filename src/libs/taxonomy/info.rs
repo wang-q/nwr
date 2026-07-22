@@ -41,7 +41,10 @@ pub fn run(options: &InfoOptions) -> anyhow::Result<()> {
         }
         wtr.flush()?;
     } else {
-        for node in nodes.iter() {
+        for (i, node) in nodes.iter().enumerate() {
+            if i > 0 {
+                writer.write_all(b"\n")?;
+            }
             writer.write_fmt(format_args!("{}", node))?;
         }
         writer.flush()?;

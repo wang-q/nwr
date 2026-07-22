@@ -88,7 +88,7 @@ impl std::fmt::Display for Taxon {
             let _ = writeln!(lines, "\nComments: {}", comments);
         }
 
-        writeln!(f, "{}", lines)
+        write!(f, "{}", lines)
     }
 }
 
