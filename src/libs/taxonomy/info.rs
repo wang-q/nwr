@@ -17,7 +17,7 @@ pub struct InfoOptions {
 /// Resolves each term against the taxonomy database and writes either a
 /// human-readable report or a TSV record for each taxon.
 pub fn run(options: &InfoOptions) -> anyhow::Result<()> {
-    let mut writer = intspan::writer(&options.outfile);
+    let mut writer = crate::libs::io::writer(&options.outfile)?;
 
     let conn = crate::connect_txdb(&options.nwrdir)?;
 

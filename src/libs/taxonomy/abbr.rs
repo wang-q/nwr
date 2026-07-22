@@ -281,8 +281,8 @@ pub fn run(options: &AbbrOptions) -> anyhow::Result<()> {
         ));
     }
 
-    let reader = intspan::reader(&options.infile);
-    let mut writer = intspan::writer(&options.outfile);
+    let reader = crate::libs::io::reader(&options.infile)?;
+    let mut writer = crate::libs::io::writer(&options.outfile)?;
 
     let mut all_fields: Vec<Vec<String>> = Vec::new();
     let mut all_parts: Vec<NameParts> = Vec::new();

@@ -15,7 +15,7 @@ pub struct LineageOptions {
 /// Resolves the term to a taxon ID, fetches the full lineage to the root,
 /// and writes one TSV line per ancestor.
 pub fn run(options: &LineageOptions) -> anyhow::Result<()> {
-    let mut writer = intspan::writer(&options.outfile);
+    let mut writer = crate::libs::io::writer(&options.outfile)?;
 
     let conn = crate::connect_txdb(&options.nwrdir)?;
 

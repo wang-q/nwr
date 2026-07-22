@@ -62,16 +62,17 @@ pub const STDOUT_MARKER: &str = "stdout";
 
 /// Create a writer for the given output location.
 /// When `outdir` equals `STDOUT_MARKER`, writes to stdout; otherwise writes
-/// to `{outdir}/{subdir}/{outname}`.
+/// to `{outdir}/{subdir}/{outname}`. Returns an error instead of panicking
+/// when the output file cannot be created.
 pub fn open_writer(
     outdir: &str,
     subdir: &str,
     outname: &str,
-) -> Box<dyn std::io::Write> {
+) -> anyhow::Result<Box<dyn std::io::Write>> {
     if outdir == STDOUT_MARKER {
-        intspan::writer("stdout")
+        crate::libs::io::writer("stdout")
     } else {
-        intspan::writer(format!("{}/{}/{}", outdir, subdir, outname).as_ref())
+        crate::libs::io::writer(format!("{}/{}/{}", outdir, subdir, outname).as_ref())
     }
 }
 
@@ -137,7 +138,7 @@ pub fn run(options: &TemplateOptions) -> anyhow::Result<()> {
     let mut pro_species_of = BTreeMap::new();
 
     for infile in &options.infiles {
-        let reader = intspan::reader(infile);
+        let reader = crate::libs::io::reader(infile)?;
         for line in reader.lines() {
             let line = line?;
             if line.starts_with('#') {
@@ -181,7 +182,7 @@ pub fn run(options: &TemplateOptions) -> anyhow::Result<()> {
             };
 
             // ass
-            if ass_url_of.contains_key(name) {
+            if options.do_ass && ass_url_of.contains_key(name) {
                 eprintln!(
                     "Warning: duplicate strain name '{}', overwriting previous entry",
                     name
@@ -443,7 +444,7 @@ pub fn render_shell_script(
         .and_then(|v| v.as_str())
         .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' in template context"))?;
 
-    let mut writer = open_writer(outdir, subdir, outname);
+    let mut writer = open_writer(outdir, subdir, outname)?;
 
     let mut tera = Tera::default();
     tera.add_raw_templates(vec![
@@ -479,7 +480,7 @@ pub fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
             anyhow::anyhow!("Missing 'ass_species_of' in template context")
         })?;
 
-    let mut writer = open_writer(outdir, "ASSEMBLY", outname);
+    let mut writer = open_writer(outdir, "ASSEMBLY", outname)?;
 
     for (key, value) in ass_url_of {
         let url = value.as_str().ok_or_else(|| {
@@ -498,7 +499,7 @@ pub fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
         writer.write_all(format!("{}\t{}\t{}\n", key, url, species).as_ref())?;
     }
 
-    let mut writer_rsync = open_writer(outdir, "ASSEMBLY", outname_rsync);
+    let mut writer_rsync = open_writer(outdir, "ASSEMBLY", outname_rsync)?;
     for (key, value) in ass_url_of {
         let url = value.as_str().ok_or_else(|| {
             anyhow::anyhow!("ass_url_of value for '{}' is not a string", key)
@@ -538,7 +539,7 @@ pub fn gen_bs_data(context: &Context) -> anyhow::Result<()> {
         .and_then(|v| v.as_object())
         .ok_or_else(|| anyhow::anyhow!("Missing 'bs_species_of' in template context"))?;
 
-    let mut writer = open_writer(outdir, "BioSample", outname);
+    let mut writer = open_writer(outdir, "BioSample", outname)?;
 
     for (key, value) in bs_name_of {
         let name = value.as_str().ok_or_else(|| {
@@ -579,7 +580,7 @@ pub fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
         .and_then(|v| v.as_object())
         .ok_or_else(|| anyhow::anyhow!("Missing 'mh_level_of' in template context"))?;
 
-    let mut writer = open_writer(outdir, "MinHash", outname);
+    let mut writer = open_writer(outdir, "MinHash", outname)?;
 
     for (key, value) in mh_species_of {
         let species = value.as_str().ok_or_else(|| {
@@ -617,7 +618,7 @@ pub fn gen_count_data(context: &Context) -> anyhow::Result<()> {
             anyhow::anyhow!("Missing 'count_species_of' in template context")
         })?;
 
-    let mut writer = open_writer(outdir, "Count", outname);
+    let mut writer = open_writer(outdir, "Count", outname)?;
 
     for (key, value) in count_species_of {
         let species = value.as_str().ok_or_else(|| {
@@ -646,7 +647,7 @@ pub fn gen_pro_data(context: &Context) -> anyhow::Result<()> {
             anyhow::anyhow!("Missing 'pro_species_of' in template context")
         })?;
 
-    let mut writer = open_writer(outdir, "Protein", outname);
+    let mut writer = open_writer(outdir, "Protein", outname)?;
 
     for (key, value) in species_of {
         let species = value.as_str().ok_or_else(|| {

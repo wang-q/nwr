@@ -19,7 +19,7 @@ pub struct CommonOptions {
 /// the taxonomy database in `nwrdir`, and the resulting Newick string is written
 /// to `outfile` followed by a newline.
 pub fn run(options: &CommonOptions) -> anyhow::Result<()> {
-    let mut writer = intspan::writer(&options.outfile);
+    let mut writer = crate::libs::io::writer(&options.outfile)?;
     let conn = crate::connect_txdb(&options.nwrdir)?;
 
     let mut tax_ids = vec![];

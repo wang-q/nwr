@@ -22,7 +22,7 @@ pub struct MemberOptions {
 /// `is_env` false, members from the "Environmental samples" division are
 /// skipped.
 pub fn run(options: &MemberOptions) -> anyhow::Result<()> {
-    let writer = intspan::writer(&options.outfile);
+    let writer = crate::libs::io::writer(&options.outfile)?;
 
     let conn = crate::connect_txdb(&options.nwrdir)?;
 

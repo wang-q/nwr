@@ -32,7 +32,7 @@ pub fn run(options: &RestrictOptions) -> anyhow::Result<()> {
         ));
     }
 
-    let mut writer = intspan::writer(&options.outfile);
+    let mut writer = crate::libs::io::writer(&options.outfile)?;
 
     let conn = crate::connect_txdb(&options.nwrdir)?;
 
@@ -44,7 +44,7 @@ pub fn run(options: &RestrictOptions) -> anyhow::Result<()> {
     }
 
     for infile in &options.files {
-        let reader = intspan::reader(infile);
+        let reader = crate::libs::io::reader(infile)?;
         for line in reader.lines() {
             let line = line?;
 
