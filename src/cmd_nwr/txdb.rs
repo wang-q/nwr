@@ -145,6 +145,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 std::io::stdout().flush()?;
             }
         }
+        println!();
         conn.execute_batch("COMMIT;")?;
 
         debug!("Creating indexes for name");
@@ -197,6 +198,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 std::io::stdout().flush()?;
             }
         }
+        println!();
         conn.execute_batch("COMMIT;")?;
 
         debug!("Creating indexes for node");

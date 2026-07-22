@@ -140,7 +140,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 let lineage = match nwr::get_lineage(&conn, id) {
                     Err(err) => {
                         warn!("Errors on get_lineage({}): {}", id, err);
-                        continue;
+                        continue 'line;
                     }
                     Ok(x) => x,
                 };

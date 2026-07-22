@@ -1,4 +1,3 @@
-use itertools::Itertools;
 use std::collections::HashMap;
 use std::fmt::Write as FmtWrite;
 use std::io::Write;
@@ -341,7 +340,7 @@ pub fn get_lineage(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<T
         id = parent_id;
     }
 
-    let ids: Vec<_> = ids.into_iter().unique().collect();
+    // `ids` is already unique: the `seen` set rejects duplicates above.
     let mut lineage = get_taxon(conn, &ids)?;
     lineage.reverse();
 
@@ -428,7 +427,7 @@ pub fn get_all_descendent(
         }
     }
 
-    let ids: Vec<_> = ids.into_iter().unique().collect();
+    // `ids` is already unique: the `seen` set rejects duplicates above.
     Ok(ids)
 }
 

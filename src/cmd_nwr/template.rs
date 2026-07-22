@@ -100,6 +100,17 @@ fn validate_relative_path(s: &str) -> anyhow::Result<&str> {
 /// Marker value for stdout output mode.
 const STDOUT_MARKER: &str = "stdout";
 
+/// Create a writer for the given output location.
+/// When `outdir` equals `STDOUT_MARKER`, writes to stdout; otherwise writes
+/// to `{outdir}/{subdir}/{outname}`.
+fn open_writer(outdir: &str, subdir: &str, outname: &str) -> Box<dyn std::io::Write> {
+    if outdir == STDOUT_MARKER {
+        intspan::writer("stdout")
+    } else {
+        intspan::writer(format!("{}/{}/{}", outdir, subdir, outname).as_ref())
+    }
+}
+
 // Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
     Command::new("template")
@@ -599,11 +610,7 @@ fn render_shell_script(
         .and_then(|v| v.as_str())
         .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' in template context"))?;
 
-    let mut writer = if outdir == STDOUT_MARKER {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/{}/{}", outdir, subdir, outname).as_ref())
-    };
+    let mut writer = open_writer(outdir, subdir, outname);
 
     let mut tera = Tera::default();
     tera.add_raw_templates(vec![
@@ -630,17 +637,9 @@ fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
     let ass_url_of = context.get("ass_url_of").unwrap().as_object().unwrap();
     let ass_species_of = context.get("ass_species_of").unwrap().as_object().unwrap();
 
-    let mut writer = if outdir == STDOUT_MARKER {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/ASSEMBLY/{}", outdir, outname).as_ref())
-    };
+    let mut writer = open_writer(outdir, "ASSEMBLY", outname);
 
-    let mut writer_rsync = if outdir == STDOUT_MARKER {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/ASSEMBLY/{}", outdir, outname_rsync).as_ref())
-    };
+    let mut writer_rsync = open_writer(outdir, "ASSEMBLY", outname_rsync);
 
     for (key, value) in ass_url_of {
         let url = value.as_str().unwrap();
@@ -670,11 +669,7 @@ fn gen_bs_data(context: &Context) -> anyhow::Result<()> {
     let bs_name_of = context.get("bs_name_of").unwrap().as_object().unwrap();
     let bs_species_of = context.get("bs_species_of").unwrap().as_object().unwrap();
 
-    let mut writer = if outdir == STDOUT_MARKER {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/BioSample/{}", outdir, outname).as_ref())
-    };
+    let mut writer = open_writer(outdir, "BioSample", outname);
 
     for (key, value) in bs_name_of {
         let name = value.as_str().unwrap();
@@ -697,11 +692,7 @@ fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
     let mh_species_of = context.get("mh_species_of").unwrap().as_object().unwrap();
     let mh_level_of = context.get("mh_level_of").unwrap().as_object().unwrap();
 
-    let mut writer = if outdir == STDOUT_MARKER {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/MinHash/{}", outdir, outname).as_ref())
-    };
+    let mut writer = open_writer(outdir, "MinHash", outname);
 
     for (key, value) in mh_species_of {
         let species = value.as_str().unwrap();
@@ -727,11 +718,7 @@ fn gen_count_data(context: &Context) -> anyhow::Result<()> {
         .as_object()
         .unwrap();
 
-    let mut writer = if outdir == STDOUT_MARKER {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/Count/{}", outdir, outname).as_ref())
-    };
+    let mut writer = open_writer(outdir, "Count", outname);
 
     for (key, value) in count_species_of {
         let species = value.as_str().unwrap();
@@ -752,11 +739,7 @@ fn gen_pro_data(context: &Context) -> anyhow::Result<()> {
     let outdir = context.get("outdir").unwrap().as_str().unwrap();
     let species_of = context.get("pro_species_of").unwrap().as_object().unwrap();
 
-    let mut writer = if outdir == STDOUT_MARKER {
-        intspan::writer("stdout")
-    } else {
-        intspan::writer(format!("{}/Protein/{}", outdir, outname).as_ref())
-    };
+    let mut writer = open_writer(outdir, "Protein", outname);
 
     for (key, value) in species_of {
         let species = value.as_str().unwrap();

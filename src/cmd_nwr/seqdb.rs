@@ -360,6 +360,7 @@ fn insert_size(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Resu
             std::io::stdout().flush()?;
         }
     }
+    println!();
     conn.execute_batch("COMMIT;")?;
 
     Ok(())
@@ -400,6 +401,7 @@ fn insert_clust(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Res
             std::io::stdout().flush()?;
         }
     }
+    println!();
     conn.execute_batch("COMMIT;")?;
 
     Ok(())
@@ -432,6 +434,7 @@ fn insert_anno(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Resu
             std::io::stdout().flush()?;
         }
     }
+    println!();
     conn.execute_batch("COMMIT;")?;
 
     Ok(())
@@ -474,6 +477,7 @@ fn insert_asmseq(
             std::io::stdout().flush()?;
         }
     }
+    println!();
     conn.execute_batch("COMMIT;")?;
 
     Ok(())
@@ -516,6 +520,7 @@ fn insert_rep(
             std::io::stdout().flush()?;
         }
     }
+    println!();
     conn.execute_batch("COMMIT;")?;
 
     Ok(())
