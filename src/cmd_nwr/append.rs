@@ -1,6 +1,4 @@
 use clap::*;
-use log::warn;
-use std::io::BufRead;
 
 // Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
@@ -57,18 +55,9 @@ pub fn make_subcommand() -> Command {
 
 // command implementation
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    let mut writer = intspan::writer(args.get_one::<String>("outfile").unwrap());
-
-    let column: usize = *args.get_one("column").unwrap();
-    if column == 0 {
-        return Err(anyhow::anyhow!(
-            "Column must be a positive integer (1-based)"
-        ));
-    }
-
     let nwrdir = nwr::get_nwr_dir(args, "dir")?;
 
-    let conn = nwr::connect_txdb(&nwrdir)?;
+    let column: usize = *args.get_one("column").unwrap();
 
     let mut ranks = vec![];
     if args.contains_id("rank") {
@@ -76,295 +65,19 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             ranks.push(rank.to_string());
         }
     }
-    let is_id = args.get_flag("id");
 
-    for infile in args.get_many::<String>("infiles").unwrap() {
-        let reader = intspan::reader(infile);
+    let infiles: Vec<String> = args
+        .get_many::<String>("infiles")
+        .unwrap()
+        .cloned()
+        .collect();
 
-        'line: for line in reader.lines() {
-            let line = line?;
-
-            // Lines start with "#"
-            if line.starts_with('#') {
-                let mut fields: Vec<String> =
-                    line.split('\t').map(|s| s.to_string()).collect();
-                if ranks.is_empty() {
-                    fields.push("sci_name".to_string());
-                    if is_id {
-                        fields.push("tax_id".to_string());
-                    }
-                } else {
-                    for rank in ranks.iter() {
-                        fields.push(rank.to_string());
-                        if is_id {
-                            fields.push(format!("{}_id", rank));
-                        }
-                    }
-                }
-                let new_line: String = fields.join("\t");
-                writer.write_fmt(format_args!("{}\n", new_line))?;
-                continue;
-            }
-
-            let mut fields: Vec<String> =
-                line.split('\t').map(|s| s.to_string()).collect();
-            // Normal lines
-            // Check the given field
-            let term = fields.get(column - 1).ok_or_else(|| {
-                anyhow::anyhow!(
-                    "Column {} out of range (line has {} columns)",
-                    column,
-                    fields.len()
-                )
-            })?;
-            let id = match nwr::term_to_tax_id(&conn, term) {
-                Ok(x) => x,
-                Err(err) => {
-                    warn!("Error converting term '{}': {}", term, err);
-                    continue 'line;
-                }
-            };
-
-            if ranks.is_empty() {
-                let node = nwr::get_taxon(&conn, &[id])?
-                    .into_iter()
-                    .next()
-                    .ok_or_else(|| anyhow::anyhow!("No taxon found for ID: {}", id))?;
-                let s = node.scientific_name().unwrap_or("Unknown").to_string();
-
-                fields.push(s);
-                if is_id {
-                    fields.push(id.to_string());
-                }
-            } else {
-                let lineage = match nwr::get_lineage(&conn, id) {
-                    Err(err) => {
-                        warn!("Errors on get_lineage({}): {}", id, err);
-                        continue 'line;
-                    }
-                    Ok(x) => x,
-                };
-
-                for rank in ranks.iter() {
-                    let (tax_id, sci_name) = nwr::find_rank(&lineage, rank);
-                    fields.push(sci_name.to_string());
-                    if is_id {
-                        fields.push(format!("{}", tax_id));
-                    }
-                }
-            }
-
-            let new_line: String = fields.join("\t");
-            writer.write_fmt(format_args!("{}\n", new_line))?;
-        }
-    }
-
-    Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::io::Write;
-    use tempfile::TempDir;
-
-    #[test]
-    fn test_append_with_valid_taxon() {
-        let temp_dir = TempDir::new().unwrap();
-        let input_file = temp_dir.path().join("input.tsv");
-        let output_file = temp_dir.path().join("output.tsv");
-
-        // Create input file with a valid taxon name
-        let mut file = std::fs::File::create(&input_file).unwrap();
-        writeln!(file, "#header").unwrap();
-        writeln!(file, "Actinophage JHJ-1").unwrap();
-        drop(file);
-
-        // Create mock args for testing
-        let cmd = make_subcommand();
-        let matches = cmd
-            .try_get_matches_from([
-                "append",
-                "--dir",
-                "tests/nwr/",
-                "-o",
-                output_file.to_str().unwrap(),
-                input_file.to_str().unwrap(),
-            ])
-            .unwrap();
-
-        let result = execute(&matches);
-        assert!(result.is_ok());
-
-        // Check output
-        let output = std::fs::read_to_string(&output_file).unwrap();
-        assert!(output.contains("Actinophage JHJ-1"));
-        assert!(output.contains("sci_name"));
-    }
-
-    #[test]
-    fn test_append_with_invalid_taxon() {
-        let temp_dir = TempDir::new().unwrap();
-        let input_file = temp_dir.path().join("input.tsv");
-        let output_file = temp_dir.path().join("output.tsv");
-
-        // Create input file with an invalid taxon name
-        let mut file = std::fs::File::create(&input_file).unwrap();
-        writeln!(file, "#header").unwrap();
-        writeln!(file, "NonExistentTaxon12345").unwrap();
-        drop(file);
-
-        let cmd = make_subcommand();
-        let matches = cmd
-            .try_get_matches_from([
-                "append",
-                "--dir",
-                "tests/nwr/",
-                "-o",
-                output_file.to_str().unwrap(),
-                input_file.to_str().unwrap(),
-            ])
-            .unwrap();
-
-        let result = execute(&matches);
-        assert!(result.is_ok()); // Should not error, just skip invalid lines
-
-        let output = std::fs::read_to_string(&output_file).unwrap();
-        assert!(output.contains("#header"));
-        // Invalid line should be skipped
-        assert!(!output.contains("NonExistentTaxon12345"));
-    }
-
-    #[test]
-    fn test_append_with_column_option() {
-        let temp_dir = TempDir::new().unwrap();
-        let input_file = temp_dir.path().join("input.tsv");
-        let output_file = temp_dir.path().join("output.tsv");
-
-        let mut file = std::fs::File::create(&input_file).unwrap();
-        writeln!(file, "name\tvalue").unwrap();
-        writeln!(file, "other\tActinophage JHJ-1").unwrap();
-        drop(file);
-
-        let cmd = make_subcommand();
-        let matches = cmd
-            .try_get_matches_from([
-                "append",
-                "--dir",
-                "tests/nwr/",
-                "-c",
-                "2",
-                "-o",
-                output_file.to_str().unwrap(),
-                input_file.to_str().unwrap(),
-            ])
-            .unwrap();
-
-        let result = execute(&matches);
-        assert!(result.is_ok());
-
-        let output = std::fs::read_to_string(&output_file).unwrap();
-        assert!(output.contains("Actinophage JHJ-1"));
-    }
-
-    #[test]
-    fn test_append_with_rank_option() {
-        let temp_dir = TempDir::new().unwrap();
-        let input_file = temp_dir.path().join("input.tsv");
-        let output_file = temp_dir.path().join("output.tsv");
-
-        let mut file = std::fs::File::create(&input_file).unwrap();
-        writeln!(file, "#name").unwrap();
-        writeln!(file, "Actinophage JHJ-1").unwrap();
-        drop(file);
-
-        let cmd = make_subcommand();
-        let matches = cmd
-            .try_get_matches_from([
-                "append",
-                "--dir",
-                "tests/nwr/",
-                "-r",
-                "species",
-                "-r",
-                "family",
-                "-o",
-                output_file.to_str().unwrap(),
-                input_file.to_str().unwrap(),
-            ])
-            .unwrap();
-
-        let result = execute(&matches);
-        assert!(result.is_ok());
-
-        let output = std::fs::read_to_string(&output_file).unwrap();
-        assert!(output.contains("species"));
-        assert!(output.contains("family"));
-    }
-
-    #[test]
-    fn test_append_with_id_option() {
-        let temp_dir = TempDir::new().unwrap();
-        let input_file = temp_dir.path().join("input.tsv");
-        let output_file = temp_dir.path().join("output.tsv");
-
-        let mut file = std::fs::File::create(&input_file).unwrap();
-        writeln!(file, "#name").unwrap();
-        writeln!(file, "Actinophage JHJ-1").unwrap();
-        drop(file);
-
-        let cmd = make_subcommand();
-        let matches = cmd
-            .try_get_matches_from([
-                "append",
-                "--dir",
-                "tests/nwr/",
-                "-r",
-                "species",
-                "--id",
-                "-o",
-                output_file.to_str().unwrap(),
-                input_file.to_str().unwrap(),
-            ])
-            .unwrap();
-
-        let result = execute(&matches);
-        assert!(result.is_ok());
-
-        let output = std::fs::read_to_string(&output_file).unwrap();
-        assert!(output.contains("species_id"));
-    }
-
-    #[test]
-    fn test_append_with_zero_column() {
-        let cmd = make_subcommand();
-        let matches = cmd
-            .try_get_matches_from([
-                "append",
-                "--dir",
-                "tests/nwr/",
-                "-c",
-                "0",
-                "tests/nwr/strains.tsv",
-            ])
-            .unwrap();
-
-        let result = execute(&matches);
-        assert!(result.is_err());
-        let err_msg = result.unwrap_err().to_string();
-        assert!(err_msg.contains("positive integer"));
-    }
-
-    #[test]
-    fn test_append_with_stdin() {
-        // Test stdin input
-        let cmd = make_subcommand();
-        let matches = cmd
-            .try_get_matches_from(["append", "--dir", "tests/nwr/", "stdin"])
-            .unwrap();
-
-        // This would require mocking stdin, which is complex
-        // For now, just verify the command parses correctly
-        assert_eq!(matches.get_one::<String>("outfile").unwrap(), "stdout");
-    }
+    nwr::libs::append::run(&nwr::libs::append::AppendOptions {
+        nwrdir,
+        infiles,
+        outfile: args.get_one::<String>("outfile").unwrap().clone(),
+        column,
+        ranks,
+        is_id: args.get_flag("id"),
+    })
 }

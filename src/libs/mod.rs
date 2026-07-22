@@ -1,6 +1,10 @@
 pub mod abbr;
+pub mod append;
 pub mod ardb;
+pub mod common;
 pub mod download;
+pub mod member;
+pub mod restrict;
 pub mod seqdb;
 pub mod taxonomy;
 pub mod template;
