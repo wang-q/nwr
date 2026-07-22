@@ -239,7 +239,13 @@ pub fn insert_strain(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<
 
         rank_stmt.execute([&rank])?;
         asm_stmt.execute(rusqlite::params![&strain, &rank])?;
+
+        if i > 0 && i % 10000 == 0 {
+            print!(".");
+            std::io::stdout().flush()?;
+        }
     }
+    println!();
     conn.execute_batch("COMMIT;")?;
     Ok(())
 }

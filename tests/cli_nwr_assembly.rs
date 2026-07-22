@@ -16,7 +16,7 @@ fn command_template_ass() -> anyhow::Result<()> {
     let stdout = String::from_utf8(output.stdout).unwrap();
     let stderr = String::from_utf8(output.stderr).unwrap();
 
-    assert_eq!(stderr.lines().count(), 8);
+    assert_eq!(stderr.lines().count(), 9);
     assert!(stderr.contains("Create ASSEMBLY/url.tsv"));
     assert!(stderr.contains("Create ASSEMBLY/url_rsync.tsv"));
 
@@ -40,7 +40,7 @@ fn command_template_bs() -> anyhow::Result<()> {
     let stdout = String::from_utf8(output.stdout).unwrap();
     let stderr = String::from_utf8(output.stderr).unwrap();
 
-    assert_eq!(stderr.lines().count(), 3);
+    assert_eq!(stderr.lines().count(), 4);
     assert!(stderr.contains("Create BioSample/sample.tsv"));
 
     assert!(stdout.lines().count() > 100);
@@ -65,7 +65,7 @@ fn command_template_mh() -> anyhow::Result<()> {
     let stdout = String::from_utf8(output.stdout).unwrap();
     let stderr = String::from_utf8(output.stderr).unwrap();
 
-    assert_eq!(stderr.lines().count(), 5);
+    assert_eq!(stderr.lines().count(), 6);
     assert!(stderr.contains("Create MinHash/species.tsv"));
 
     assert!(stdout.lines().count() > 100);

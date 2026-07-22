@@ -57,48 +57,6 @@ pub fn validate_no_control_chars(s: &str) -> anyhow::Result<&str> {
     Ok(s)
 }
 
-/// Validate that a string is safe to use as a shell/Perl identifier.
-/// Only ASCII alphanumeric characters and underscores are allowed so the
-/// value can be used as a filename stem and as a Perl variable name.
-pub fn validate_identifier(s: &str) -> anyhow::Result<&str> {
-    if s.is_empty() {
-        return Err(anyhow::anyhow!("Identifier must not be empty"));
-    }
-    if s.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
-        Ok(s)
-    } else {
-        Err(anyhow::anyhow!(
-            "Identifier contains characters unsafe for shell/Perl usage: '{}'",
-            s
-        ))
-    }
-}
-
-/// Validate a relative file path used in generated shell scripts.
-/// Allows ASCII alphanumeric characters, underscores, hyphens, dots and
-/// forward slashes. Rejects absolute paths and shell metacharacters.
-pub fn validate_relative_path(s: &str) -> anyhow::Result<&str> {
-    if s.is_empty() {
-        return Err(anyhow::anyhow!("Path must not be empty"));
-    }
-    if s.starts_with('/') {
-        return Err(anyhow::anyhow!(
-            "Path must be relative, not absolute: '{}'",
-            s
-        ));
-    }
-    if s.chars().all(|c| {
-        c.is_ascii_alphanumeric() || c == '_' || c == '-' || c == '.' || c == '/'
-    }) {
-        Ok(s)
-    } else {
-        Err(anyhow::anyhow!(
-            "Path contains characters unsafe for shell usage: '{}'",
-            s
-        ))
-    }
-}
-
 /// Marker value for stdout output mode.
 pub const STDOUT_MARKER: &str = "stdout";
 
@@ -143,7 +101,7 @@ pub struct TemplateOptions {
     pub lineages: Vec<String>,
     /// Generate assembly scripts.
     pub do_ass: bool,
-    /// Generate bootstrap scripts.
+    /// Generate BioSample materials.
     pub do_bs: bool,
     /// Generate mash sketches.
     pub do_mh: bool,
@@ -157,7 +115,11 @@ pub struct TemplateOptions {
 pub fn run(options: &TemplateOptions) -> anyhow::Result<()> {
     let outdir = &options.outdir;
     let stdout_mode = outdir == STDOUT_MARKER;
-    if !stdout_mode {
+    if stdout_mode {
+        eprintln!(
+            "Warning: stdout mode produces concatenated output from multiple files"
+        );
+    } else {
         fs::create_dir_all(outdir)?;
     }
 
@@ -219,6 +181,12 @@ pub fn run(options: &TemplateOptions) -> anyhow::Result<()> {
             };
 
             // ass
+            if ass_url_of.contains_key(name) {
+                eprintln!(
+                    "Warning: duplicate strain name '{}', overwriting previous entry",
+                    name
+                );
+            }
             ass_url_of.insert(name.to_string(), url.to_string());
             ass_species_of.insert(name.to_string(), species_.to_string());
 
@@ -506,13 +474,18 @@ pub fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
         })?;
 
     let mut writer = open_writer(outdir, "ASSEMBLY", outname);
-    let mut writer_rsync = open_writer(outdir, "ASSEMBLY", outname_rsync);
 
     for (key, value) in ass_url_of {
         let url = value.as_str().unwrap();
         let species = ass_species_of.get(key).unwrap().as_str().unwrap();
 
         writer.write_all(format!("{}\t{}\t{}\n", key, url, species).as_ref())?;
+    }
+
+    let mut writer_rsync = open_writer(outdir, "ASSEMBLY", outname_rsync);
+    for (key, value) in ass_url_of {
+        let url = value.as_str().unwrap();
+        let species = ass_species_of.get(key).unwrap().as_str().unwrap();
 
         let rsync = RE_URL.replace(url, "ftp.ncbi.nlm.nih.gov::");
         writer_rsync.write_all(format!("{}\t{}\t{}\n", key, rsync, species).as_ref())?;

@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::fmt::Write as FmtWrite;
-use std::io::Write;
 use std::path::Path;
 
 /// A single NCBI taxonomy node with its names and lineage metadata.
@@ -498,61 +497,6 @@ pub fn find_rank(lineage: &[Taxon], rank: &str) -> (i64, String) {
     (tax_id, sci_name)
 }
 
-/// Helper function to handle batch execution of SQL statements.
-///
-/// Call this once per iteration. When the loop ends, call
-/// [`batch_exec_finalize`] to commit any remaining statements.
-///
-/// ```
-/// let path = std::path::PathBuf::from("tests/nwr/");
-/// let conn = nwr::connect_txdb(&path).unwrap();
-/// let mut stmts = vec![String::from("BEGIN;")];
-/// stmts.push(String::from("SELECT 1;"));
-/// let result = nwr::batch_exec(&conn, &mut stmts, 1001);
-/// assert!(result.is_ok());
-/// let result = nwr::batch_exec_finalize(&conn, &mut stmts);
-/// assert!(result.is_ok());
-/// ```
-pub fn batch_exec(
-    conn: &rusqlite::Connection,
-    stmts: &mut Vec<String>,
-    i: usize,
-) -> anyhow::Result<()> {
-    if i > 1 && i.is_multiple_of(1000) {
-        stmts.push(String::from("COMMIT;"));
-        let stmt = &stmts.join("\n");
-        conn.execute_batch(stmt)?;
-        stmts.clear();
-        stmts.push(String::from("BEGIN;"));
-    }
-    if i > 1 && i.is_multiple_of(10000) {
-        print!(".");
-        std::io::stdout().flush()?; // Ensure the dot is printed immediately
-    }
-    Ok(())
-}
-
-/// Commit any remaining statements produced by [`batch_exec`].
-///
-/// ```
-/// let path = std::path::PathBuf::from("tests/nwr/");
-/// let conn = nwr::connect_txdb(&path).unwrap();
-/// let mut stmts = vec![String::from("BEGIN;")];
-/// stmts.push(String::from("SELECT 1;"));
-/// let result = nwr::batch_exec_finalize(&conn, &mut stmts);
-/// assert!(result.is_ok());
-/// ```
-pub fn batch_exec_finalize(
-    conn: &rusqlite::Connection,
-    stmts: &mut Vec<String>,
-) -> anyhow::Result<()> {
-    stmts.push(String::from("COMMIT;"));
-    let stmt = &stmts.join("\n");
-    conn.execute_batch(stmt)?;
-    println!("\n    Finished");
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -620,52 +564,6 @@ mod tests {
         let (tax_id, sci_name) = find_rank(&lineage, "kingdom");
         assert_eq!(tax_id, 0);
         assert_eq!(sci_name, "NA");
-    }
-
-    #[test]
-    fn test_batch_exec_with_commit() {
-        let path = std::path::PathBuf::from("tests/nwr/");
-        let conn = connect_txdb(&path).unwrap();
-        let mut stmts = vec![String::from("BEGIN;")];
-
-        // Test at 1000 boundary - should trigger COMMIT
-        let result = batch_exec(&conn, &mut stmts, 1001);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_batch_exec_with_progress() {
-        let path = std::path::PathBuf::from("tests/nwr/");
-        let conn = connect_txdb(&path).unwrap();
-        let mut stmts = vec![String::from("BEGIN;")];
-
-        // Test at 10000 boundary - should print progress dot
-        let result = batch_exec(&conn, &mut stmts, 10001);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_batch_exec_with_finalize() {
-        let path = std::path::PathBuf::from("tests/nwr/");
-        let conn = connect_txdb(&path).unwrap();
-        let mut stmts = vec![String::from("BEGIN;")];
-
-        // Test finalization with batch_exec_finalize
-        let result = batch_exec_finalize(&conn, &mut stmts);
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_batch_exec_normal_iteration() {
-        let path = std::path::PathBuf::from("tests/nwr/");
-        let conn = connect_txdb(&path).unwrap();
-        let mut stmts = vec![String::from("BEGIN;")];
-
-        // Test normal iteration (no special boundary)
-        let result = batch_exec(&conn, &mut stmts, 500);
-        assert!(result.is_ok());
-        // Statements should not be cleared at 500
-        assert_eq!(stmts.len(), 1);
     }
 
     #[test]
