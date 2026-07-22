@@ -16,32 +16,32 @@ pub fn make_subcommand() -> Command {
                 .index(1),
         )
         .arg(
-            Arg::new("outfile")
+            Arg::new("outdir")
                 .short('o')
-                .long("outfile")
+                .long("outdir")
                 .num_args(1)
-                .default_value("stdout")
-                .help("Output filename (default: stdout)"),
+                .default_value(".")
+                .help("Output directory (default: current directory)"),
         )
 }
 
 // command implementation
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    let outfile = args.get_one::<String>("outfile").unwrap();
+    let outdir = args.get_one::<String>("outdir").unwrap();
 
     static FILE_BAC: &[u8] = include_bytes!("../../docs/bac120.tar.gz");
     static FILE_AR: &[u8] = include_bytes!("../../docs/ar53.tar.gz");
 
     match args.get_one::<String>("infile").unwrap().as_ref() {
         "bac120" => {
-            fs::create_dir_all(outfile)?;
+            fs::create_dir_all(outdir)?;
             let mut archive = Archive::new(GzDecoder::new(FILE_BAC));
-            archive.unpack(outfile)?;
+            archive.unpack(outdir)?;
         }
         "ar53" => {
-            fs::create_dir_all(outfile)?;
+            fs::create_dir_all(outdir)?;
             let mut archive = Archive::new(GzDecoder::new(FILE_AR));
-            archive.unpack(outfile)?;
+            archive.unpack(outdir)?;
         }
         _ => {
             return Err(anyhow::anyhow!(

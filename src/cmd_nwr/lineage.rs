@@ -21,12 +21,6 @@ pub fn make_subcommand() -> Command {
                 .help("Specify the NWR data directory"),
         )
         .arg(
-            Arg::new("tsv")
-                .long("tsv")
-                .action(ArgAction::SetTrue)
-                .help("Output the results as TSV"),
-        )
-        .arg(
             Arg::new("outfile")
                 .short('o')
                 .long("outfile")
@@ -52,12 +46,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let lineage = nwr::get_lineage(&conn, id)?;
 
     for node in lineage.iter() {
-        let sci_name = node
-            .names
-            .get("scientific name")
-            .and_then(|v| v.first())
-            .map(|s| s.as_str())
-            .unwrap_or("Unknown");
+        let sci_name = node.scientific_name().unwrap_or("Unknown");
         writer.write_fmt(format_args!(
             "{}\t{}\t{}\n",
             node.rank, sci_name, node.tax_id
@@ -124,7 +113,7 @@ mod tests {
     }
 
     #[test]
-    fn test_lineage_tsv_format() {
+    fn test_lineage_default_format() {
         let temp_dir = TempDir::new().unwrap();
         let output_file = temp_dir.path().join("output.tsv");
 
@@ -134,7 +123,6 @@ mod tests {
                 "lineage",
                 "--dir",
                 "tests/nwr/",
-                "--tsv",
                 "-o",
                 output_file.to_str().unwrap(),
                 "Viruses",
@@ -145,7 +133,7 @@ mod tests {
         assert!(result.is_ok());
 
         let output = std::fs::read_to_string(&output_file).unwrap();
-        // TSV format should have rank, name, and tax_id columns
+        // Default format should have rank, name, and tax_id columns
         for line in output.lines() {
             let fields: Vec<&str> = line.split('\t').collect();
             assert_eq!(fields.len(), 3);

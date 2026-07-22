@@ -7,9 +7,12 @@ use std::path::PathBuf;
 /// Valid field names for the rep table
 const VALID_REP_FIELDS: &[&str] = &["f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8"];
 
-/// Validate that a field name is allowed for the rep table
+/// Validate that a field name is allowed for the rep table.
+/// Only simple ASCII identifiers in the whitelist are accepted so that the
+/// field can safely be used as a column name in static SQL statements.
 fn validate_rep_field(field: &str) -> anyhow::Result<&str> {
-    if VALID_REP_FIELDS.contains(&field) {
+    let is_safe = field.chars().all(|c| c.is_ascii_alphanumeric() || c == '_');
+    if is_safe && VALID_REP_FIELDS.contains(&field) {
         Ok(field)
     } else {
         Err(anyhow::anyhow!(
@@ -17,6 +20,36 @@ fn validate_rep_field(field: &str) -> anyhow::Result<&str> {
             field,
             VALID_REP_FIELDS
         ))
+    }
+}
+
+/// Return the static SQL used to clear a rep field.
+fn rep_clear_sql(field: &str) -> &'static str {
+    match field {
+        "f1" => "UPDATE rep SET f1 = NULL;",
+        "f2" => "UPDATE rep SET f2 = NULL;",
+        "f3" => "UPDATE rep SET f3 = NULL;",
+        "f4" => "UPDATE rep SET f4 = NULL;",
+        "f5" => "UPDATE rep SET f5 = NULL;",
+        "f6" => "UPDATE rep SET f6 = NULL;",
+        "f7" => "UPDATE rep SET f7 = NULL;",
+        "f8" => "UPDATE rep SET f8 = NULL;",
+        _ => unreachable!("field was validated"),
+    }
+}
+
+/// Return the static SQL used to update a rep field.
+fn rep_update_sql(field: &str) -> &'static str {
+    match field {
+        "f1" => "UPDATE rep SET f1 = ?1 WHERE rep.name = ?2",
+        "f2" => "UPDATE rep SET f2 = ?1 WHERE rep.name = ?2",
+        "f3" => "UPDATE rep SET f3 = ?1 WHERE rep.name = ?2",
+        "f4" => "UPDATE rep SET f4 = ?1 WHERE rep.name = ?2",
+        "f5" => "UPDATE rep SET f5 = ?1 WHERE rep.name = ?2",
+        "f6" => "UPDATE rep SET f6 = ?1 WHERE rep.name = ?2",
+        "f7" => "UPDATE rep SET f7 = ?1 WHERE rep.name = ?2",
+        "f8" => "UPDATE rep SET f8 = ?1 WHERE rep.name = ?2",
+        _ => unreachable!("field was validated"),
     }
 }
 
@@ -190,10 +223,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     };
     let opt_rep = if args.contains_id("rep") {
         let rep = args.get_one::<String>("rep").unwrap();
-        let pos = rep
-            .find('=')
-            .ok_or_else(|| format!("invalid KEY=value: no `=` found in `{rep}`"))
-            .unwrap();
+        let pos = rep.find('=').ok_or_else(|| {
+            anyhow::anyhow!("invalid KEY=value: no `=` found in `{rep}`")
+        })?;
         (rep[..pos].to_string(), rep[pos + 1..].to_string())
     } else {
         (String::new(), String::new())
@@ -202,7 +234,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     //----------------------------
     // Ops
     //----------------------------
-    let _ = SimpleLogger::init(LevelFilter::Debug, Config::default());
+    SimpleLogger::init(LevelFilter::Debug, Config::default())?;
 
     let db = dir.join("seq.sqlite");
     if is_init && db.exists() {
@@ -296,8 +328,14 @@ fn insert_strain(
     )?;
 
     conn.execute_batch("BEGIN;")?;
-    for result in tsv_rdr.records() {
+    for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
+        if record.len() < 2 {
+            return Err(anyhow::anyhow!(
+                "Line {} in strains.tsv has fewer than 2 columns",
+                i + 1
+            ));
+        }
         let strain: String = record[0].trim().parse()?;
         let rank: String = record[1].trim().parse()?;
 
@@ -320,6 +358,12 @@ fn insert_size(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Resu
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
+        if record.len() < 2 {
+            return Err(anyhow::anyhow!(
+                "Line {} in sizes.tsv has fewer than 2 columns",
+                i + 1
+            ));
+        }
         let name: String = record[0].trim().parse()?;
         let size: i64 = record[1].trim().parse()?;
 
@@ -353,6 +397,12 @@ fn insert_clust(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Res
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
+        if record.len() < 2 {
+            return Err(anyhow::anyhow!(
+                "Line {} in rep_cluster.tsv has fewer than 2 columns",
+                i + 1
+            ));
+        }
         let rep: String = record[0].trim().parse()?;
         let seq: String = record[1].trim().parse()?;
 
@@ -380,6 +430,12 @@ fn insert_anno(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Resu
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
+        if record.len() < 2 {
+            return Err(anyhow::anyhow!(
+                "Line {} in anno.tsv has fewer than 2 columns",
+                i + 1
+            ));
+        }
         let name: String = record[0].trim().parse()?;
         let anno: String = record[1].trim().parse()?;
 
@@ -414,6 +470,12 @@ fn insert_asmseq(
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
+        if record.len() < 2 {
+            return Err(anyhow::anyhow!(
+                "Line {} in asmseq.tsv has fewer than 2 columns",
+                i + 1
+            ));
+        }
 
         // sequence name, assembly name
         let seq: String = record[0].trim().parse()?;
@@ -440,26 +502,24 @@ fn insert_rep(
     let field = validate_rep_field(field)?;
 
     // empty field before updating
-    conn.execute_batch(&format!(
-        "
-        UPDATE rep
-        SET {} = NULL;
-        ",
-        field
-    ))?;
+    conn.execute_batch(rep_clear_sql(field))?;
 
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
         .from_reader(dmp);
 
-    // Use parameterized query with dynamic column name
-    let sql = format!("UPDATE rep SET {} = ?1 WHERE rep.name = ?2", field);
-    let mut stmt = conn.prepare(&sql)?;
+    let mut stmt = conn.prepare(rep_update_sql(field))?;
 
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
+        if record.len() < 2 {
+            return Err(anyhow::anyhow!(
+                "Line {} in rep file has fewer than 2 columns",
+                i + 1
+            ));
+        }
         let family: String = record[0].trim().parse()?;
         let rep: String = record[1].trim().parse()?;
 

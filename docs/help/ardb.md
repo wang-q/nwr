@@ -53,17 +53,13 @@ Appended Columns:
 
 Filtered Strains:
 
-Incompetent strains matching the following regexes in their `organism_name` are removed:
+Incompetent strains matching the following regex in their `organism_name` are removed:
 
-    \bCandidatus\b
-    \bcandidate\b
-    \buncultured\b
-    \bunidentified\b
-    \bbacterium\b
-    \barchaeon\b
-    \bmetagenome\b
-    virus\b
-    phage\b
+    \b(uncultured|unidentified|bacterium|archaeon|metagenome)\b
+
+Viral strains matching the following regex in their `organism_name` are also removed:
+
+    (virus|phage)\b
 
 Requirements:
 

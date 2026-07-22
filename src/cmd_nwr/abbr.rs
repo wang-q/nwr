@@ -225,12 +225,12 @@ fn clean_name(name: &str) -> String {
         .chars()
         .map(|c| if c.is_alphanumeric() { c } else { '_' })
         .collect();
-    // Collapse consecutive underscores into a single one
-    let mut result = cleaned;
-    while result.contains("__") {
-        result = result.replace("__", "_");
-    }
-    result.trim_matches('_').to_string()
+    // Collapse consecutive underscores into a single one and trim edges
+    cleaned
+        .split('_')
+        .filter(|s| !s.is_empty())
+        .collect::<Vec<_>>()
+        .join("_")
 }
 
 /// Clean subspecies parts using word boundary regex (equivalent to Perl \b).
@@ -288,29 +288,22 @@ fn process_line(
     let mut species_clean = species.clone();
     let mut genus_clean = genus.clone();
 
-    if genus != species {
+    let genus_starts_alpha = genus.chars().next()?.is_alphabetic();
+
+    if genus != species
+        && genus_starts_alpha
+        && species.starts_with(&genus)
+        && strain.starts_with(&species)
+    {
         // Normal case: genus starts with word char and species starts with genus
-        if genus.chars().next()?.is_alphabetic() {
-            if species.starts_with(&genus) {
-                if strain.starts_with(&species) {
-                    strain_clean =
-                        strain.trim_start_matches(&species).trim_start().to_string();
-                    species_clean =
-                        species.trim_start_matches(&genus).trim_start().to_string();
-                    is_normal = true;
-                }
-            }
-        }
-    } else {
+        strain_clean = strain.trim_start_matches(&species).trim_start().to_string();
+        species_clean = species.trim_start_matches(&genus).trim_start().to_string();
+        is_normal = true;
+    } else if genus == species && genus_starts_alpha && strain.starts_with(&genus) {
         // No species part
-        if genus.chars().next()?.is_alphabetic() {
-            if strain.starts_with(&genus) {
-                strain_clean =
-                    strain.trim_start_matches(&genus).trim_start().to_string();
-                species_clean = String::new();
-                is_normal = true;
-            }
-        }
+        strain_clean = strain.trim_start_matches(&genus).trim_start().to_string();
+        species_clean = String::new();
+        is_normal = true;
     }
 
     // Remove Candidatus
@@ -361,6 +354,14 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         return Err(anyhow::anyhow!(
             "Column must be in format 's,p,g' (three numbers)"
         ));
+    }
+    for (i, col) in cols.iter().enumerate() {
+        if *col == 0 {
+            return Err(anyhow::anyhow!(
+                "Column {} must be a positive integer (1-based)",
+                i + 1
+            ));
+        }
     }
     let columns = (cols[0], cols[1], cols[2]);
 
@@ -430,4 +431,22 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_abbr_with_zero_column() {
+        let cmd = make_subcommand();
+        let matches = cmd
+            .try_get_matches_from(["abbr", "tests/nwr/strains.tsv", "--column", "0,2,3"])
+            .unwrap();
+
+        let result = execute(&matches);
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err().to_string();
+        assert!(err_msg.contains("positive integer"));
+    }
 }

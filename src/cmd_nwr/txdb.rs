@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS name (
 
 // command implementation
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    let _ = SimpleLogger::init(LevelFilter::Debug, Config::default());
+    SimpleLogger::init(LevelFilter::Debug, Config::default())?;
 
     let nwrdir = nwr::get_nwr_dir(args, "dir")?;
     let file = nwrdir.join("taxonomy.sqlite");
@@ -92,6 +92,13 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         conn.execute_batch("BEGIN;")?;
         for result in tsv_rdr.records() {
             let record = result?;
+            if record.len() < 3 {
+                return Err(anyhow::anyhow!(
+                    "division.dmp record has {} fields, expected at least 3: {:?}",
+                    record.len(),
+                    record
+                ));
+            }
             let id: i64 = record[0].trim().parse()?;
             let name: String = record[2].trim().parse()?;
             stmt.execute(rusqlite::params![id, name])?;
@@ -117,6 +124,13 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         conn.execute_batch("BEGIN;")?;
         for (i, result) in tsv_rdr.records().enumerate() {
             let record = result?;
+            if record.len() < 4 {
+                return Err(anyhow::anyhow!(
+                    "names.dmp record has {} fields, expected at least 4: {:?}",
+                    record.len(),
+                    record
+                ));
+            }
 
             // tax_id, name, unique_name, name_class
             let tax_id: i64 = record[0].trim().parse()?;
@@ -153,6 +167,13 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         conn.execute_batch("BEGIN;")?;
         for (i, result) in tsv_rdr.records().enumerate() {
             let record = result?;
+            if record.len() < 13 {
+                return Err(anyhow::anyhow!(
+                    "nodes.dmp record has {} fields, expected at least 13: {:?}",
+                    record.len(),
+                    record
+                ));
+            }
 
             // tax_id, parent, rank, code, divid, undef, gen_code, undef, mito
             let tax_id: i64 = record[0].trim().parse()?;

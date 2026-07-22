@@ -106,14 +106,17 @@ fn command_abbr_stdin() -> anyhow::Result<()> {
         .spawn()
         .unwrap();
 
-    // Write to stdin
-    if let Some(ref mut stdin) = child.stdin {
+    // Write to stdin, then always wait for the child to avoid zombies
+    let write_result = if let Some(ref mut stdin) = child.stdin {
         stdin.write_all(
             b"#strain\tspecies\tgenus\nTest strain\tTest species\tTestgenus\n",
-        )?;
-    }
+        )
+    } else {
+        Ok(())
+    };
 
     let output = child.wait_with_output().unwrap();
+    write_result?;
     let stdout = String::from_utf8(output.stdout).unwrap();
 
     // Check stdin input works

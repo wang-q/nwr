@@ -86,12 +86,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 continue;
             }
 
-            let sci_name = node
-                .names
-                .get("scientific name")
-                .and_then(|v| v.first())
-                .map(|s| s.as_str())
-                .unwrap_or("Unknown");
+            let sci_name = node.scientific_name().unwrap_or("Unknown");
             tsv_wtr.serialize((node.tax_id, sci_name, &node.rank, &node.division))?;
         }
     }

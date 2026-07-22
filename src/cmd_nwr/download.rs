@@ -70,8 +70,19 @@ pub fn check_taxdump_md5(tarball: &Path, md5_file: &Path) -> anyhow::Result<()> 
     io::copy(&mut file, &mut hasher)?;
     let digest = format!("{:x}", hasher.compute());
 
-    let mut ncbi_digest = std::fs::read_to_string(md5_file)?;
-    ncbi_digest.truncate(32);
+    let ncbi_digest = std::fs::read_to_string(md5_file)?
+        .split_whitespace()
+        .next()
+        .ok_or_else(|| anyhow::anyhow!("MD5 file is empty: {}", md5_file.display()))?
+        .to_lowercase();
+
+    if ncbi_digest.len() != 32 {
+        return Err(anyhow::anyhow!(
+            "MD5 file has invalid checksum length: expected 32, got {} in {}",
+            ncbi_digest.len(),
+            md5_file.display()
+        ));
+    }
 
     if digest != ncbi_digest {
         Err(anyhow::anyhow!(
@@ -230,7 +241,7 @@ fn execute_internal<F>(args: &ArgMatches, mut conn_factory: F) -> anyhow::Result
 where
     F: FnMut(&str) -> anyhow::Result<Box<dyn FtpConnectionTrait>>,
 {
-    let _ = SimpleLogger::init(LevelFilter::Info, Config::default());
+    SimpleLogger::init(LevelFilter::Info, Config::default())?;
 
     let nwrdir = nwr::nwr_path()?;
     let paths = get_download_paths(&nwrdir)?;

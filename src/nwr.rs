@@ -54,8 +54,7 @@ fn main() -> anyhow::Result<()> {
         Some(("abbr", sub_matches)) => cmd_nwr::abbr::execute(sub_matches),
         Some(("kb", sub_matches)) => cmd_nwr::kb::execute(sub_matches),
         Some(("seqdb", sub_matches)) => cmd_nwr::seqdb::execute(sub_matches),
-        Some((cmd, _)) => Err(anyhow::anyhow!("Unknown subcommand: {}", cmd)),
-        None => Err(anyhow::anyhow!("No subcommand provided")),
+        _ => unreachable!("clap should handle unknown or missing subcommands"),
     }?;
 
     Ok(())

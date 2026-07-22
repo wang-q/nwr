@@ -13,16 +13,21 @@ pub struct Taxon {
     pub comments: Option<String>,
 }
 
+impl Taxon {
+    /// Returns the first scientific name associated with this taxon, if any.
+    pub fn scientific_name(&self) -> Option<&str> {
+        self.names
+            .get("scientific name")
+            .and_then(|v| v.first())
+            .map(|s| s.as_str())
+    }
+}
+
 impl std::fmt::Display for Taxon {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let mut lines = String::new();
 
-        let sciname = self
-            .names
-            .get("scientific name")
-            .and_then(|v| v.first())
-            .map(|s| s.as_str())
-            .unwrap_or("Unknown");
+        let sciname = self.scientific_name().unwrap_or("Unknown");
         let l1 = format!("{} - {}\n", sciname, self.rank);
         let l2 = "-".repeat(l1.len() - 1);
         lines.push_str(&l1);
@@ -437,12 +442,7 @@ pub fn find_rank(lineage: &[Taxon], rank: String) -> (i64, String) {
 
     for node in lineage.iter() {
         if node.rank == rank {
-            sci_name = node
-                .names
-                .get("scientific name")
-                .and_then(|v| v.first())
-                .map(|s| s.to_string())
-                .unwrap_or_else(|| "NA".to_string());
+            sci_name = node.scientific_name().unwrap_or("NA").to_string();
             tax_id = node.tax_id;
             break;
         }
@@ -466,7 +466,7 @@ pub fn batch_exec(
     stmts: &mut Vec<String>,
     i: usize,
 ) -> anyhow::Result<()> {
-    if i > 1 && i % 1000 == 0 {
+    if i > 1 && i.is_multiple_of(1000) {
         stmts.push(String::from("COMMIT;"));
         let stmt = &stmts.join("\n");
         conn.execute_batch(stmt)?;
@@ -479,7 +479,7 @@ pub fn batch_exec(
         conn.execute_batch(stmt)?;
         println!("\n    Finished");
     }
-    if i > 1 && i % 10000 == 0 {
+    if i > 1 && i.is_multiple_of(10000) {
         print!(".");
         std::io::stdout().flush()?; // Ensure the dot is printed immediately
     }

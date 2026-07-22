@@ -62,12 +62,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
         wtr.write_record(["#tax_id", "sci_name", "rank", "division"])?;
         for node in nodes.iter() {
-            let sci_name = node
-                .names
-                .get("scientific name")
-                .and_then(|v| v.first())
-                .map(|s| s.as_str())
-                .unwrap_or("Unknown");
+            let sci_name = node.scientific_name().unwrap_or("Unknown");
             wtr.serialize((node.tax_id, sci_name, &node.rank, &node.division))?;
         }
         wtr.flush()?;

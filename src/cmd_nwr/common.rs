@@ -86,12 +86,7 @@ fn add_taxon(
     parent: Option<usize>,
 ) -> anyhow::Result<usize> {
     let mut node = phylotree::tree::Node::new();
-    let name = taxon
-        .names
-        .get("scientific name")
-        .and_then(|v| v.first())
-        .map(|s| s.to_string())
-        .unwrap_or_else(|| "Unknown".to_string());
+    let name = taxon.scientific_name().unwrap_or("Unknown").to_string();
     node.set_name(name);
 
     let node_id = if let Some(p) = parent {

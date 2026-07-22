@@ -60,6 +60,11 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut writer = intspan::writer(args.get_one::<String>("outfile").unwrap());
 
     let column: usize = *args.get_one("column").unwrap();
+    if column == 0 {
+        return Err(anyhow::anyhow!(
+            "Column must be a positive integer (1-based)"
+        ));
+    }
 
     let nwrdir = nwr::get_nwr_dir(args, "dir")?;
 
@@ -121,12 +126,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                         .ok_or_else(|| {
                             anyhow::anyhow!("No taxon found for ID: {}", id)
                         })?;
-                    let s = node
-                        .names
-                        .get("scientific name")
-                        .and_then(|v| v.first())
-                        .map(|s| s.to_string())
-                        .unwrap_or_else(|| "Unknown".to_string());
+                    let s = node.scientific_name().unwrap_or("Unknown").to_string();
 
                     fields.push(s);
                     if is_id {
@@ -331,6 +331,26 @@ mod tests {
 
         let output = std::fs::read_to_string(&output_file).unwrap();
         assert!(output.contains("species_id"));
+    }
+
+    #[test]
+    fn test_append_with_zero_column() {
+        let cmd = make_subcommand();
+        let matches = cmd
+            .try_get_matches_from([
+                "append",
+                "--dir",
+                "tests/nwr/",
+                "-c",
+                "0",
+                "tests/nwr/strains.tsv",
+            ])
+            .unwrap();
+
+        let result = execute(&matches);
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err().to_string();
+        assert!(err_msg.contains("positive integer"));
     }
 
     #[test]

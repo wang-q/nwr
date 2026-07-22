@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS ar (
 
 // command implementation
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    let _ = SimpleLogger::init(LevelFilter::Debug, Config::default());
+    SimpleLogger::init(LevelFilter::Debug, Config::default())?;
 
     let nwrdir = nwr::get_nwr_dir(args, "dir")?;
     let file = if args.get_flag("genbank") {
@@ -108,6 +108,21 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         ) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19)"
     )?;
 
+    // Column indices in NCBI assembly_summary_refseq/genbank.txt
+    const COL_ASSEMBLY_ACCESSION: usize = 0;
+    const COL_BIOPROJECT: usize = 1;
+    const COL_BIOSAMPLE: usize = 2;
+    const COL_REFSEQ_CATEGORY: usize = 4;
+    const COL_TAX_ID: usize = 5;
+    const COL_ORGANISM_NAME: usize = 7;
+    const COL_INFRASPECIFIC_NAME: usize = 8;
+    const COL_ASSEMBLY_LEVEL: usize = 11;
+    const COL_GENOME_REP: usize = 13;
+    const COL_SEQ_REL_DATE: usize = 14;
+    const COL_ASM_NAME: usize = 15;
+    const COL_GBRS_PAIRED_ASM: usize = 17;
+    const COL_FTP_PATH: usize = 19;
+
     conn.execute_batch("BEGIN;")?;
     for (i, line) in rdr.lines().map_while(Result::ok).enumerate() {
         if line.starts_with('#') {
@@ -115,56 +130,59 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
 
         let fields: Vec<String> = line.split('\t').map(|s| s.to_string()).collect();
-        if fields.len() < 19 {
+        if fields.len() <= COL_FTP_PATH {
             debug!(
-                "Skipping line {}: insufficient fields ({} < 19)",
+                "Skipping line {}: insufficient fields ({} <= {})",
                 i,
-                fields.len()
+                fields.len(),
+                COL_FTP_PATH
             );
             continue;
         }
 
         // fields
         let tax_id = fields
-            .get(5)
+            .get(COL_TAX_ID)
             .ok_or_else(|| anyhow::anyhow!("Missing tax_id field at line {}", i))?
             .parse::<i64>()
             .map_err(|e| anyhow::anyhow!("Invalid tax_id at line {}: {}", i, e))?;
-        let organism_name = fields.get(7).ok_or_else(|| {
+        let organism_name = fields.get(COL_ORGANISM_NAME).ok_or_else(|| {
             anyhow::anyhow!("Missing organism_name field at line {}", i)
         })?;
-        let infraspecific_name = fields.get(8).ok_or_else(|| {
-            anyhow::anyhow!("Missing infraspecific_name field at line {}", i)
-        })?;
+        let infraspecific_name =
+            fields.get(COL_INFRASPECIFIC_NAME).ok_or_else(|| {
+                anyhow::anyhow!("Missing infraspecific_name field at line {}", i)
+            })?;
         let bioproject = fields
-            .get(1)
+            .get(COL_BIOPROJECT)
             .ok_or_else(|| anyhow::anyhow!("Missing bioproject field at line {}", i))?;
         let biosample = fields
-            .get(2)
+            .get(COL_BIOSAMPLE)
             .ok_or_else(|| anyhow::anyhow!("Missing biosample field at line {}", i))?;
-        let assembly_accession = fields.first().ok_or_else(|| {
-            anyhow::anyhow!("Missing assembly_accession field at line {}", i)
-        })?;
-        let refseq_category = fields.get(4).ok_or_else(|| {
+        let assembly_accession =
+            fields.get(COL_ASSEMBLY_ACCESSION).ok_or_else(|| {
+                anyhow::anyhow!("Missing assembly_accession field at line {}", i)
+            })?;
+        let refseq_category = fields.get(COL_REFSEQ_CATEGORY).ok_or_else(|| {
             anyhow::anyhow!("Missing refseq_category field at line {}", i)
         })?;
-        let assembly_level = fields.get(11).ok_or_else(|| {
+        let assembly_level = fields.get(COL_ASSEMBLY_LEVEL).ok_or_else(|| {
             anyhow::anyhow!("Missing assembly_level field at line {}", i)
         })?;
         let genome_rep = fields
-            .get(13)
+            .get(COL_GENOME_REP)
             .ok_or_else(|| anyhow::anyhow!("Missing genome_rep field at line {}", i))?;
-        let seq_rel_date = fields.get(14).ok_or_else(|| {
+        let seq_rel_date = fields.get(COL_SEQ_REL_DATE).ok_or_else(|| {
             anyhow::anyhow!("Missing seq_rel_date field at line {}", i)
         })?;
         let asm_name = fields
-            .get(15)
+            .get(COL_ASM_NAME)
             .ok_or_else(|| anyhow::anyhow!("Missing asm_name field at line {}", i))?;
-        let gbrs_paired_asm = fields.get(17).ok_or_else(|| {
+        let gbrs_paired_asm = fields.get(COL_GBRS_PAIRED_ASM).ok_or_else(|| {
             anyhow::anyhow!("Missing gbrs_paired_asm field at line {}", i)
         })?;
         let ftp_path = fields
-            .get(19)
+            .get(COL_FTP_PATH)
             .ok_or_else(|| anyhow::anyhow!("Missing ftp_path field at line {}", i))?;
 
         // clean NA/na
@@ -177,9 +195,18 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         };
 
         // Skip incompetent strains
-        if RE_INCOMPETENT.is_match(organism_name) || RE_VIRUS.is_match(organism_name) {
+        if RE_INCOMPETENT.is_match(organism_name) {
             debug!(
                 "Skipping line {}: incompetent organism name '{}'",
+                i, organism_name
+            );
+            continue;
+        }
+
+        // Skip viral strains
+        if RE_VIRUS.is_match(organism_name) {
+            debug!(
+                "Skipping line {}: viral organism name '{}'",
                 i, organism_name
             );
             continue;

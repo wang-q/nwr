@@ -486,7 +486,10 @@ fn render_shell_script(
 ) -> anyhow::Result<()> {
     eprintln!("Create {}/{}", subdir, outname);
 
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+    let outdir = context
+        .get("outdir")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' in template context"))?;
 
     let mut writer = if outdir == "stdout" {
         intspan::writer("stdout")
@@ -498,10 +501,9 @@ fn render_shell_script(
     tera.add_raw_templates(vec![
         ("header", include_str!("../../templates/header.tera.sh")),
         ("t", template_content),
-    ])
-    .unwrap();
+    ])?;
 
-    let rendered = tera.render("t", context).unwrap();
+    let rendered = tera.render("t", context)?;
     writer.write_all(rendered.as_ref())?;
 
     Ok(())

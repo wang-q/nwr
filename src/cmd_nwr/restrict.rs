@@ -1,5 +1,5 @@
 use clap::*;
-use intspan::IntSpan;
+use std::collections::HashSet;
 use std::io::BufRead;
 
 // Create clap subcommand arguments
@@ -62,23 +62,25 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut writer = intspan::writer(args.get_one::<String>("outfile").unwrap());
 
     let column: usize = *args.get_one("column").unwrap();
+    if column == 0 {
+        return Err(anyhow::anyhow!(
+            "Column must be a positive integer (1-based)"
+        ));
+    }
     let is_exclude = args.get_flag("exclude");
 
     let nwrdir = nwr::get_nwr_dir(args, "dir")?;
 
     let conn = nwr::connect_txdb(&nwrdir)?;
 
-    let mut id_set = IntSpan::new();
+    let mut id_set = HashSet::new();
     for term in args
         .get_many::<String>("terms")
         .ok_or_else(|| anyhow::anyhow!("No terms provided"))?
     {
         let id = nwr::term_to_tax_id(&conn, term)?;
-        let descendents: Vec<i32> = nwr::get_all_descendent(&conn, id)?
-            .iter()
-            .map(|n| *n as i32)
-            .collect();
-        id_set.add_vec(descendents.as_ref());
+        let descendents = nwr::get_all_descendent(&conn, id)?;
+        id_set.extend(descendents);
     }
 
     for infile in args
@@ -100,7 +102,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             })?;
             let id = nwr::term_to_tax_id(&conn, term)?;
 
-            if is_exclude ^ id_set.contains(id as i32) {
+            if is_exclude ^ id_set.contains(&id) {
                 writer.write_fmt(format_args!("{}\n", line))?;
             }
         }
@@ -281,5 +283,27 @@ mod tests {
 
         let result = execute(&matches);
         assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_restrict_with_zero_column() {
+        let cmd = make_subcommand();
+        let matches = cmd
+            .try_get_matches_from([
+                "restrict",
+                "--dir",
+                "tests/nwr/",
+                "-c",
+                "0",
+                "10239",
+                "-f",
+                "tests/nwr/strains.tsv",
+            ])
+            .unwrap();
+
+        let result = execute(&matches);
+        assert!(result.is_err());
+        let err_msg = result.unwrap_err().to_string();
+        assert!(err_msg.contains("positive integer"));
     }
 }

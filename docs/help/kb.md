@@ -13,8 +13,8 @@ Available Documents:
 Output:
 
 * Archive files (bac120, ar53) are extracted to the specified directory.
-* By default, output is written to standard output.
-* Use `--outfile` to specify an output file or directory.
+* By default, files are extracted to the current directory.
+* Use `--outdir` to specify an output directory.
 
 Examples:
 
