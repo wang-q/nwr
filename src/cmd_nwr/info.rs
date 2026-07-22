@@ -1,9 +1,10 @@
+use super::args;
 use clap::*;
 
 /// Create clap subcommand arguments.
 pub fn make_subcommand() -> Command {
     Command::new("info")
-        .about("Information of Taxonomy ID(s) or scientific name(s)")
+        .about("Shows information of Taxonomy ID(s) or scientific name(s)")
         .after_help(include_str!("../../docs/help/info.md"))
         .arg(
             Arg::new("terms")
@@ -12,28 +13,14 @@ pub fn make_subcommand() -> Command {
                 .num_args(1..)
                 .index(1),
         )
-        .arg(
-            Arg::new("dir")
-                .long("dir")
-                .short('d')
-                .num_args(1)
-                .value_name("DIR")
-                .help("Specify the NWR data directory"),
-        )
+        .arg(args::dir_arg())
         .arg(
             Arg::new("tsv")
                 .long("tsv")
                 .action(ArgAction::SetTrue)
                 .help("Output the results as TSV"),
         )
-        .arg(
-            Arg::new("outfile")
-                .short('o')
-                .long("outfile")
-                .num_args(1)
-                .default_value("stdout")
-                .help("Output filename (default: stdout)"),
-        )
+        .arg(args::outfile_arg())
 }
 
 /// Command implementation.

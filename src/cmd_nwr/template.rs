@@ -3,7 +3,7 @@ use clap::*;
 /// Create clap subcommand arguments.
 pub fn make_subcommand() -> Command {
     Command::new("template")
-        .about("Create dirs, data and scripts for a phylogenomic research")
+        .about("Creates dirs, data and scripts for a phylogenomic research")
         .after_help(include_str!("../../docs/help/template.md"))
         // Global
         .arg(

@@ -1,9 +1,10 @@
+use super::args;
 use clap::*;
 
 /// Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
     Command::new("abbr")
-        .about("Abbreviate strain scientific names")
+        .about("Abbreviates strain scientific names")
         .after_help(include_str!("../../docs/help/abbr.md"))
         .arg(
             Arg::new("infile")
@@ -49,14 +50,7 @@ pub fn make_subcommand() -> Command {
                 .action(ArgAction::SetTrue)
                 .help("Clean subspecies parts"),
         )
-        .arg(
-            Arg::new("outfile")
-                .short('o')
-                .long("outfile")
-                .num_args(1)
-                .default_value("stdout")
-                .help("Output filename (default: stdout)"),
-        )
+        .arg(args::outfile_arg())
 }
 
 /// Command implementation

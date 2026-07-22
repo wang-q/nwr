@@ -3,6 +3,7 @@
 pub mod abbr;
 pub mod append;
 pub mod ardb;
+pub mod args;
 pub mod common;
 pub mod download;
 pub mod info;

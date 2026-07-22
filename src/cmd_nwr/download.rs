@@ -4,7 +4,7 @@ use simplelog::*;
 /// Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
     Command::new("download")
-        .about("Download the latest releases of `taxdump` and assembly reports")
+        .about("Downloads the latest releases of `taxdump` and assembly reports")
         .after_help(include_str!("../../docs/help/download.md"))
         .arg(
             Arg::new("host")

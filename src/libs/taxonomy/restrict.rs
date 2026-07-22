@@ -26,13 +26,13 @@ pub struct RestrictOptions {
 /// column is a descendant of one of the ancestor terms. With `is_exclude`
 /// set, outputs lines that are *not* descendants instead.
 pub fn run(options: &RestrictOptions) -> anyhow::Result<()> {
-    let mut writer = intspan::writer(&options.outfile);
-
     if options.column == 0 {
         return Err(anyhow::anyhow!(
             "Column must be a positive integer (1-based)"
         ));
     }
+
+    let mut writer = intspan::writer(&options.outfile);
 
     let conn = crate::connect_txdb(&options.nwrdir)?;
 

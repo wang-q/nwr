@@ -160,6 +160,7 @@ pub fn get_tax_id(
         WHERE 1=1
         AND name_class IN ('scientific name', 'synonym', 'genbank synonym')
         AND name=?
+        ORDER BY tax_id
         ",
     )?;
 
@@ -199,51 +200,61 @@ pub fn get_taxon(
         return Ok(vec![]);
     }
 
-    let placeholders = (0..ids.len()).map(|_| "?").collect::<Vec<_>>().join(",");
-    let sql = format!(
-        "
-        SELECT
-            node.tax_id,
-            node.parent_tax_id,
-            node.rank,
-            division.division,
-            name.name_class,
-            name.name,
-            node.comment
-        FROM node
-            INNER JOIN name ON node.tax_id = name.tax_id
-            INNER JOIN division ON node.division_id = division.id
-        WHERE node.tax_id IN ({})
-        ",
-        placeholders
-    );
-
-    let mut stmt = conn.prepare(&sql)?;
-    let mut rows = stmt.query(rusqlite::params_from_iter(ids.iter()))?;
+    // Chunk ids to stay below SQLite's bound-variable limit (999 by default,
+    // 32766 on newer builds). Large clades such as Bacteria yield hundreds of
+    // thousands of ids via `get_all_descendent`, which would otherwise exceed
+    // the limit and fail at runtime.
+    const CHUNK_SIZE: usize = 900;
 
     let mut taxa_map: HashMap<i64, Taxon> = HashMap::new();
-    while let Some(row) = rows.next()? {
-        let tax_id: i64 = row.get(0)?;
-        let name_class: String = row.get(4)?;
-        let name: String = row.get(5)?;
 
-        if let std::collections::hash_map::Entry::Vacant(e) = taxa_map.entry(tax_id) {
-            let mut taxon = Taxon {
-                tax_id,
-                parent_tax_id: row.get(1)?,
-                rank: row.get(2)?,
-                division: row.get(3)?,
-                ..Default::default()
-            };
-            let comments: String = row.get(6)?;
-            if !comments.is_empty() {
-                taxon.comments = Some(comments);
+    for chunk in ids.chunks(CHUNK_SIZE) {
+        let placeholders = (0..chunk.len()).map(|_| "?").collect::<Vec<_>>().join(",");
+        let sql = format!(
+            "
+            SELECT
+                node.tax_id,
+                node.parent_tax_id,
+                node.rank,
+                division.division,
+                name.name_class,
+                name.name,
+                node.comment
+            FROM node
+                INNER JOIN name ON node.tax_id = name.tax_id
+                INNER JOIN division ON node.division_id = division.id
+            WHERE node.tax_id IN ({})
+            ",
+            placeholders
+        );
+
+        let mut stmt = conn.prepare(&sql)?;
+        let mut rows = stmt.query(rusqlite::params_from_iter(chunk.iter()))?;
+
+        while let Some(row) = rows.next()? {
+            let tax_id: i64 = row.get(0)?;
+            let name_class: String = row.get(4)?;
+            let name: String = row.get(5)?;
+
+            if let std::collections::hash_map::Entry::Vacant(e) = taxa_map.entry(tax_id)
+            {
+                let mut taxon = Taxon {
+                    tax_id,
+                    parent_tax_id: row.get(1)?,
+                    rank: row.get(2)?,
+                    division: row.get(3)?,
+                    ..Default::default()
+                };
+                let comments: String = row.get(6)?;
+                if !comments.is_empty() {
+                    taxon.comments = Some(comments);
+                }
+                e.insert(taxon);
             }
-            e.insert(taxon);
-        }
 
-        if let Some(taxon) = taxa_map.get_mut(&tax_id) {
-            taxon.names.entry(name_class).or_default().push(name);
+            if let Some(taxon) = taxa_map.get_mut(&tax_id) {
+                taxon.names.entry(name_class).or_default().push(name);
+            }
         }
     }
 

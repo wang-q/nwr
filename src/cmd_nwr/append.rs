@@ -1,3 +1,4 @@
+use super::args;
 use clap::*;
 
 /// Create clap subcommand arguments.
@@ -12,14 +13,7 @@ pub fn make_subcommand() -> Command {
                 .index(1)
                 .help("Input TSV file(s) to process. Use 'stdin' for standard input"),
         )
-        .arg(
-            Arg::new("dir")
-                .long("dir")
-                .short('d')
-                .num_args(1)
-                .value_name("DIR")
-                .help("Specify the NWR data directory"),
-        )
+        .arg(args::dir_arg())
         .arg(
             Arg::new("rank")
                 .long("rank")
@@ -43,14 +37,7 @@ pub fn make_subcommand() -> Command {
                 .action(ArgAction::SetTrue)
                 .help("Also append taxon IDs for each rank"),
         )
-        .arg(
-            Arg::new("outfile")
-                .short('o')
-                .long("outfile")
-                .num_args(1)
-                .default_value("stdout")
-                .help("Output filename (default: stdout)"),
-        )
+        .arg(args::outfile_arg())
 }
 
 /// Command implementation.

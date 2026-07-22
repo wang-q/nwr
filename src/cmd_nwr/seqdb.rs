@@ -26,7 +26,7 @@ fn opt_path(
 /// Create clap subcommand arguments.
 pub fn make_subcommand() -> Command {
     Command::new("seqdb")
-        .about("Init the seq database")
+        .about("Initializes the seq database")
         .after_help(include_str!("../../docs/help/seqdb.md"))
         .arg(
             Arg::new("dir")

@@ -1,19 +1,13 @@
+use super::args;
 use clap::*;
 use simplelog::*;
 
 /// Create clap subcommand arguments.
 pub fn make_subcommand() -> Command {
     Command::new("ardb")
-        .about("Init the assembly database")
+        .about("Initializes the assembly database")
         .after_help(include_str!("../../docs/help/ardb.md"))
-        .arg(
-            Arg::new("dir")
-                .long("dir")
-                .short('d')
-                .num_args(1)
-                .value_name("DIR")
-                .help("Specify the NWR data directory"),
-        )
+        .arg(args::dir_arg())
         .arg(
             Arg::new("genbank")
                 .long("genbank")

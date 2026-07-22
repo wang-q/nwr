@@ -75,7 +75,7 @@ pub fn run(nwrdir: &std::path::Path) -> anyhow::Result<()> {
 
         // Intentionally use explicit SQL BEGIN/COMMIT rather than rusqlite::Transaction.
         conn.execute_batch("BEGIN;")?;
-        for result in tsv_rdr.records() {
+        for (i, result) in tsv_rdr.records().enumerate() {
             let record = result?;
             if record.len() < 3 {
                 return Err(anyhow::anyhow!(
@@ -84,7 +84,9 @@ pub fn run(nwrdir: &std::path::Path) -> anyhow::Result<()> {
                     record
                 ));
             }
-            let id: i64 = record[0].trim().parse()?;
+            let id: i64 = record[0].trim().parse().map_err(|e| {
+                anyhow::anyhow!("Invalid id at line {} in division.dmp: {}", i + 1, e)
+            })?;
             let name: String = record[2].trim().to_string();
             stmt.execute(rusqlite::params![id, name])?;
         }
@@ -119,7 +121,9 @@ pub fn run(nwrdir: &std::path::Path) -> anyhow::Result<()> {
             }
 
             // tax_id, name, unique_name, name_class
-            let tax_id: i64 = record[0].trim().parse()?;
+            let tax_id: i64 = record[0].trim().parse().map_err(|e| {
+                anyhow::anyhow!("Invalid tax_id at line {} in names.dmp: {}", i + 1, e)
+            })?;
             let name: String = record[1].trim().to_string();
             let name_class: String = record[3].trim().to_string();
 
@@ -164,10 +168,24 @@ pub fn run(nwrdir: &std::path::Path) -> anyhow::Result<()> {
             }
 
             // tax_id, parent, rank, code, divid, undef, gen_code, undef, mito
-            let tax_id: i64 = record[0].trim().parse()?;
-            let parent_tax_id: i64 = record[1].trim().parse()?;
+            let tax_id: i64 = record[0].trim().parse().map_err(|e| {
+                anyhow::anyhow!("Invalid tax_id at line {} in nodes.dmp: {}", i + 1, e)
+            })?;
+            let parent_tax_id: i64 = record[1].trim().parse().map_err(|e| {
+                anyhow::anyhow!(
+                    "Invalid parent_tax_id at line {} in nodes.dmp: {}",
+                    i + 1,
+                    e
+                )
+            })?;
             let rank: String = record[2].trim().to_string();
-            let division_id: i64 = record[4].trim().parse()?;
+            let division_id: i64 = record[4].trim().parse().map_err(|e| {
+                anyhow::anyhow!(
+                    "Invalid division_id at line {} in nodes.dmp: {}",
+                    i + 1,
+                    e
+                )
+            })?;
             let comments: String = record[12].trim().to_string();
 
             stmt.execute(rusqlite::params![

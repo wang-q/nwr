@@ -23,8 +23,8 @@ pub fn validate_rep_field(field: &str) -> anyhow::Result<&str> {
 }
 
 /// Return the static SQL used to clear a rep field.
-pub fn rep_clear_sql(field: &str) -> &'static str {
-    match field {
+pub fn rep_clear_sql(field: &str) -> anyhow::Result<&'static str> {
+    let sql = match field {
         "f1" => "UPDATE rep SET f1 = NULL;",
         "f2" => "UPDATE rep SET f2 = NULL;",
         "f3" => "UPDATE rep SET f3 = NULL;",
@@ -33,13 +33,20 @@ pub fn rep_clear_sql(field: &str) -> &'static str {
         "f6" => "UPDATE rep SET f6 = NULL;",
         "f7" => "UPDATE rep SET f7 = NULL;",
         "f8" => "UPDATE rep SET f8 = NULL;",
-        _ => unreachable!("field was validated"),
-    }
+        _ => {
+            anyhow::bail!(
+                "Invalid rep field '{}'. Valid fields are: {:?}",
+                field,
+                VALID_REP_FIELDS
+            )
+        }
+    };
+    Ok(sql)
 }
 
 /// Return the static SQL used to update a rep field.
-pub fn rep_update_sql(field: &str) -> &'static str {
-    match field {
+pub fn rep_update_sql(field: &str) -> anyhow::Result<&'static str> {
+    let sql = match field {
         "f1" => "UPDATE rep SET f1 = ?1 WHERE rep.name = ?2",
         "f2" => "UPDATE rep SET f2 = ?1 WHERE rep.name = ?2",
         "f3" => "UPDATE rep SET f3 = ?1 WHERE rep.name = ?2",
@@ -48,8 +55,15 @@ pub fn rep_update_sql(field: &str) -> &'static str {
         "f6" => "UPDATE rep SET f6 = ?1 WHERE rep.name = ?2",
         "f7" => "UPDATE rep SET f7 = ?1 WHERE rep.name = ?2",
         "f8" => "UPDATE rep SET f8 = ?1 WHERE rep.name = ?2",
-        _ => unreachable!("field was validated"),
-    }
+        _ => {
+            anyhow::bail!(
+                "Invalid rep field '{}'. Valid fields are: {:?}",
+                field,
+                VALID_REP_FIELDS
+            )
+        }
+    };
+    Ok(sql)
 }
 
 /// DDL for the seq SQLite database.
@@ -270,7 +284,9 @@ pub fn insert_size(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<()
             ));
         }
         let name: String = record[0].trim().to_string();
-        let size: i64 = record[1].trim().parse()?;
+        let size: i64 = record[1].trim().parse().map_err(|e| {
+            anyhow::anyhow!("Invalid size at line {} in sizes.tsv: {}", i + 1, e)
+        })?;
 
         stmt.execute(rusqlite::params![&name, size])?;
 
@@ -416,12 +432,12 @@ pub fn insert_rep(
         .delimiter(b'\t')
         .from_reader(dmp);
 
-    let mut stmt = conn.prepare(rep_update_sql(field))?;
+    let mut stmt = conn.prepare(rep_update_sql(field)?)?;
 
     conn.execute_batch("BEGIN;")?;
     // Empty the field before updating so that the clear and the following
     // updates are atomic.
-    conn.execute_batch(rep_clear_sql(field))?;
+    conn.execute_batch(rep_clear_sql(field)?)?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
         if record.len() < 2 {

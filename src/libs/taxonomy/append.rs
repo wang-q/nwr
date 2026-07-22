@@ -24,13 +24,13 @@ pub struct AppendOptions {
 /// Reads each input file, resolves the term in the specified column to a taxon
 /// ID, and appends the requested rank names (and optionally their IDs).
 pub fn run(options: &AppendOptions) -> anyhow::Result<()> {
-    let mut writer = intspan::writer(&options.outfile);
-
     if options.column == 0 {
         return Err(anyhow::anyhow!(
             "Column must be a positive integer (1-based)"
         ));
     }
+
+    let mut writer = intspan::writer(&options.outfile);
 
     let conn = crate::connect_txdb(&options.nwrdir)?;
 

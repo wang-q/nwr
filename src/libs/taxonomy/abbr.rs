@@ -91,10 +91,11 @@ pub fn abbr(words: &[String], min_len: usize) -> HashMap<String, String> {
     result
 }
 
-/// Select the longest valid abbreviation for each word.
+/// Select the shortest unique prefix abbreviation for each word.
 ///
-/// Builds on [`abbr`] to find the longest unique abbreviation for each word.
-/// When `avoid_one_char_saving` is true, avoids abbreviating words that differ by only one character.
+/// Builds on [`abbr`] to find the shortest prefix that uniquely identifies
+/// each word. When `avoid_one_char_saving` is true, avoids abbreviating words
+/// that differ by only one character.
 pub fn abbr_most(
     words: &[String],
     min_len: usize,
