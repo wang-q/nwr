@@ -1,4 +1,5 @@
 use clap::*;
+use log::warn;
 use std::collections::HashSet;
 use std::io::BufRead;
 
@@ -102,7 +103,13 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             let term = fields.get(column - 1).ok_or_else(|| {
                 anyhow::anyhow!("Column {} not found in line: {}", column, line)
             })?;
-            let id = nwr::term_to_tax_id(&conn, term)?;
+            let id = match nwr::term_to_tax_id(&conn, term) {
+                Ok(x) => x,
+                Err(err) => {
+                    warn!("Error converting term '{}': {}", term, err);
+                    continue;
+                }
+            };
 
             if is_exclude ^ id_set.contains(&id) {
                 writer.write_fmt(format_args!("{}\n", line))?;

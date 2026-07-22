@@ -335,11 +335,11 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 fn readable(n: String) -> String {
     let mut c = String::new();
 
-    for (i, char) in n.chars().rev().enumerate() {
+    for (i, ch) in n.chars().rev().enumerate() {
         if i % 3 == 0 && i != 0 {
             c.insert(0, ',');
         }
-        c.insert(0, char);
+        c.insert(0, ch);
     }
 
     c

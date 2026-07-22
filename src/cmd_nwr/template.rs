@@ -45,9 +45,9 @@ fn validate_shell_safe(s: &str) -> anyhow::Result<&str> {
 
 /// Reject strings that would corrupt TSV output or be unsafe in shell contexts.
 fn validate_no_control_chars(s: &str) -> anyhow::Result<&str> {
-    if s.chars().any(|c| c == '\n' || c == '\r' || c == '\t') {
+    if s.chars().any(|c| c.is_ascii_control()) {
         return Err(anyhow::anyhow!(
-            "String contains line or tab characters: '{}'",
+            "String contains control characters: '{}'",
             s
         ));
     }
@@ -243,7 +243,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 };
 
                 // format species strings
-                let species = fields[3];
+                let species = validate_no_control_chars(fields[3])?;
                 let s1 = RE_S1.replace_all(species, "_");
                 let s2 = RE_S2.replace_all(&s1, "_");
                 let s3 = RE_S3.replace_all(&s2, "");

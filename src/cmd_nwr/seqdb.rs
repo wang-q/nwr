@@ -290,7 +290,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     if !opt_anno.as_os_str().is_empty() {
         info!("==> Loading `{}` to `seq`", opt_anno.display());
-        // rep, seq
+        // name, anno
         let dmp = std::fs::File::open(opt_anno)?;
         insert_anno(&dmp, &conn)?;
     }
