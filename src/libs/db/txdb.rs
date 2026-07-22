@@ -1,6 +1,5 @@
 use log::{debug, info};
 use std::fs::File;
-use std::io::Write;
 
 /// DDL for the NCBI taxonomy SQLite database.
 static DDL_TX: &str = r"
@@ -8,13 +7,13 @@ DROP TABLE IF EXISTS division;
 DROP TABLE IF EXISTS node;
 DROP TABLE IF EXISTS name;
 
-CREATE TABLE IF NOT EXISTS division (
+CREATE TABLE division (
     id       INTEGER      NOT NULL
                           PRIMARY KEY,
     division VARCHAR (50) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS node (
+CREATE TABLE node (
     tax_id        INTEGER      NOT NULL
                                PRIMARY KEY,
     parent_tax_id INTEGER,
@@ -27,7 +26,7 @@ CREATE TABLE IF NOT EXISTS node (
     REFERENCES division (id)
 );
 
-CREATE TABLE IF NOT EXISTS name (
+CREATE TABLE name (
     id         INTEGER      NOT NULL
                             PRIMARY KEY,
     tax_id     INTEGER      NOT NULL,
@@ -129,10 +128,7 @@ pub fn run(nwrdir: &std::path::Path) -> anyhow::Result<()> {
 
             stmt.execute(rusqlite::params![tax_id, name, name_class])?;
 
-            if i > 0 && i.is_multiple_of(10000) {
-                print!(".");
-                std::io::stdout().flush()?;
-            }
+            crate::libs::io::progress_dot(i)?;
         }
         println!();
         conn.execute_batch("COMMIT;")?;
@@ -196,10 +192,7 @@ pub fn run(nwrdir: &std::path::Path) -> anyhow::Result<()> {
                 comments
             ])?;
 
-            if i > 0 && i.is_multiple_of(10000) {
-                print!(".");
-                std::io::stdout().flush()?;
-            }
+            crate::libs::io::progress_dot(i)?;
         }
         println!();
         conn.execute_batch("COMMIT;")?;

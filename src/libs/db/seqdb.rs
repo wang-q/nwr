@@ -1,7 +1,6 @@
 use log::info;
 use std::fs::File;
-use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 /// Valid field names for the rep table
 pub const VALID_REP_FIELDS: &[&str] = &["f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8"];
@@ -48,6 +47,48 @@ pub fn rep_update_sql(field: &str) -> anyhow::Result<&'static str> {
         }
     };
     Ok(sql)
+}
+
+/// Ensure a CSV record has at least `min` fields, returning a descriptive
+/// error referencing the 1-based line number and file path.
+fn require_min_fields(
+    record: &csv::StringRecord,
+    min: usize,
+    i: usize,
+    path: &Path,
+) -> anyhow::Result<()> {
+    if record.len() < min {
+        anyhow::bail!(
+            "Line {} in {} has fewer than {} columns",
+            i + 1,
+            path.display(),
+            min
+        );
+    }
+    Ok(())
+}
+
+/// Run a `SELECT EXISTS(...)` check via `stmt` for `name` and bail with a
+/// uniform error if the name is absent from the target table.
+fn ensure_exists(
+    stmt: &mut rusqlite::Statement,
+    name: &str,
+    table: &str,
+    i: usize,
+    path: &Path,
+) -> anyhow::Result<()> {
+    let exists: bool = stmt.query_row(rusqlite::params![name], |row| row.get(0))?;
+    if !exists {
+        anyhow::bail!(
+            "Line {} in {}: {} name '{}' not found in {} table",
+            i + 1,
+            path.display(),
+            table,
+            name,
+            table
+        );
+    }
+    Ok(())
 }
 
 /// DDL for the seq SQLite database.
@@ -230,23 +271,14 @@ pub fn insert_strain(
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
-        if record.len() < 2 {
-            return Err(anyhow::anyhow!(
-                "Line {} in {} has fewer than 2 columns",
-                i + 1,
-                path.display()
-            ));
-        }
+        require_min_fields(&record, 2, i, path)?;
         let strain: String = record[0].trim().to_string();
         let rank: String = record[1].trim().to_string();
 
         rank_stmt.execute([&rank])?;
         asm_stmt.execute(rusqlite::params![&strain, &rank])?;
 
-        if i > 0 && i.is_multiple_of(10000) {
-            print!(".");
-            std::io::stdout().flush()?;
-        }
+        crate::libs::io::progress_dot(i)?;
     }
     println!();
     conn.execute_batch("COMMIT;")?;
@@ -270,13 +302,7 @@ pub fn insert_size(
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
-        if record.len() < 2 {
-            return Err(anyhow::anyhow!(
-                "Line {} in {} has fewer than 2 columns",
-                i + 1,
-                path.display()
-            ));
-        }
+        require_min_fields(&record, 2, i, path)?;
         let name: String = record[0].trim().to_string();
         let size: i64 = record[1].trim().parse().map_err(|e| {
             anyhow::anyhow!(
@@ -289,10 +315,7 @@ pub fn insert_size(
 
         stmt.execute(rusqlite::params![&name, size])?;
 
-        if i > 0 && i.is_multiple_of(10000) {
-            print!(".");
-            std::io::stdout().flush()?;
-        }
+        crate::libs::io::progress_dot(i)?;
     }
     println!();
     conn.execute_batch("COMMIT;")?;
@@ -326,34 +349,16 @@ pub fn insert_clust(
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
-        if record.len() < 2 {
-            return Err(anyhow::anyhow!(
-                "Line {} in {} has fewer than 2 columns",
-                i + 1,
-                path.display()
-            ));
-        }
+        require_min_fields(&record, 2, i, path)?;
         let rep: String = record[0].trim().to_string();
         let seq: String = record[1].trim().to_string();
 
-        let exists: bool =
-            seq_exists.query_row(rusqlite::params![&seq], |row| row.get(0))?;
-        if !exists {
-            return Err(anyhow::anyhow!(
-                "Line {} in {}: seq name '{}' not found in seq table (load strains/sizes first)",
-                i + 1,
-                path.display(),
-                seq
-            ));
-        }
+        ensure_exists(&mut seq_exists, &seq, "seq", i, path)?;
 
         rep_stmt.execute([&rep])?;
         rep_seq_stmt.execute(rusqlite::params![&rep, &seq])?;
 
-        if i > 0 && i.is_multiple_of(10000) {
-            print!(".");
-            std::io::stdout().flush()?;
-        }
+        crate::libs::io::progress_dot(i)?;
     }
     println!();
     conn.execute_batch("COMMIT;")?;
@@ -379,33 +384,15 @@ pub fn insert_anno(
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
-        if record.len() < 2 {
-            return Err(anyhow::anyhow!(
-                "Line {} in {} has fewer than 2 columns",
-                i + 1,
-                path.display()
-            ));
-        }
+        require_min_fields(&record, 2, i, path)?;
         let name: String = record[0].trim().to_string();
         let anno: String = record[1].trim().to_string();
 
-        let exists: bool =
-            seq_exists.query_row(rusqlite::params![&name], |row| row.get(0))?;
-        if !exists {
-            return Err(anyhow::anyhow!(
-                "Line {} in {}: seq name '{}' not found in seq table (load strains/sizes first)",
-                i + 1,
-                path.display(),
-                name
-            ));
-        }
+        ensure_exists(&mut seq_exists, &name, "seq", i, path)?;
 
         stmt.execute(rusqlite::params![&anno, &name])?;
 
-        if i > 0 && i.is_multiple_of(10000) {
-            print!(".");
-            std::io::stdout().flush()?;
-        }
+        crate::libs::io::progress_dot(i)?;
     }
     println!();
     conn.execute_batch("COMMIT;")?;
@@ -439,45 +426,18 @@ pub fn insert_asmseq(
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
-        if record.len() < 2 {
-            return Err(anyhow::anyhow!(
-                "Line {} in {} has fewer than 2 columns",
-                i + 1,
-                path.display()
-            ));
-        }
+        require_min_fields(&record, 2, i, path)?;
 
         // sequence name, assembly name
         let seq: String = record[0].trim().to_string();
         let asm: String = record[1].trim().to_string();
 
-        let exists: bool =
-            seq_exists.query_row(rusqlite::params![&seq], |row| row.get(0))?;
-        if !exists {
-            return Err(anyhow::anyhow!(
-                "Line {} in {}: seq name '{}' not found in seq table",
-                i + 1,
-                path.display(),
-                seq
-            ));
-        }
-        let exists: bool =
-            asm_exists.query_row(rusqlite::params![&asm], |row| row.get(0))?;
-        if !exists {
-            return Err(anyhow::anyhow!(
-                "Line {} in {}: asm name '{}' not found in asm table",
-                i + 1,
-                path.display(),
-                asm
-            ));
-        }
+        ensure_exists(&mut seq_exists, &seq, "seq", i, path)?;
+        ensure_exists(&mut asm_exists, &asm, "asm", i, path)?;
 
         stmt.execute(rusqlite::params![&asm, &seq])?;
 
-        if i > 0 && i.is_multiple_of(10000) {
-            print!(".");
-            std::io::stdout().flush()?;
-        }
+        crate::libs::io::progress_dot(i)?;
     }
     println!();
     conn.execute_batch("COMMIT;")?;
@@ -505,22 +465,13 @@ pub fn insert_rep(
     conn.execute_batch(rep_clear_sql(field)?)?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
-        if record.len() < 2 {
-            return Err(anyhow::anyhow!(
-                "Line {} in {} has fewer than 2 columns",
-                i + 1,
-                path.display()
-            ));
-        }
+        require_min_fields(&record, 2, i, path)?;
         let value: String = record[0].trim().to_string();
         let rep: String = record[1].trim().to_string();
 
         stmt.execute(rusqlite::params![&value, &rep])?;
 
-        if i > 0 && i.is_multiple_of(10000) {
-            print!(".");
-            std::io::stdout().flush()?;
-        }
+        crate::libs::io::progress_dot(i)?;
     }
     println!();
     conn.execute_batch("COMMIT;")?;

@@ -3,7 +3,7 @@ use log::{debug, info, warn};
 use regex::Regex;
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Write};
+use std::io::{BufRead, BufReader};
 
 lazy_static! {
     /// Organism names matching this regex are considered incompetent and skipped.
@@ -19,7 +19,7 @@ lazy_static! {
 static DDL_AR: &str = r"
 DROP TABLE IF EXISTS ar;
 
-CREATE TABLE IF NOT EXISTS ar (
+CREATE TABLE ar (
     tax_id             INTEGER,
     organism_name      VARCHAR (200),
     infraspecific_name VARCHAR (200),
@@ -254,10 +254,7 @@ pub fn run(
         ])?;
 
         inserted += 1;
-        if inserted.is_multiple_of(10000) {
-            print!(".");
-            std::io::stdout().flush()?;
-        }
+        crate::libs::io::progress_dot(inserted)?;
     }
     println!();
     conn.execute_batch("COMMIT;")?;

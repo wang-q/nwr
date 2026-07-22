@@ -39,3 +39,20 @@ pub fn writer(output: &str) -> anyhow::Result<Box<dyn Write>> {
         Ok(Box::new(std::io::BufWriter::new(file)))
     }
 }
+
+/// Interval (in iterations) between progress dots printed by [`progress_dot`].
+const PROGRESS_INTERVAL: usize = 10000;
+
+/// Print a progress dot every [`PROGRESS_INTERVAL`] iterations.
+///
+/// Pass the current 0-based or 1-based loop counter as `i`; the leading dot
+/// at `i == 0` is suppressed so callers that enumerate from 0 do not emit a
+/// spurious dot on the first iteration. The caller is responsible for printing
+/// a trailing newline after the loop completes.
+pub fn progress_dot(i: usize) -> anyhow::Result<()> {
+    if i > 0 && i.is_multiple_of(PROGRESS_INTERVAL) {
+        print!(".");
+        std::io::stdout().flush()?;
+    }
+    Ok(())
+}

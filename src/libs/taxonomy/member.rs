@@ -36,12 +36,19 @@ pub fn run(options: &MemberOptions) -> anyhow::Result<()> {
         rank_set.insert(rank.to_string());
     }
 
+    // Track seen tax_ids so that overlapping ancestor terms (e.g. "Viruses"
+    // and its tax_id 10239) do not produce duplicate rows in the output.
+    let mut seen: HashSet<i64> = HashSet::new();
+
     for term in &options.terms {
         let id = crate::term_to_tax_id(&conn, term)?;
         let descendents = crate::get_all_descendent(&conn, id)?;
         let nodes = crate::get_taxon(&conn, &descendents)?;
 
         for node in nodes.iter() {
+            if !seen.insert(node.tax_id) {
+                continue;
+            }
             if !rank_set.is_empty() && !rank_set.contains(&node.rank) {
                 continue;
             }
@@ -155,6 +162,19 @@ mod tests {
             outfile: output_file.to_str().unwrap().to_string(),
         });
         assert!(result.is_ok());
+
+        // "Viruses" and "10239" resolve to the same taxon, so descendants
+        // must not be duplicated in the output.
+        let output = std::fs::read_to_string(&output_file).unwrap();
+        let mut tax_ids: Vec<&str> = output
+            .lines()
+            .filter(|l| !l.starts_with('#'))
+            .map(|l| l.split('\t').next().unwrap_or(""))
+            .collect();
+        let total = tax_ids.len();
+        tax_ids.sort_unstable();
+        tax_ids.dedup();
+        assert_eq!(total, tax_ids.len(), "duplicate tax_ids in member output");
     }
 
     #[test]
