@@ -1,5 +1,5 @@
 use lazy_static::lazy_static;
-use log::{debug, info};
+use log::{debug, info, warn};
 use regex::Regex;
 use std::collections::HashMap;
 use std::fs::File;
@@ -210,7 +210,7 @@ pub fn run(
         let lineage = lineage_cache.entry(tax_id).or_insert_with(|| {
             match crate::get_lineage(tx_conn, tax_id) {
                 Err(err) => {
-                    debug!("Errors on get_lineage({}): {}", tax_id, err);
+                    warn!("Errors on get_lineage({}): {}", tax_id, err);
                     // Use a clearly-marked missing taxon so that find_rank
                     // returns (0, "NA") for species/genus/family.
                     let taxon = crate::Taxon {
