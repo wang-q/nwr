@@ -573,8 +573,9 @@ pub fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
             anyhow::anyhow!("Missing 'ass_species_of' in template context")
         })?;
 
-    let mut writer = open_writer(outdir, "ASSEMBLY", outname)?;
-
+    // Collect (key, url, species) once so both url.tsv and url_rsync.tsv share
+    // the same extraction/error-handling path.
+    let mut rows: Vec<(&String, String, String)> = Vec::new();
     for (key, value) in ass_url_of {
         let url = value.as_str().ok_or_else(|| {
             anyhow::anyhow!("ass_url_of value for '{}' is not a string", key)
@@ -589,6 +590,11 @@ pub fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
                 )
             })?;
 
+        rows.push((key, url.to_string(), species.to_string()));
+    }
+
+    let mut writer = open_writer(outdir, "ASSEMBLY", outname)?;
+    for (key, url, species) in &rows {
         writeln!(writer, "{}\t{}\t{}", key, url, species)?;
     }
 
@@ -598,20 +604,7 @@ pub fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
     writer.flush()?;
 
     let mut writer_rsync = open_writer(outdir, "ASSEMBLY", outname_rsync)?;
-    for (key, value) in ass_url_of {
-        let url = value.as_str().ok_or_else(|| {
-            anyhow::anyhow!("ass_url_of value for '{}' is not a string", key)
-        })?;
-        let species = ass_species_of
-            .get(key)
-            .and_then(|v| v.as_str())
-            .ok_or_else(|| {
-                anyhow::anyhow!(
-                    "ass_species_of value for '{}' is missing or not a string",
-                    key
-                )
-            })?;
-
+    for (key, url, species) in &rows {
         let rsync = RE_URL.replace(url, "ftp.ncbi.nlm.nih.gov::");
         writeln!(writer_rsync, "{}\t{}\t{}", key, rsync, species)?;
     }

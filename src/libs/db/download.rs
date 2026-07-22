@@ -179,7 +179,17 @@ impl FtpConnectionTrait for FtpConnection {
                 Err(e) => return Err(ftp::FtpError::ConnectionError(e)),
                 Ok(f) => f,
             };
-            io::copy(stream, &mut file)
+            let copy_result = io::copy(stream, &mut file);
+            // Close the file handle before removal so the OS releases the lock
+            // (especially on Windows) and the partial file can be deleted.
+            drop(file);
+            if copy_result.is_err() {
+                // Remove the partial file so the next run re-downloads instead
+                // of silently reusing a truncated/corrupt download. Assembly
+                // reports have no MD5 check, so this cleanup is essential.
+                let _ = std::fs::remove_file(dest_path);
+            }
+            copy_result
                 .map(|_| ())
                 .map_err(ftp::FtpError::ConnectionError)
         })?;

@@ -40,6 +40,9 @@ lazy_static! {
             .join("|")
     ))
     .unwrap();
+
+    /// Matches the "Candidatus" prefix case-insensitively for abbreviation.
+    static ref RE_CANDIDATUS: Regex = Regex::new(r"(?i)Candidatus ").unwrap();
 }
 
 /// Parsed name parts extracted from an input line.
@@ -249,10 +252,8 @@ pub fn process_line(
         is_normal = true;
     }
 
-    // Remove Candidatus
-    genus_clean = genus_clean.replace("Candidatus ", "C");
-    genus_clean = genus_clean.replace("candidatus ", "C");
-    genus_clean = genus_clean.replace("CANDIDATUS ", "C");
+    // Remove Candidatus (case-insensitive)
+    genus_clean = RE_CANDIDATUS.replace_all(&genus_clean, "C").to_string();
 
     // Clean subspecies if requested
     if shortsub {

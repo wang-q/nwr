@@ -1,5 +1,5 @@
 use log::warn;
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::io::BufRead;
 use std::io::Write;
 use std::path::PathBuf;
@@ -43,6 +43,10 @@ pub fn run(options: &RestrictOptions) -> anyhow::Result<()> {
         id_set.extend(descendents);
     }
 
+    // Cache term lookups so that input files with duplicate terms don't
+    // trigger redundant SQL queries.
+    let mut term_cache: HashMap<String, i64> = HashMap::new();
+
     for infile in &options.files {
         let reader = crate::libs::io::reader(infile)?;
         for line in reader.lines() {
@@ -59,12 +63,18 @@ pub fn run(options: &RestrictOptions) -> anyhow::Result<()> {
             let term = fields.get(options.column - 1).ok_or_else(|| {
                 anyhow::anyhow!("Column {} not found in line: {}", options.column, line)
             })?;
-            let id = match crate::term_to_tax_id(&conn, term) {
-                Ok(x) => x,
-                Err(err) => {
-                    warn!("Error converting term '{}': {}", term, err);
-                    continue;
-                }
+            let id = match term_cache.get(*term) {
+                Some(&id) => id,
+                None => match crate::term_to_tax_id(&conn, term) {
+                    Ok(x) => {
+                        term_cache.insert((*term).to_string(), x);
+                        x
+                    }
+                    Err(err) => {
+                        warn!("Error converting term '{}': {}", term, err);
+                        continue;
+                    }
+                },
             };
 
             if options.is_exclude ^ id_set.contains(&id) {

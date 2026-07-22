@@ -1,4 +1,6 @@
 use log::warn;
+use std::collections::hash_map::Entry;
+use std::collections::HashMap;
 use std::io::BufRead;
 use std::io::Write;
 use std::path::PathBuf;
@@ -33,6 +35,12 @@ pub fn run(options: &AppendOptions) -> anyhow::Result<()> {
     let mut writer = crate::libs::io::writer(&options.outfile)?;
 
     let conn = crate::connect_txdb(&options.nwrdir)?;
+
+    // Cache repeated lookups so that input files with duplicate terms don't
+    // trigger redundant SQL queries.
+    let mut term_cache: HashMap<String, i64> = HashMap::new();
+    let mut lineage_cache: HashMap<i64, Vec<crate::Taxon>> = HashMap::new();
+    let mut taxon_cache: HashMap<i64, crate::Taxon> = HashMap::new();
 
     for infile in &options.infiles {
         let reader = crate::libs::io::reader(infile)?;
@@ -73,24 +81,39 @@ pub fn run(options: &AppendOptions) -> anyhow::Result<()> {
                     fields.len()
                 )
             })?;
-            let id = match crate::term_to_tax_id(&conn, term) {
-                Ok(x) => x,
-                Err(err) => {
-                    warn!("Error converting term '{}': {}", term, err);
-                    continue 'line;
-                }
+            let id = match term_cache.get(term.as_str()) {
+                Some(&id) => id,
+                None => match crate::term_to_tax_id(&conn, term) {
+                    Ok(x) => {
+                        term_cache.insert(term.clone(), x);
+                        x
+                    }
+                    Err(err) => {
+                        warn!("Error converting term '{}': {}", term, err);
+                        continue 'line;
+                    }
+                },
             };
 
             if options.ranks.is_empty() {
-                let node = match crate::get_taxon(&conn, &[id]) {
-                    Ok(x) => x.into_iter().next().ok_or_else(|| {
-                        anyhow::anyhow!("get_taxon returned no taxa for id {}", id)
-                    })?,
-                    Err(err) => {
-                        warn!("Error getting taxon {}: {}", id, err);
-                        continue 'line;
+                if let Entry::Vacant(e) = taxon_cache.entry(id) {
+                    match crate::get_taxon(&conn, &[id]) {
+                        Ok(x) => {
+                            let n = x.into_iter().next().ok_or_else(|| {
+                                anyhow::anyhow!(
+                                    "get_taxon returned no taxa for id {}",
+                                    id
+                                )
+                            })?;
+                            e.insert(n);
+                        }
+                        Err(err) => {
+                            warn!("Error getting taxon {}: {}", id, err);
+                            continue 'line;
+                        }
                     }
-                };
+                }
+                let node = taxon_cache.get(&id).unwrap();
                 let s = node.scientific_name().unwrap_or("Unknown").to_string();
 
                 fields.push(s);
@@ -98,16 +121,21 @@ pub fn run(options: &AppendOptions) -> anyhow::Result<()> {
                     fields.push(id.to_string());
                 }
             } else {
-                let lineage = match crate::get_lineage(&conn, id) {
-                    Err(err) => {
-                        warn!("Errors on get_lineage({}): {}", id, err);
-                        continue 'line;
+                if let Entry::Vacant(e) = lineage_cache.entry(id) {
+                    match crate::get_lineage(&conn, id) {
+                        Err(err) => {
+                            warn!("Errors on get_lineage({}): {}", id, err);
+                            continue 'line;
+                        }
+                        Ok(x) => {
+                            e.insert(x);
+                        }
                     }
-                    Ok(x) => x,
-                };
+                }
+                let lineage = lineage_cache.get(&id).unwrap();
 
                 for rank in options.ranks.iter() {
-                    let (tax_id, sci_name) = crate::find_rank(&lineage, rank);
+                    let (tax_id, sci_name) = crate::find_rank(lineage, rank);
                     fields.push(sci_name.to_string());
                     if options.is_id {
                         fields.push(tax_id.to_string());
