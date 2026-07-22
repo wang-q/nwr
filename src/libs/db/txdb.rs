@@ -120,10 +120,10 @@ pub fn run(nwrdir: &std::path::Path) -> anyhow::Result<()> {
 
             // tax_id, name, unique_name, name_class
             let tax_id: i64 = record[0].trim().parse()?;
-            let name: String = record[1].parse()?;
-            let name_class: String = record[3].parse()?;
+            let name: String = record[1].trim().to_string();
+            let name_class: String = record[3].trim().to_string();
 
-            stmt.execute(rusqlite::params![tax_id, name.trim(), name_class.trim()])?;
+            stmt.execute(rusqlite::params![tax_id, name, name_class])?;
 
             if i > 0 && i % 10000 == 0 {
                 print!(".");

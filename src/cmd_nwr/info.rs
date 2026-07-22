@@ -38,39 +38,14 @@ pub fn make_subcommand() -> Command {
 
 // command implementation
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    let mut writer = intspan::writer(args.get_one::<String>("outfile").unwrap());
-
-    let nwrdir = nwr::get_nwr_dir(args, "dir")?;
-
-    let conn = nwr::connect_txdb(&nwrdir)?;
-
-    let mut ids = vec![];
-    for term in args
-        .get_many::<String>("terms")
-        .ok_or_else(|| anyhow::anyhow!("No terms provided"))?
-    {
-        let id = nwr::term_to_tax_id(&conn, term)?;
-        ids.push(id);
-    }
-
-    let nodes = nwr::get_taxon(&conn, &ids)?;
-
-    if args.get_flag("tsv") {
-        let mut wtr = csv::WriterBuilder::new()
-            .delimiter(b'\t')
-            .from_writer(writer);
-
-        wtr.write_record(["#tax_id", "sci_name", "rank", "division"])?;
-        for node in nodes.iter() {
-            let sci_name = node.scientific_name().unwrap_or("Unknown");
-            wtr.serialize((node.tax_id, sci_name, &node.rank, &node.division))?;
-        }
-        wtr.flush()?;
-    } else {
-        for node in nodes.iter() {
-            writer.write_fmt(format_args!("{}", node))?;
-        }
-    }
-
-    Ok(())
+    nwr::libs::taxonomy::info::run(&nwr::libs::taxonomy::info::InfoOptions {
+        nwrdir: nwr::get_nwr_dir(args, "dir")?,
+        terms: args
+            .get_many::<String>("terms")
+            .ok_or_else(|| anyhow::anyhow!("No terms provided"))?
+            .cloned()
+            .collect(),
+        is_tsv: args.get_flag("tsv"),
+        outfile: args.get_one::<String>("outfile").unwrap().clone(),
+    })
 }

@@ -32,26 +32,12 @@ pub fn make_subcommand() -> Command {
 
 // command implementation
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    let mut writer = intspan::writer(args.get_one::<String>("outfile").unwrap());
-
-    let nwrdir = nwr::get_nwr_dir(args, "dir")?;
-
-    let conn = nwr::connect_txdb(&nwrdir)?;
-
-    let term = args
-        .get_one::<String>("term")
-        .ok_or_else(|| anyhow::anyhow!("No term provided"))?;
-    let id = nwr::term_to_tax_id(&conn, term)?;
-
-    let lineage = nwr::get_lineage(&conn, id)?;
-
-    for node in lineage.iter() {
-        let sci_name = node.scientific_name().unwrap_or("Unknown");
-        writer.write_fmt(format_args!(
-            "{}\t{}\t{}\n",
-            node.rank, sci_name, node.tax_id
-        ))?;
-    }
-
-    Ok(())
+    nwr::libs::taxonomy::lineage::run(&nwr::libs::taxonomy::lineage::LineageOptions {
+        nwrdir: nwr::get_nwr_dir(args, "dir")?,
+        term: args
+            .get_one::<String>("term")
+            .ok_or_else(|| anyhow::anyhow!("No term provided"))?
+            .clone(),
+        outfile: args.get_one::<String>("outfile").unwrap().clone(),
+    })
 }
