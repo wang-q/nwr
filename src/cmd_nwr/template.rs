@@ -1,6 +1,6 @@
 use clap::*;
 
-// Create clap subcommand arguments
+/// Create clap subcommand arguments.
 pub fn make_subcommand() -> Command {
     Command::new("template")
         .about("Create dirs, data and scripts for a phylogenomic research")
@@ -128,7 +128,7 @@ pub fn make_subcommand() -> Command {
         )
 }
 
-// command implementation
+/// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let outdir = args.get_one::<String>("outdir").unwrap().clone();
 

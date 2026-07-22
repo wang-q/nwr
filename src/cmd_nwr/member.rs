@@ -1,6 +1,6 @@
 use clap::*;
 
-// Create clap subcommand arguments
+/// Create clap subcommand arguments.
 pub fn make_subcommand() -> Command {
     Command::new("member")
         .about("List members (of certain ranks) under ancestral term(s)")
@@ -44,7 +44,7 @@ pub fn make_subcommand() -> Command {
         )
 }
 
-// command implementation
+/// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let nwrdir = nwr::get_nwr_dir(args, "dir")?;
 

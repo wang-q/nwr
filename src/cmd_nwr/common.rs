@@ -1,6 +1,6 @@
 use clap::*;
 
-// Create clap subcommand arguments
+/// Create clap subcommand arguments.
 pub fn make_subcommand() -> Command {
     Command::new("common")
         .about("Output the common tree of terms")
@@ -30,21 +30,15 @@ pub fn make_subcommand() -> Command {
         )
 }
 
-// command implementation
+/// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    let mut writer = intspan::writer(args.get_one::<String>("outfile").unwrap());
-
-    let nwrdir = nwr::get_nwr_dir(args, "dir")?;
-    let conn = nwr::connect_txdb(&nwrdir)?;
-
-    let terms: Vec<String> = args
-        .get_many::<String>("terms")
-        .ok_or_else(|| anyhow::anyhow!("No terms provided"))?
-        .cloned()
-        .collect();
-
-    let out_string = nwr::libs::taxonomy::common::run(&conn, &terms)?;
-    writer.write_all((out_string + "\n").as_ref())?;
-
-    Ok(())
+    nwr::libs::taxonomy::common::run(&nwr::libs::taxonomy::common::CommonOptions {
+        nwrdir: nwr::get_nwr_dir(args, "dir")?,
+        terms: args
+            .get_many::<String>("terms")
+            .ok_or_else(|| anyhow::anyhow!("No terms provided"))?
+            .cloned()
+            .collect(),
+        outfile: args.get_one::<String>("outfile").unwrap().clone(),
+    })
 }

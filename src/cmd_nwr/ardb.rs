@@ -1,7 +1,7 @@
 use clap::*;
 use simplelog::*;
 
-// Create clap subcommand arguments
+/// Create clap subcommand arguments.
 pub fn make_subcommand() -> Command {
     Command::new("ardb")
         .about("Init the assembly database")
@@ -22,7 +22,7 @@ pub fn make_subcommand() -> Command {
         )
 }
 
-// command implementation
+/// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     SimpleLogger::init(LevelFilter::Debug, Config::default())?;
 

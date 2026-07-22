@@ -1,15 +1,30 @@
 use crate::Taxon;
 use std::collections::HashMap;
+use std::io::Write;
+use std::path::PathBuf;
 
-/// Build the common phylogenetic tree for the given terms and return it as a
-/// Newick string.
+/// Parsed options for common-tree operations.
+pub struct CommonOptions {
+    /// Directory containing NCBI taxonomy databases.
+    pub nwrdir: PathBuf,
+    /// Taxonomy IDs or scientific names whose common tree should be output.
+    pub terms: Vec<String>,
+    /// Output file path.
+    pub outfile: String,
+}
+
+/// Build and output the common phylogenetic tree for the given terms.
 ///
 /// `terms` are NCBI taxonomy IDs or scientific names. They are resolved against
-/// the taxonomy database open on `conn`.
-pub fn run(conn: &rusqlite::Connection, terms: &[String]) -> anyhow::Result<String> {
+/// the taxonomy database in `nwrdir`, and the resulting Newick string is written
+/// to `outfile` followed by a newline.
+pub fn run(options: &CommonOptions) -> anyhow::Result<()> {
+    let mut writer = intspan::writer(&options.outfile);
+    let conn = crate::connect_txdb(&options.nwrdir)?;
+
     let mut tax_ids = vec![];
-    for term in terms {
-        let id = crate::term_to_tax_id(conn, term)?;
+    for term in &options.terms {
+        let id = crate::term_to_tax_id(&conn, term)?;
         tax_ids.push(id);
     }
 
@@ -18,7 +33,7 @@ pub fn run(conn: &rusqlite::Connection, terms: &[String]) -> anyhow::Result<Stri
     let mut id_of: HashMap<i64, usize> = HashMap::new();
 
     for tax_id in tax_ids {
-        let lineage = crate::get_lineage(conn, tax_id)?;
+        let lineage = crate::get_lineage(&conn, tax_id)?;
 
         for taxon in lineage.iter() {
             let cur_tax_id = taxon.tax_id;
@@ -39,7 +54,9 @@ pub fn run(conn: &rusqlite::Connection, terms: &[String]) -> anyhow::Result<Stri
 
     tree.compress()?;
     let out_string = tree.to_newick()?;
-    Ok(out_string)
+    writer.write_all((out_string + "\n").as_ref())?;
+
+    Ok(())
 }
 
 fn add_taxon(

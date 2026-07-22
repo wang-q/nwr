@@ -1,6 +1,6 @@
 use clap::*;
 
-// Create clap subcommand arguments
+/// Create clap subcommand arguments.
 pub fn make_subcommand() -> Command {
     Command::new("info")
         .about("Information of Taxonomy ID(s) or scientific name(s)")
@@ -36,7 +36,7 @@ pub fn make_subcommand() -> Command {
         )
 }
 
-// command implementation
+/// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     nwr::libs::taxonomy::info::run(&nwr::libs::taxonomy::info::InfoOptions {
         nwrdir: nwr::get_nwr_dir(args, "dir")?,

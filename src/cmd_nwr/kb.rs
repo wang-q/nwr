@@ -1,6 +1,6 @@
 use clap::*;
 
-// Create clap subcommand arguments
+/// Create clap subcommand arguments.
 pub fn make_subcommand() -> Command {
     Command::new("kb")
         .about("Extracts bundled knowledge-base archives")
@@ -22,7 +22,7 @@ pub fn make_subcommand() -> Command {
         )
 }
 
-// command implementation
+/// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     nwr::libs::kb::run(&nwr::libs::kb::KbOptions {
         infile: args.get_one::<String>("infile").unwrap().clone(),

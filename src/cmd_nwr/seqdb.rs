@@ -23,7 +23,7 @@ fn opt_path(
     }
 }
 
-// Create clap subcommand arguments
+/// Create clap subcommand arguments.
 pub fn make_subcommand() -> Command {
     Command::new("seqdb")
         .about("Init the seq database")
@@ -80,7 +80,7 @@ pub fn make_subcommand() -> Command {
         )
 }
 
-// command implementation
+/// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     SimpleLogger::init(LevelFilter::Debug, Config::default())?;
 
