@@ -223,7 +223,15 @@ pub fn get_taxon(
 
     let mut taxa_map: HashMap<i64, Taxon> = HashMap::new();
 
-    for chunk in ids.chunks(CHUNK_SIZE) {
+    // Deduplicate ids before querying so that the same tax_id is never fetched
+    // twice (which would push duplicate name entries across chunks). The
+    // original `ids` order is preserved when building the output vector below.
+    let unique_ids: Vec<i64> = {
+        let mut seen = std::collections::HashSet::new();
+        ids.iter().filter(|id| seen.insert(**id)).copied().collect()
+    };
+
+    for chunk in unique_ids.chunks(CHUNK_SIZE) {
         let placeholders = (0..chunk.len()).map(|_| "?").collect::<Vec<_>>().join(",");
         let sql = format!(
             "

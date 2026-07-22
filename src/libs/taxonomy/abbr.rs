@@ -189,6 +189,10 @@ pub fn process_line(
     if line.is_empty() {
         return None;
     }
+    // Columns are 1-based; reject 0 to avoid usize underflow on `columns.n - 1`.
+    if columns.0 == 0 || columns.1 == 0 || columns.2 == 0 {
+        return None;
+    }
 
     let fields: Vec<String> = line.split(separator).map(|s| s.to_string()).collect();
     if fields.len() < columns.2 {

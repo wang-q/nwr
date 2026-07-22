@@ -15,7 +15,7 @@ pub struct AppendOptions {
     pub column: usize,
     /// Taxonomic ranks to append.
     pub ranks: Vec<String>,
-    /// Whether the input column contains taxon IDs instead of names.
+    /// Whether to also append taxon ID columns to the output.
     pub is_id: bool,
 }
 
