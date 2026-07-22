@@ -53,6 +53,27 @@ fn rep_update_sql(field: &str) -> &'static str {
     }
 }
 
+/// Resolve an optional file argument.
+///
+/// If the argument was not provided, returns `None`.
+/// If it was provided without a value, returns the default path under `dir`.
+/// If it was provided with a value, returns that path.
+fn opt_path(
+    args: &ArgMatches,
+    name: &str,
+    dir: &std::path::Path,
+    default: &str,
+) -> Option<PathBuf> {
+    if args.contains_id(name) {
+        Some(match args.get_one::<String>(name) {
+            Some(path) => PathBuf::from(path),
+            None => dir.join(default),
+        })
+    } else {
+        None
+    }
+}
+
 // Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
     Command::new("seqdb")
@@ -181,54 +202,19 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let dir = std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf();
 
     let is_init = args.get_flag("init");
-    let opt_strain = if args.contains_id("strain") {
-        match args.get_one::<String>("strain") {
-            Some(path) => PathBuf::from(path),
-            None => dir.join("strains.tsv"),
-        }
-    } else {
-        PathBuf::new()
-    };
-    let opt_size = if args.contains_id("size") {
-        match args.get_one::<String>("size") {
-            Some(path) => PathBuf::from(path),
-            None => dir.join("sizes.tsv"),
-        }
-    } else {
-        PathBuf::new()
-    };
-    let opt_clust = if args.contains_id("clust") {
-        match args.get_one::<String>("clust") {
-            Some(path) => PathBuf::from(path),
-            None => dir.join("rep_cluster.tsv"),
-        }
-    } else {
-        PathBuf::new()
-    };
-    let opt_anno = if args.contains_id("anno") {
-        match args.get_one::<String>("anno") {
-            Some(path) => PathBuf::from(path),
-            None => dir.join("anno.tsv"),
-        }
-    } else {
-        PathBuf::new()
-    };
-    let opt_asmseq = if args.contains_id("asmseq") {
-        match args.get_one::<String>("asmseq") {
-            Some(path) => PathBuf::from(path),
-            None => dir.join("asmseq.tsv"),
-        }
-    } else {
-        PathBuf::new()
-    };
+    let opt_strain = opt_path(args, "strain", &dir, "strains.tsv");
+    let opt_size = opt_path(args, "size", &dir, "sizes.tsv");
+    let opt_clust = opt_path(args, "clust", &dir, "rep_cluster.tsv");
+    let opt_anno = opt_path(args, "anno", &dir, "anno.tsv");
+    let opt_asmseq = opt_path(args, "asmseq", &dir, "asmseq.tsv");
     let opt_rep = if args.contains_id("rep") {
         let rep = args.get_one::<String>("rep").unwrap();
         let pos = rep.find('=').ok_or_else(|| {
             anyhow::anyhow!("invalid KEY=value: no `=` found in `{rep}`")
         })?;
-        (rep[..pos].to_string(), rep[pos + 1..].to_string())
+        Some((rep[..pos].to_string(), rep[pos + 1..].to_string()))
     } else {
-        (String::new(), String::new())
+        None
     };
 
     //----------------------------
@@ -264,21 +250,21 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         conn.execute_batch(DDL_SEQ)?;
     }
 
-    if !opt_strain.as_os_str().is_empty() {
+    if let Some(opt_strain) = opt_strain {
         info!("==> Loading `{}` to `rank` and `asm`", opt_strain.display());
         // strain, rank
         let dmp = std::fs::File::open(opt_strain)?;
         insert_strain(&dmp, &conn)?;
     }
 
-    if !opt_size.as_os_str().is_empty() {
+    if let Some(opt_size) = opt_size {
         info!("==> Loading `{}` to `seq`", opt_size.display());
         // sequence name, size
         let dmp = std::fs::File::open(opt_size)?;
         insert_size(&dmp, &conn)?;
     }
 
-    if !opt_clust.as_os_str().is_empty() {
+    if let Some(opt_clust) = opt_clust {
         info!(
             "==> Loading `{}` to `rep` and `rep_seq`",
             opt_clust.display()
@@ -288,25 +274,25 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         insert_clust(&dmp, &conn)?;
     }
 
-    if !opt_anno.as_os_str().is_empty() {
+    if let Some(opt_anno) = opt_anno {
         info!("==> Loading `{}` to `seq`", opt_anno.display());
         // name, anno
         let dmp = std::fs::File::open(opt_anno)?;
         insert_anno(&dmp, &conn)?;
     }
 
-    if !opt_asmseq.as_os_str().is_empty() {
+    if let Some(opt_asmseq) = opt_asmseq {
         info!("==> Loading `{}` to `asm_seq`", opt_asmseq.display());
         // sequence name, assembly name
         let dmp = std::fs::File::open(opt_asmseq)?;
         insert_asmseq(&dmp, &conn)?;
     }
 
-    if !opt_rep.1.is_empty() {
-        info!("==> Loading `{}` to `rep.{}`", opt_rep.1, opt_rep.0);
+    if let Some((rep_field, rep_path)) = opt_rep {
+        info!("==> Loading `{}` to `rep.{}`", rep_path, rep_field);
         // family, rep
-        let dmp = std::fs::File::open(opt_rep.1)?;
-        insert_rep(&dmp, &opt_rep.0, &conn)?;
+        let dmp = std::fs::File::open(rep_path)?;
+        insert_rep(&dmp, &rep_field, &conn)?;
     }
 
     Ok(())

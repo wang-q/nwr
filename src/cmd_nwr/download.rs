@@ -133,7 +133,7 @@ pub fn format_file_sizes(paths: &DownloadPaths) -> anyhow::Result<Vec<String>> {
         sizes.push(format!(
             "{}\t{}",
             f.to_string_lossy(),
-            readable(size.to_string())
+            readable(&size.to_string())
         ));
     }
     Ok(sizes)
@@ -332,17 +332,17 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     })
 }
 
-fn readable(n: String) -> String {
-    let mut c = String::new();
+fn readable(n: &str) -> String {
+    let mut parts: Vec<char> = Vec::with_capacity(n.len() + n.len() / 3);
 
     for (i, ch) in n.chars().rev().enumerate() {
-        if i % 3 == 0 && i != 0 {
-            c.insert(0, ',');
+        if i > 0 && i % 3 == 0 {
+            parts.push(',');
         }
-        c.insert(0, ch);
+        parts.push(ch);
     }
 
-    c
+    parts.into_iter().rev().collect()
 }
 
 #[cfg(test)]
@@ -600,39 +600,39 @@ mod tests {
 
     #[test]
     fn test_readable_small_number() {
-        assert_eq!(readable("123".to_string()), "123");
+        assert_eq!(readable("123"), "123");
     }
 
     #[test]
     fn test_readable_thousands() {
-        assert_eq!(readable("1234".to_string()), "1,234");
+        assert_eq!(readable("1234"), "1,234");
     }
 
     #[test]
     fn test_readable_millions() {
-        assert_eq!(readable("1234567".to_string()), "1,234,567");
+        assert_eq!(readable("1234567"), "1,234,567");
     }
 
     #[test]
     fn test_readable_zero() {
-        assert_eq!(readable("0".to_string()), "0");
+        assert_eq!(readable("0"), "0");
     }
 
     #[test]
     fn test_readable_large_number() {
-        assert_eq!(readable("1234567890".to_string()), "1,234,567,890");
+        assert_eq!(readable("1234567890"), "1,234,567,890");
     }
 
     #[test]
     fn test_readable_empty_string() {
-        assert_eq!(readable("".to_string()), "");
+        assert_eq!(readable(""), "");
     }
 
     #[test]
     fn test_readable_exact_boundary() {
         // Test exactly at thousand boundaries
-        assert_eq!(readable("1000".to_string()), "1,000");
-        assert_eq!(readable("1000000".to_string()), "1,000,000");
+        assert_eq!(readable("1000"), "1,000");
+        assert_eq!(readable("1000000"), "1,000,000");
     }
 
     // Mock tests for FTP operations

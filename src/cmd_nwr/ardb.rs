@@ -217,10 +217,15 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         let lineage = match nwr::get_lineage(&tx_conn, tax_id) {
             Err(err) => {
                 debug!("Errors on get_lineage({}): {}", tax_id, err);
+                // Use a clearly-marked missing taxon so that find_rank
+                // returns (0, "NA") for species/genus/family.
                 let taxon = nwr::Taxon {
                     tax_id: 0,
                     rank: "no rank".to_string(),
-                    names: HashMap::from([("".to_string(), vec!["NA".to_string()])]),
+                    names: HashMap::from([(
+                        "scientific name".to_string(),
+                        vec!["NA".to_string()],
+                    )]),
                     ..Default::default()
                 };
                 vec![taxon]

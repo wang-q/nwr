@@ -306,9 +306,15 @@ pub fn get_lineage(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<T
         let parent_id = stmt.query_row([id], |row| row.get(0))?;
         ids.push(parent_id);
 
-        // the root or one of the roots
-        if id == 1 || parent_id == id {
-            break;
+        // Only the canonical root (tax_id 1) may be self-referential.
+        if parent_id == id {
+            if id == 1 {
+                break;
+            }
+            return Err(anyhow::anyhow!(
+                "Taxonomy cycle detected: tax_id {} is its own parent",
+                id
+            ));
         }
 
         if !seen.insert(parent_id) {
@@ -316,6 +322,11 @@ pub fn get_lineage(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<T
                 "Taxonomy cycle detected involving tax_id {}",
                 parent_id
             ));
+        }
+
+        // Reached the canonical root.
+        if id == 1 {
+            break;
         }
 
         id = parent_id;
@@ -790,5 +801,36 @@ mod tests {
         let path = get_nwr_dir(&matches, "dir").unwrap();
         // Should return default nwr path
         assert!(path.to_string_lossy().contains(".nwr"));
+    }
+
+    #[test]
+    fn test_get_lineage_self_loop_cycle() {
+        let conn = rusqlite::Connection::open_in_memory().unwrap();
+        conn.execute_batch(
+            "
+            CREATE TABLE node (
+                tax_id        INTEGER PRIMARY KEY,
+                parent_tax_id INTEGER,
+                rank          VARCHAR NOT NULL,
+                division_id   INTEGER NOT NULL,
+                comment       TEXT
+            );
+            ",
+        )
+        .unwrap();
+        // Insert a non-root node that is its own parent.
+        conn.execute(
+            "INSERT INTO node (tax_id, parent_tax_id, rank, division_id, comment)
+             VALUES (2, 2, 'species', 1, '')",
+            [],
+        )
+        .unwrap();
+
+        let result = get_lineage(&conn, 2);
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("is its own parent"));
     }
 }
