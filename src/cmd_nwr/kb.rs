@@ -14,7 +14,6 @@ pub fn make_subcommand() -> Command {
         )
         .arg(
             Arg::new("outdir")
-                .short('o')
                 .long("outdir")
                 .num_args(1)
                 .default_value(".")

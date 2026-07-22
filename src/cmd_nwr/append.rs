@@ -14,23 +14,8 @@ pub fn make_subcommand() -> Command {
                 .help("Input TSV file(s) to process. Use 'stdin' for standard input"),
         )
         .arg(args::dir_arg())
-        .arg(
-            Arg::new("rank")
-                .long("rank")
-                .short('r')
-                .num_args(1..)
-                .action(ArgAction::Append)
-                .help("Taxonomic rank(s) to append"),
-        )
-        .arg(
-            Arg::new("column")
-                .long("column")
-                .short('c')
-                .num_args(1)
-                .default_value("1")
-                .value_parser(value_parser!(usize))
-                .help("Column containing taxon IDs/names (1-based)"),
-        )
+        .arg(args::rank_arg())
+        .arg(args::column_arg())
         .arg(
             Arg::new("id")
                 .long("id")
@@ -46,16 +31,14 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     let column: usize = *args.get_one("column").unwrap();
 
-    let mut ranks = vec![];
-    if args.contains_id("rank") {
-        for rank in args.get_many::<String>("rank").unwrap() {
-            ranks.push(rank.to_string());
-        }
-    }
+    let ranks: Vec<String> = args
+        .get_many::<String>("rank")
+        .map(|v| v.cloned().collect())
+        .unwrap_or_default();
 
     let infiles: Vec<String> = args
         .get_many::<String>("infiles")
-        .unwrap()
+        .ok_or_else(|| anyhow::anyhow!("No input files provided"))?
         .cloned()
         .collect();
 

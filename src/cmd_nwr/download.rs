@@ -1,3 +1,4 @@
+use super::args;
 use clap::*;
 use simplelog::*;
 
@@ -6,6 +7,7 @@ pub fn make_subcommand() -> Command {
     Command::new("download")
         .about("Downloads the latest releases of `taxdump` and assembly reports")
         .after_help(include_str!("../../docs/help/download.md"))
+        .arg(args::dir_arg())
         .arg(
             Arg::new("host")
                 .long("host")
@@ -33,7 +35,7 @@ pub fn make_subcommand() -> Command {
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     SimpleLogger::init(LevelFilter::Info, Config::default())?;
 
-    let nwrdir = nwr::nwr_path()?;
+    let nwrdir = nwr::get_nwr_dir(args, "dir")?;
     let host = args.get_one::<String>("host").unwrap();
     let tx_path = args.get_one::<String>("tx").unwrap();
     let ar_path = args.get_one::<String>("ar").unwrap();

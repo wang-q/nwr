@@ -317,6 +317,9 @@ pub fn insert_clust(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<(
         )",
     )?;
 
+    let mut seq_exists =
+        conn.prepare("SELECT EXISTS(SELECT 1 FROM seq WHERE name = ?1)")?;
+
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
@@ -328,6 +331,16 @@ pub fn insert_clust(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<(
         }
         let rep: String = record[0].trim().to_string();
         let seq: String = record[1].trim().to_string();
+
+        let exists: bool =
+            seq_exists.query_row(rusqlite::params![&seq], |row| row.get(0))?;
+        if !exists {
+            return Err(anyhow::anyhow!(
+                "Line {}: seq name '{}' not found in seq table (load strains/sizes first)",
+                i + 1,
+                seq
+            ));
+        }
 
         rep_stmt.execute([&rep])?;
         rep_seq_stmt.execute(rusqlite::params![&rep, &seq])?;
@@ -391,6 +404,11 @@ pub fn insert_asmseq(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<
         )",
     )?;
 
+    let mut seq_exists =
+        conn.prepare("SELECT EXISTS(SELECT 1 FROM seq WHERE name = ?1)")?;
+    let mut asm_exists =
+        conn.prepare("SELECT EXISTS(SELECT 1 FROM asm WHERE name = ?1)")?;
+
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
@@ -404,6 +422,25 @@ pub fn insert_asmseq(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<
         // sequence name, assembly name
         let seq: String = record[0].trim().to_string();
         let asm: String = record[1].trim().to_string();
+
+        let exists: bool =
+            seq_exists.query_row(rusqlite::params![&seq], |row| row.get(0))?;
+        if !exists {
+            return Err(anyhow::anyhow!(
+                "Line {}: seq name '{}' not found in seq table",
+                i + 1,
+                seq
+            ));
+        }
+        let exists: bool =
+            asm_exists.query_row(rusqlite::params![&asm], |row| row.get(0))?;
+        if !exists {
+            return Err(anyhow::anyhow!(
+                "Line {}: asm name '{}' not found in asm table",
+                i + 1,
+                asm
+            ));
+        }
 
         stmt.execute(rusqlite::params![&asm, &seq])?;
 

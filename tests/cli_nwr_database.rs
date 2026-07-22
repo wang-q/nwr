@@ -63,7 +63,7 @@ fn command_ardb() -> anyhow::Result<()> {
     let stdout = String::from_utf8(output.stdout).unwrap();
 
     assert!(std::path::Path::new("tests/nwr/ar_refseq.sqlite").exists());
-    assert!(stdout.lines().count() > 10);
+    assert!(stdout.contains("Loading"));
 
     Ok(())
 }

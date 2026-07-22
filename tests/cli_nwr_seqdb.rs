@@ -10,7 +10,7 @@ fn command_seqdb_init() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--init")
         .output()
@@ -33,7 +33,7 @@ fn command_seqdb_load_strain() -> anyhow::Result<()> {
     // First init the database
     let mut cmd = Command::cargo_bin("nwr")?;
     cmd.arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--init")
         .output()
@@ -43,7 +43,7 @@ fn command_seqdb_load_strain() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--strain")
         .arg("tests/nwr/seqdb_strains.tsv")
@@ -62,7 +62,7 @@ fn command_seqdb_load_size() -> anyhow::Result<()> {
     // First init the database
     let mut cmd = Command::cargo_bin("nwr")?;
     cmd.arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--init")
         .output()
@@ -72,7 +72,7 @@ fn command_seqdb_load_size() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--size")
         .arg("tests/nwr/seqdb_sizes.tsv")
@@ -91,7 +91,7 @@ fn command_seqdb_load_clust() -> anyhow::Result<()> {
     // First init the database and load sizes (required for clust)
     let mut cmd = Command::cargo_bin("nwr")?;
     cmd.arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--init")
         .output()
@@ -99,7 +99,7 @@ fn command_seqdb_load_clust() -> anyhow::Result<()> {
 
     let mut cmd = Command::cargo_bin("nwr")?;
     cmd.arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--size")
         .arg("tests/nwr/seqdb_sizes.tsv")
@@ -110,7 +110,7 @@ fn command_seqdb_load_clust() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--clust")
         .arg("tests/nwr/seqdb_clust.tsv")
@@ -129,7 +129,7 @@ fn command_seqdb_load_anno() -> anyhow::Result<()> {
     // First init the database and load sizes (required for anno)
     let mut cmd = Command::cargo_bin("nwr")?;
     cmd.arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--init")
         .output()
@@ -137,7 +137,7 @@ fn command_seqdb_load_anno() -> anyhow::Result<()> {
 
     let mut cmd = Command::cargo_bin("nwr")?;
     cmd.arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--size")
         .arg("tests/nwr/seqdb_sizes.tsv")
@@ -148,7 +148,7 @@ fn command_seqdb_load_anno() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--anno")
         .arg("tests/nwr/seqdb_anno.tsv")
@@ -168,7 +168,7 @@ fn command_seqdb_load_asmseq() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--init")
         .output()
@@ -182,7 +182,7 @@ fn command_seqdb_load_asmseq() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--strain")
         .arg("tests/nwr/seqdb_strains.tsv")
@@ -197,7 +197,7 @@ fn command_seqdb_load_asmseq() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--size")
         .arg("tests/nwr/seqdb_sizes.tsv")
@@ -213,7 +213,7 @@ fn command_seqdb_load_asmseq() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--asmseq")
         .arg("tests/nwr/seqdb_asmseq.tsv")
@@ -246,7 +246,7 @@ fn command_seqdb_default_paths() -> anyhow::Result<()> {
     // First init the database
     let mut cmd = Command::cargo_bin("nwr")?;
     cmd.arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--init")
         .output()
@@ -256,7 +256,7 @@ fn command_seqdb_default_paths() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--strain")
         .arg("--size")
@@ -279,7 +279,7 @@ fn command_seqdb_invalid_rep_field() -> anyhow::Result<()> {
     // First init the database
     let mut cmd = Command::cargo_bin("nwr")?;
     cmd.arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--init")
         .output()
@@ -289,7 +289,7 @@ fn command_seqdb_invalid_rep_field() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let rep_arg = format!("invalid_field={}", test_file.display());
     cmd.arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--rep")
         .arg(&rep_arg)
@@ -307,7 +307,7 @@ fn command_seqdb_full_workflow() -> anyhow::Result<()> {
     // Init database
     let mut cmd = Command::cargo_bin("nwr")?;
     cmd.arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--init")
         .output()
@@ -317,7 +317,7 @@ fn command_seqdb_full_workflow() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("seqdb")
-        .arg("--dir")
+        .arg("--workdir")
         .arg(temp_dir.path())
         .arg("--strain")
         .arg("tests/nwr/seqdb_strains.tsv")

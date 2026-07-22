@@ -29,9 +29,9 @@ pub fn make_subcommand() -> Command {
         .about("Initializes the seq database")
         .after_help(include_str!("../../docs/help/seqdb.md"))
         .arg(
-            Arg::new("dir")
-                .long("dir")
-                .short('d')
+            Arg::new("workdir")
+                .long("workdir")
+                .short('w')
                 .num_args(1)
                 .default_value(".")
                 .help("Specify the working directory"),
@@ -82,9 +82,10 @@ pub fn make_subcommand() -> Command {
 
 /// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    SimpleLogger::init(LevelFilter::Debug, Config::default())?;
+    SimpleLogger::init(LevelFilter::Info, Config::default())?;
 
-    let dir = std::path::Path::new(args.get_one::<String>("dir").unwrap()).to_path_buf();
+    let dir =
+        std::path::Path::new(args.get_one::<String>("workdir").unwrap()).to_path_buf();
     let opt_strain = opt_path(args, "strain", &dir, "strains.tsv");
     let opt_size = opt_path(args, "size", &dir, "sizes.tsv");
     let opt_clust = opt_path(args, "clust", &dir, "rep_cluster.tsv");
@@ -95,6 +96,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         let pos = rep.find('=').ok_or_else(|| {
             anyhow::anyhow!("invalid KEY=value: no `=` found in `{rep}`")
         })?;
+        if pos == 0 || pos + 1 >= rep.len() {
+            anyhow::bail!("invalid KEY=value: empty field or path in `{rep}`");
+        }
         Some((rep[..pos].to_string(), rep[pos + 1..].to_string()))
     } else {
         None

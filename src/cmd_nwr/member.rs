@@ -14,14 +14,7 @@ pub fn make_subcommand() -> Command {
                 .index(1),
         )
         .arg(args::dir_arg())
-        .arg(
-            Arg::new("rank")
-                .long("rank")
-                .short('r')
-                .num_args(1..)
-                .action(ArgAction::Append)
-                .help("Taxonomic rank(s) to list"),
-        )
+        .arg(args::rank_arg())
         .arg(
             Arg::new("env")
                 .long("env")
@@ -41,12 +34,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         .cloned()
         .collect();
 
-    let mut ranks = vec![];
-    if args.contains_id("rank") {
-        for rank in args.get_many::<String>("rank").unwrap() {
-            ranks.push(rank.to_string());
-        }
-    }
+    let ranks: Vec<String> = args
+        .get_many::<String>("rank")
+        .map(|v| v.cloned().collect())
+        .unwrap_or_default();
 
     nwr::libs::taxonomy::member::run(&nwr::libs::taxonomy::member::MemberOptions {
         nwrdir,

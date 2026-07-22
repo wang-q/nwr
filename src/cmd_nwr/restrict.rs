@@ -21,17 +21,9 @@ pub fn make_subcommand() -> Command {
                 .num_args(1..)
                 .action(ArgAction::Append)
                 .default_value("stdin")
-                .help("Input filename. [stdin] for standard input"),
+                .help("Input filename. 'stdin' for standard input"),
         )
-        .arg(
-            Arg::new("column")
-                .long("column")
-                .short('c')
-                .num_args(1)
-                .default_value("1")
-                .value_parser(value_parser!(usize))
-                .help("The column where the IDs are located, starting from 1"),
-        )
+        .arg(args::column_arg())
         .arg(
             Arg::new("exclude")
                 .long("exclude")

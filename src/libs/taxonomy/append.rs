@@ -82,10 +82,15 @@ pub fn run(options: &AppendOptions) -> anyhow::Result<()> {
             };
 
             if options.ranks.is_empty() {
-                let node = crate::get_taxon(&conn, &[id])?
-                    .into_iter()
-                    .next()
-                    .ok_or_else(|| anyhow::anyhow!("No taxon found for ID: {}", id))?;
+                let node = match crate::get_taxon(&conn, &[id]) {
+                    Ok(x) => x.into_iter().next().ok_or_else(|| {
+                        anyhow::anyhow!("No taxon found for ID: {}", id)
+                    })?,
+                    Err(err) => {
+                        warn!("Error getting taxon {}: {}", id, err);
+                        continue 'line;
+                    }
+                };
                 let s = node.scientific_name().unwrap_or("Unknown").to_string();
 
                 fields.push(s);

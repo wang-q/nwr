@@ -12,7 +12,7 @@ pub fn make_subcommand() -> Command {
 
 /// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    SimpleLogger::init(LevelFilter::Debug, Config::default())?;
+    SimpleLogger::init(LevelFilter::Info, Config::default())?;
 
     let nwrdir = nwr::get_nwr_dir(args, "dir")?;
     nwr::libs::db::txdb::run(&nwrdir)

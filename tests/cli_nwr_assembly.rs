@@ -9,7 +9,7 @@ fn command_template_ass() -> anyhow::Result<()> {
         .arg("template")
         .arg("tests/assembly/Trichoderma.assembly.tsv")
         .arg("--ass")
-        .arg("-o")
+        .arg("--outdir")
         .arg("stdout")
         .output()
         .unwrap();
@@ -33,7 +33,7 @@ fn command_template_bs() -> anyhow::Result<()> {
         .arg("template")
         .arg("tests/assembly/Trichoderma.assembly.tsv")
         .arg("--bs")
-        .arg("-o")
+        .arg("--outdir")
         .arg("stdout")
         .output()
         .unwrap();
@@ -59,7 +59,7 @@ fn command_template_mh() -> anyhow::Result<()> {
         .arg("--mh")
         .arg("--sketch")
         .arg("123456")
-        .arg("-o")
+        .arg("--outdir")
         .arg("stdout")
         .output()
         .unwrap();
@@ -87,7 +87,7 @@ fn command_template_count() -> anyhow::Result<()> {
         .arg("genus")
         .arg("--rank")
         .arg("family")
-        .arg("-o")
+        .arg("--outdir")
         .arg("stdout")
         .output()
         .unwrap();
@@ -107,7 +107,7 @@ fn command_template_pro() -> anyhow::Result<()> {
         .arg("template")
         .arg("tests/assembly/Trichoderma.assembly.tsv")
         .arg("--pro")
-        .arg("-o")
+        .arg("--outdir")
         .arg("stdout")
         .output()
         .unwrap();
@@ -129,7 +129,7 @@ fn command_kb() -> anyhow::Result<()> {
     let output = cmd
         .arg("kb")
         .arg("bac120")
-        .arg("-o")
+        .arg("--outdir")
         .arg(temp_dir.path())
         .output()
         .unwrap();

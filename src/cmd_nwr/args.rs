@@ -4,7 +4,7 @@
 //! for arguments that appear in more than one subcommand, as required by
 //! `AGENTS.md`.
 
-use clap::Arg;
+use clap::{value_parser, Arg, ArgAction};
 
 /// `--dir` (`-d`) option pointing at the NWR data directory.
 pub fn dir_arg() -> Arg {
@@ -24,4 +24,25 @@ pub fn outfile_arg() -> Arg {
         .num_args(1)
         .default_value("stdout")
         .help("Output filename (default: stdout)")
+}
+
+/// `--rank` (`-r`) option for taxonomic rank(s), repeatable.
+pub fn rank_arg() -> Arg {
+    Arg::new("rank")
+        .long("rank")
+        .short('r')
+        .num_args(1..)
+        .action(ArgAction::Append)
+        .help("Taxonomic rank(s)")
+}
+
+/// `--column` (`-c`) option for 1-based column index (defaults to 1).
+pub fn column_arg() -> Arg {
+    Arg::new("column")
+        .long("column")
+        .short('c')
+        .num_args(1)
+        .default_value("1")
+        .value_parser(value_parser!(usize))
+        .help("Column number (1-based)")
 }

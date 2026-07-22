@@ -281,6 +281,11 @@ pub fn get_taxon(
 /// assert_eq!(ancestor.tax_id, 12333);
 /// ```
 pub fn get_ancestor(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Taxon> {
+    // The canonical root (tax_id 1) is its own parent, so it has no ancestor.
+    if id == 1 {
+        anyhow::bail!("Root (tax_id 1) has no ancestor");
+    }
+
     let mut stmt = conn.prepare(
         "
         SELECT parent_tax_id
@@ -436,7 +441,12 @@ pub fn get_all_descendent(
 
         let mut rows = stmt.query([id])?;
         while let Some(row) = rows.next()? {
-            temp_ids.push(row.get(0)?);
+            let child_id: i64 = row.get(0)?;
+            // Skip self-loop: the canonical root (tax_id 1) is its own parent.
+            if child_id == id {
+                continue;
+            }
+            temp_ids.push(child_id);
         }
     }
 
@@ -480,6 +490,10 @@ pub fn term_to_tax_id(conn: &rusqlite::Connection, term: &str) -> anyhow::Result
 }
 
 /// Find rank in lineage
+///
+/// Returns `(tax_id, scientific_name)` for the first node whose `rank` matches.
+/// If no match is found, returns the sentinel `(0, "NA")` — callers rely on
+/// this convention to represent a missing rank.
 ///
 /// ```
 /// let path = std::path::PathBuf::from("tests/nwr/");

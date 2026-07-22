@@ -110,6 +110,8 @@ pub fn run(
 
     // Intentionally use explicit SQL BEGIN/COMMIT rather than rusqlite::Transaction.
     conn.execute_batch("BEGIN;")?;
+    let mut lineage_cache: HashMap<i64, Vec<crate::Taxon>> = HashMap::new();
+    let mut inserted: usize = 0;
     for (i, line) in rdr.lines().enumerate() {
         let line_num = i + 1;
         let line = line?;
@@ -117,7 +119,7 @@ pub fn run(
             continue;
         }
 
-        let fields: Vec<String> = line.split('\t').map(|s| s.to_string()).collect();
+        let fields: Vec<&str> = line.split('\t').collect();
         if fields.len() <= COL_FTP_PATH {
             debug!(
                 "Skipping line {}: insufficient fields ({} <= {})",
@@ -130,58 +132,61 @@ pub fn run(
 
         let tax_id = fields
             .get(COL_TAX_ID)
+            .copied()
             .ok_or_else(|| anyhow::anyhow!("Missing tax_id field at line {}", line_num))?
             .parse::<i64>()
             .map_err(|e| {
                 anyhow::anyhow!("Invalid tax_id at line {}: {}", line_num, e)
             })?;
-        let organism_name = fields.get(COL_ORGANISM_NAME).ok_or_else(|| {
+        let organism_name = fields.get(COL_ORGANISM_NAME).copied().ok_or_else(|| {
             anyhow::anyhow!("Missing organism_name field at line {}", line_num)
         })?;
         let infraspecific_name =
-            fields.get(COL_INFRASPECIFIC_NAME).ok_or_else(|| {
+            fields.get(COL_INFRASPECIFIC_NAME).copied().ok_or_else(|| {
                 anyhow::anyhow!("Missing infraspecific_name field at line {}", line_num)
             })?;
-        let bioproject = fields.get(COL_BIOPROJECT).ok_or_else(|| {
+        let bioproject = fields.get(COL_BIOPROJECT).copied().ok_or_else(|| {
             anyhow::anyhow!("Missing bioproject field at line {}", line_num)
         })?;
-        let biosample = fields.get(COL_BIOSAMPLE).ok_or_else(|| {
+        let biosample = fields.get(COL_BIOSAMPLE).copied().ok_or_else(|| {
             anyhow::anyhow!("Missing biosample field at line {}", line_num)
         })?;
         let assembly_accession =
-            fields.get(COL_ASSEMBLY_ACCESSION).ok_or_else(|| {
+            fields.get(COL_ASSEMBLY_ACCESSION).copied().ok_or_else(|| {
                 anyhow::anyhow!("Missing assembly_accession field at line {}", line_num)
             })?;
-        let refseq_category = fields.get(COL_REFSEQ_CATEGORY).ok_or_else(|| {
-            anyhow::anyhow!("Missing refseq_category field at line {}", line_num)
-        })?;
-        let assembly_level = fields.get(COL_ASSEMBLY_LEVEL).ok_or_else(|| {
-            anyhow::anyhow!("Missing assembly_level field at line {}", line_num)
-        })?;
-        let genome_rep = fields.get(COL_GENOME_REP).ok_or_else(|| {
+        let refseq_category =
+            fields.get(COL_REFSEQ_CATEGORY).copied().ok_or_else(|| {
+                anyhow::anyhow!("Missing refseq_category field at line {}", line_num)
+            })?;
+        let assembly_level =
+            fields.get(COL_ASSEMBLY_LEVEL).copied().ok_or_else(|| {
+                anyhow::anyhow!("Missing assembly_level field at line {}", line_num)
+            })?;
+        let genome_rep = fields.get(COL_GENOME_REP).copied().ok_or_else(|| {
             anyhow::anyhow!("Missing genome_rep field at line {}", line_num)
         })?;
-        let seq_rel_date = fields.get(COL_SEQ_REL_DATE).ok_or_else(|| {
+        let seq_rel_date = fields.get(COL_SEQ_REL_DATE).copied().ok_or_else(|| {
             anyhow::anyhow!("Missing seq_rel_date field at line {}", line_num)
         })?;
-        let asm_name = fields.get(COL_ASM_NAME).ok_or_else(|| {
+        let asm_name = fields.get(COL_ASM_NAME).copied().ok_or_else(|| {
             anyhow::anyhow!("Missing asm_name field at line {}", line_num)
         })?;
-        let gbrs_paired_asm = fields.get(COL_GBRS_PAIRED_ASM).ok_or_else(|| {
-            anyhow::anyhow!("Missing gbrs_paired_asm field at line {}", line_num)
-        })?;
-        let ftp_path = fields.get(COL_FTP_PATH).ok_or_else(|| {
+        let gbrs_paired_asm =
+            fields.get(COL_GBRS_PAIRED_ASM).copied().ok_or_else(|| {
+                anyhow::anyhow!("Missing gbrs_paired_asm field at line {}", line_num)
+            })?;
+        let ftp_path = fields.get(COL_FTP_PATH).copied().ok_or_else(|| {
             anyhow::anyhow!("Missing ftp_path field at line {}", line_num)
         })?;
 
         // clean NA/na
-        let infraspecific_name = if infraspecific_name.as_str() == "NA"
-            || infraspecific_name.as_str() == "na"
-        {
-            ""
-        } else {
-            infraspecific_name
-        };
+        let infraspecific_name =
+            if infraspecific_name == "NA" || infraspecific_name == "na" {
+                ""
+            } else {
+                infraspecific_name
+            };
 
         // Skip incompetent strains
         if RE_INCOMPETENT.is_match(organism_name) {
@@ -201,28 +206,30 @@ pub fn run(
             continue;
         }
 
-        // lineage
-        let lineage = match crate::get_lineage(tx_conn, tax_id) {
-            Err(err) => {
-                debug!("Errors on get_lineage({}): {}", tax_id, err);
-                // Use a clearly-marked missing taxon so that find_rank
-                // returns (0, "NA") for species/genus/family.
-                let taxon = crate::Taxon {
-                    tax_id: 0,
-                    rank: "no rank".to_string(),
-                    names: HashMap::from([(
-                        "scientific name".to_string(),
-                        vec!["NA".to_string()],
-                    )]),
-                    ..Default::default()
-                };
-                vec![taxon]
+        // lineage (cached to avoid repeated SQL queries for shared tax_ids)
+        let lineage = lineage_cache.entry(tax_id).or_insert_with(|| {
+            match crate::get_lineage(tx_conn, tax_id) {
+                Err(err) => {
+                    debug!("Errors on get_lineage({}): {}", tax_id, err);
+                    // Use a clearly-marked missing taxon so that find_rank
+                    // returns (0, "NA") for species/genus/family.
+                    let taxon = crate::Taxon {
+                        tax_id: 0,
+                        rank: "no rank".to_string(),
+                        names: HashMap::from([(
+                            "scientific name".to_string(),
+                            vec!["NA".to_string()],
+                        )]),
+                        ..Default::default()
+                    };
+                    vec![taxon]
+                }
+                Ok(x) => x,
             }
-            Ok(x) => x,
-        };
-        let (species_id, species) = crate::find_rank(&lineage, "species");
-        let (genus_id, genus) = crate::find_rank(&lineage, "genus");
-        let (family_id, family) = crate::find_rank(&lineage, "family");
+        });
+        let (species_id, species) = crate::find_rank(lineage, "species");
+        let (genus_id, genus) = crate::find_rank(lineage, "genus");
+        let (family_id, family) = crate::find_rank(lineage, "family");
 
         stmt.execute(rusqlite::params![
             tax_id,
@@ -246,7 +253,8 @@ pub fn run(
             family_id,
         ])?;
 
-        if i > 0 && i % 10000 == 0 {
+        inserted += 1;
+        if inserted > 0 && inserted.is_multiple_of(10000) {
             print!(".");
             std::io::stdout().flush()?;
         }

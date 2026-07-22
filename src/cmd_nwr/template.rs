@@ -1,3 +1,4 @@
+use super::args;
 use clap::*;
 
 /// Create clap subcommand arguments.
@@ -16,14 +17,13 @@ pub fn make_subcommand() -> Command {
         .arg(
             Arg::new("outdir")
                 .long("outdir")
-                .short('o')
                 .num_args(1)
                 .default_value(".")
                 .help("Output directory (default: current directory)"),
         )
         .arg(
-            Arg::new("in")
-                .long("in")
+            Arg::new("include")
+                .long("include")
                 .num_args(1..)
                 .action(ArgAction::Append)
                 .help(
@@ -31,8 +31,8 @@ pub fn make_subcommand() -> Command {
                 ),
         )
         .arg(
-            Arg::new("not-in")
-                .long("not-in")
+            Arg::new("exclude")
+                .long("exclude")
                 .num_args(1..)
                 .action(ArgAction::Append)
                 .help("Only the assemblies *not in* these lists"),
@@ -105,13 +105,7 @@ pub fn make_subcommand() -> Command {
                 .action(ArgAction::SetTrue)
                 .help("Prepare Count/ materials"),
         )
-        .arg(
-            Arg::new("rank")
-                .long("rank")
-                .num_args(1..)
-                .action(ArgAction::Append)
-                .help("To list which rank(s) - genus, family, order, and class"),
-        )
+        .arg(args::rank_arg())
         .arg(
             Arg::new("lineage")
                 .long("lineage")
@@ -132,40 +126,31 @@ pub fn make_subcommand() -> Command {
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let outdir = args.get_one::<String>("outdir").unwrap().clone();
 
-    let mut ins = vec![];
-    if args.contains_id("in") {
-        for i in args.get_many::<String>("in").unwrap() {
-            ins.push(i.clone());
-        }
-    }
+    let ins: Vec<String> = args
+        .get_many::<String>("include")
+        .map(|v| v.cloned().collect())
+        .unwrap_or_default();
 
-    let mut not_ins = vec![];
-    if args.contains_id("not-in") {
-        for i in args.get_many::<String>("not-in").unwrap() {
-            not_ins.push(i.clone());
-        }
-    }
+    let not_ins: Vec<String> = args
+        .get_many::<String>("exclude")
+        .map(|v| v.cloned().collect())
+        .unwrap_or_default();
 
-    let mut infiles = vec![];
-    if args.contains_id("infiles") {
-        for i in args.get_many::<String>("infiles").unwrap() {
-            infiles.push(i.clone());
-        }
-    }
+    let infiles: Vec<String> = args
+        .get_many::<String>("infiles")
+        .ok_or_else(|| anyhow::anyhow!("No input files provided"))?
+        .cloned()
+        .collect();
 
-    let mut ranks = vec![];
-    if args.contains_id("rank") {
-        for rank in args.get_many::<String>("rank").unwrap() {
-            ranks.push(rank.clone());
-        }
-    }
+    let ranks: Vec<String> = args
+        .get_many::<String>("rank")
+        .map(|v| v.cloned().collect())
+        .unwrap_or_default();
 
-    let mut lineages = vec![];
-    if args.contains_id("lineage") {
-        for rank in args.get_many::<String>("lineage").unwrap() {
-            lineages.push(rank.clone());
-        }
-    }
+    let lineages: Vec<String> = args
+        .get_many::<String>("lineage")
+        .map(|v| v.cloned().collect())
+        .unwrap_or_default();
 
     nwr::libs::template::run(&nwr::libs::template::TemplateOptions {
         outdir,

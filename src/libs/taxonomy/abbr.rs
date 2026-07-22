@@ -204,7 +204,11 @@ pub fn process_line(
     let mut species_clean = species.clone();
     let mut genus_clean = genus.clone();
 
-    let genus_starts_alpha = genus.chars().next()?.is_alphabetic();
+    let genus_starts_alpha = genus
+        .chars()
+        .next()
+        .map(|c| c.is_alphabetic())
+        .unwrap_or(false);
 
     if genus != species
         && genus_starts_alpha
