@@ -101,7 +101,27 @@ pub fn extract_taxdump(tarball: &Path, dest_dir: &Path) -> anyhow::Result<()> {
     let tar_gz = File::open(tarball)?;
     let tar = flate2::read::GzDecoder::new(tar_gz);
     let mut archive = tar::Archive::new(tar);
-    archive.unpack(dest_dir)?;
+
+    for entry in archive.entries()? {
+        let mut entry = entry?;
+        let path = entry.path()?;
+
+        // Reject absolute paths and parent directory references to prevent
+        // directory traversal attacks.
+        if path.is_absolute()
+            || path
+                .components()
+                .any(|c| c == std::path::Component::ParentDir)
+        {
+            return Err(anyhow::anyhow!(
+                "Invalid tar entry path: {}",
+                path.display()
+            ));
+        }
+
+        entry.unpack_in(dest_dir)?;
+    }
+
     Ok(())
 }
 

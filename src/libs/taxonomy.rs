@@ -106,8 +106,8 @@ pub fn get_nwr_dir(
     args: &clap::ArgMatches,
     arg_name: &str,
 ) -> anyhow::Result<std::path::PathBuf> {
-    if args.contains_id(arg_name) {
-        Ok(Path::new(args.get_one::<String>(arg_name).unwrap()).to_path_buf())
+    if let Some(dir) = args.get_one::<String>(arg_name) {
+        Ok(Path::new(dir).to_path_buf())
     } else {
         nwr_path()
     }
@@ -138,13 +138,13 @@ pub fn connect_txdb(dir: &Path) -> anyhow::Result<rusqlite::Connection> {
 ///     "Enterobacteria phage 933J".to_string(),
 ///     "Actinophage JHJ-1".to_string(),
 /// ];
-/// let tax_ids = nwr::get_tax_id(&conn, names).unwrap();
+/// let tax_ids = nwr::get_tax_id(&conn, &names).unwrap();
 ///
 /// assert_eq!(tax_ids, vec![12340, 12347]);
 /// ```
 pub fn get_tax_id(
     conn: &rusqlite::Connection,
-    names: Vec<String>,
+    names: &[String],
 ) -> anyhow::Result<Vec<i64>> {
     let mut tax_ids = vec![];
 
@@ -157,7 +157,7 @@ pub fn get_tax_id(
         ",
     )?;
 
-    for name in names.iter() {
+    for name in names {
         let mut rows = stmt.query([name])?;
 
         if let Some(row) = rows.next()? {
@@ -177,7 +177,7 @@ pub fn get_tax_id(
 /// let conn = nwr::connect_txdb(&path).unwrap();
 ///
 /// let ids = vec![12340, 12347];
-/// let taxa = nwr::get_taxon(&conn, ids).unwrap();
+/// let taxa = nwr::get_taxon(&conn, &ids).unwrap();
 ///
 /// assert_eq!(taxa.get(0).unwrap().tax_id, 12340);
 /// assert_eq!(taxa.get(0).unwrap().parent_tax_id, 12333);
@@ -187,7 +187,7 @@ pub fn get_tax_id(
 /// ```
 pub fn get_taxon(
     conn: &rusqlite::Connection,
-    ids: Vec<i64>,
+    ids: &[i64],
 ) -> anyhow::Result<Vec<Taxon>> {
     let mut taxa = vec![];
 
@@ -208,7 +208,7 @@ pub fn get_taxon(
         ",
     )?;
 
-    for id in ids.iter() {
+    for id in ids {
         let mut rows = stmt.query([id])?;
 
         let mut taxon: Taxon = Default::default();
@@ -266,7 +266,12 @@ pub fn get_ancestor(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Taxo
     )?;
     let parent_id = stmt.query_row([id], |row| row.get(0))?;
 
-    let ancestor = get_taxon(conn, vec![parent_id])?.pop().unwrap();
+    let ancestor = get_taxon(conn, &[parent_id])?
+        .into_iter()
+        .next()
+        .ok_or_else(|| {
+            anyhow::anyhow!("No ancestor found for parent ID {}", parent_id)
+        })?;
 
     Ok(ancestor)
 }
@@ -286,6 +291,8 @@ pub fn get_ancestor(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Taxo
 pub fn get_lineage(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<Taxon>> {
     let mut id = id;
     let mut ids = vec![id];
+    let mut seen = std::collections::HashSet::new();
+    seen.insert(id);
 
     let mut stmt = conn.prepare(
         "
@@ -304,11 +311,18 @@ pub fn get_lineage(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<T
             break;
         }
 
+        if !seen.insert(parent_id) {
+            return Err(anyhow::anyhow!(
+                "Taxonomy cycle detected involving tax_id {}",
+                parent_id
+            ));
+        }
+
         id = parent_id;
     }
 
     let ids: Vec<_> = ids.into_iter().unique().collect();
-    let mut lineage = get_taxon(conn, ids)?;
+    let mut lineage = get_taxon(conn, &ids)?;
     lineage.reverse();
 
     Ok(lineage)
@@ -346,7 +360,7 @@ pub fn get_descendent(
         ids.push(row.get(0)?);
     }
 
-    let nodes = get_taxon(conn, ids)?;
+    let nodes = get_taxon(conn, &ids)?;
     Ok(nodes)
 }
 
@@ -416,7 +430,7 @@ pub fn term_to_tax_id(conn: &rusqlite::Connection, term: &str) -> anyhow::Result
     let id: i64 = match term.parse::<i64>() {
         Ok(n) => n,
         Err(_) => {
-            let ids = get_tax_id(conn, vec![term])?;
+            let ids = get_tax_id(conn, &[term])?;
             ids.into_iter()
                 .next()
                 .ok_or_else(|| anyhow::anyhow!("No tax ID found for term"))?
@@ -432,11 +446,11 @@ pub fn term_to_tax_id(conn: &rusqlite::Connection, term: &str) -> anyhow::Result
 /// let path = std::path::PathBuf::from("tests/nwr/");
 /// let conn = nwr::connect_txdb(&path).unwrap();
 /// let lineage = nwr::get_lineage(&conn, 12340).unwrap();
-/// let (species_id, species_name) = nwr::find_rank(&lineage, "species".to_string());
+/// let (species_id, species_name) = nwr::find_rank(&lineage, "species");
 /// assert_eq!(species_id, 12340);
 /// assert_eq!(species_name, "Enterobacteria phage 933J");
 /// ```
-pub fn find_rank(lineage: &[Taxon], rank: String) -> (i64, String) {
+pub fn find_rank(lineage: &[Taxon], rank: &str) -> (i64, String) {
     let mut tax_id: i64 = 0;
     let mut sci_name = "NA".to_string();
 
@@ -519,7 +533,7 @@ mod tests {
     fn test_get_tax_id_not_found() {
         let path = std::path::PathBuf::from("tests/nwr/");
         let conn = connect_txdb(&path).unwrap();
-        let result = get_tax_id(&conn, vec!["NonExistentName".to_string()]);
+        let result = get_tax_id(&conn, &["NonExistentName".to_string()]);
         assert!(result.is_err());
         assert!(result.unwrap_err().to_string().contains("No such name"));
     }
@@ -528,7 +542,7 @@ mod tests {
     fn test_get_taxon_not_found() {
         let path = std::path::PathBuf::from("tests/nwr/");
         let conn = connect_txdb(&path).unwrap();
-        let result = get_taxon(&conn, vec![999999999]);
+        let result = get_taxon(&conn, &[999999999]);
         assert!(result.is_err());
         assert!(result.unwrap_err().to_string().contains("No such ID"));
     }
@@ -538,7 +552,7 @@ mod tests {
         let path = std::path::PathBuf::from("tests/nwr/");
         let conn = connect_txdb(&path).unwrap();
         let lineage = get_lineage(&conn, 12340).unwrap();
-        let (tax_id, sci_name) = find_rank(&lineage, "kingdom".to_string());
+        let (tax_id, sci_name) = find_rank(&lineage, "kingdom");
         assert_eq!(tax_id, 0);
         assert_eq!(sci_name, "NA");
     }

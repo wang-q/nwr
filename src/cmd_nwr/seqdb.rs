@@ -501,9 +501,6 @@ fn insert_rep(
     // Validate field name to prevent SQL injection
     let field = validate_rep_field(field)?;
 
-    // empty field before updating
-    conn.execute_batch(rep_clear_sql(field))?;
-
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
@@ -512,6 +509,9 @@ fn insert_rep(
     let mut stmt = conn.prepare(rep_update_sql(field))?;
 
     conn.execute_batch("BEGIN;")?;
+    // Empty the field before updating so that the clear and the following
+    // updates are atomic.
+    conn.execute_batch(rep_clear_sql(field))?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
         if record.len() < 2 {

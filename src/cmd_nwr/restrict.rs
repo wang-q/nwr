@@ -88,7 +88,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         .ok_or_else(|| anyhow::anyhow!("No input files provided"))?
     {
         let reader = intspan::reader(infile);
-        for line in reader.lines().map_while(Result::ok) {
+        for line in reader.lines() {
+            let line = line?;
+
             // Always output lines start with "#"
             if line.starts_with('#') {
                 writer.write_fmt(format_args!("{}\n", line))?;

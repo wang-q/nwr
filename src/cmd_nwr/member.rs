@@ -76,7 +76,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         let id = nwr::term_to_tax_id(&conn, term)?;
         let descendents = nwr::get_all_descendent(&conn, id)?;
 
-        let nodes = nwr::get_taxon(&conn, descendents)?;
+        let nodes = nwr::get_taxon(&conn, &descendents)?;
 
         for node in nodes.iter() {
             if !rank_set.is_empty() && !rank_set.contains(&node.rank) {

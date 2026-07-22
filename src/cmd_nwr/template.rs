@@ -24,6 +24,36 @@ lazy_static! {
         Regex::new(r#"(?xi)(ftp|https?)://ftp.ncbi.nlm.nih.gov/"#).unwrap();
 }
 
+/// Validate that a string is safe to embed into generated shell scripts and
+/// to use as a file or directory name. Only ASCII alphanumeric characters,
+/// underscores, hyphens and dots are allowed.
+fn validate_shell_safe(s: &str) -> anyhow::Result<&str> {
+    if s.is_empty() {
+        return Err(anyhow::anyhow!("Shell-safe identifier must not be empty"));
+    }
+    if s.chars()
+        .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-' || c == '.')
+    {
+        Ok(s)
+    } else {
+        Err(anyhow::anyhow!(
+            "Identifier contains characters unsafe for shell usage: '{}'",
+            s
+        ))
+    }
+}
+
+/// Reject strings that would corrupt TSV output or be unsafe in shell contexts.
+fn validate_no_control_chars(s: &str) -> anyhow::Result<&str> {
+    if s.chars().any(|c| c == '\n' || c == '\r' || c == '\t') {
+        return Err(anyhow::anyhow!(
+            "String contains line or tab characters: '{}'",
+            s
+        ));
+    }
+    Ok(s)
+}
+
 // Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
     Command::new("template")
@@ -187,7 +217,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     if args.contains_id("infiles") {
         for infile in args.get_many::<String>("infiles").unwrap() {
             let reader = intspan::reader(infile);
-            for line in reader.lines().map_while(Result::ok) {
+            for line in reader.lines() {
+                let line = line?;
                 if line.starts_with('#') {
                     continue;
                 }
@@ -195,12 +226,21 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 let fields: Vec<&str> = line.split('\t').collect();
 
                 if fields.len() < 5 {
-                    continue;
+                    return Err(anyhow::anyhow!(
+                        "Line has {} fields, expected at least 5: {}",
+                        fields.len(),
+                        line
+                    ));
                 }
 
-                let name = fields[0];
-                let url = fields[1];
+                let name = validate_shell_safe(fields[0])?;
+                let url = validate_no_control_chars(fields[1])?;
                 let sample = fields[2];
+                let sample = if sample.is_empty() {
+                    sample
+                } else {
+                    validate_shell_safe(sample)?
+                };
 
                 // format species strings
                 let species = fields[3];
@@ -208,7 +248,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 let s2 = RE_S2.replace_all(&s1, "_");
                 let s3 = RE_S3.replace_all(&s2, "");
                 let s4 = RE_S4.replace_all(&s3, "");
-                let species_ = s4.to_string();
+                let species_formatted = s4.to_string();
+                let species_ = validate_shell_safe(&species_formatted)?;
 
                 let level = match fields[4] {
                     "Complete Genome" => LEVEL_COMPLETE_GENOME,

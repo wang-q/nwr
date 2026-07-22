@@ -81,12 +81,13 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     for infile in args.get_many::<String>("infiles").unwrap() {
         let reader = intspan::reader(infile);
 
-        'line: for line in reader.lines().map_while(Result::ok) {
-            let mut fields: Vec<String> =
-                line.split('\t').map(|s| s.to_string()).collect();
+        'line: for line in reader.lines() {
+            let line = line?;
 
             // Lines start with "#"
             if line.starts_with('#') {
+                let mut fields: Vec<String> =
+                    line.split('\t').map(|s| s.to_string()).collect();
                 if ranks.is_empty() {
                     fields.push("sci_name".to_string());
                     if is_id {
@@ -100,54 +101,55 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                         }
                     }
                 }
+                let new_line: String = fields.join("\t");
+                writer.write_fmt(format_args!("{}\n", new_line))?;
+                continue;
             }
+
+            let mut fields: Vec<String> =
+                line.split('\t').map(|s| s.to_string()).collect();
             // Normal lines
-            else {
-                // Check the given field
-                let term = fields.get(column - 1).ok_or_else(|| {
-                    anyhow::anyhow!(
-                        "Column {} out of range (line has {} columns)",
-                        column,
-                        fields.len()
-                    )
-                })?;
-                let id = match nwr::term_to_tax_id(&conn, term) {
-                    Ok(x) => x,
+            // Check the given field
+            let term = fields.get(column - 1).ok_or_else(|| {
+                anyhow::anyhow!(
+                    "Column {} out of range (line has {} columns)",
+                    column,
+                    fields.len()
+                )
+            })?;
+            let id = match nwr::term_to_tax_id(&conn, term) {
+                Ok(x) => x,
+                Err(err) => {
+                    warn!("Error converting term '{}': {}", term, err);
+                    continue 'line;
+                }
+            };
+
+            if ranks.is_empty() {
+                let node = nwr::get_taxon(&conn, &[id])?
+                    .into_iter()
+                    .next()
+                    .ok_or_else(|| anyhow::anyhow!("No taxon found for ID: {}", id))?;
+                let s = node.scientific_name().unwrap_or("Unknown").to_string();
+
+                fields.push(s);
+                if is_id {
+                    fields.push(format!("{}", id));
+                }
+            } else {
+                let lineage = match nwr::get_lineage(&conn, id) {
                     Err(err) => {
-                        warn!("Error converting term '{}': {}", term, err);
-                        continue 'line;
+                        warn!("Errors on get_lineage({}): {}", id, err);
+                        continue;
                     }
+                    Ok(x) => x,
                 };
 
-                if ranks.is_empty() {
-                    let node = nwr::get_taxon(&conn, vec![id])?
-                        .into_iter()
-                        .next()
-                        .ok_or_else(|| {
-                            anyhow::anyhow!("No taxon found for ID: {}", id)
-                        })?;
-                    let s = node.scientific_name().unwrap_or("Unknown").to_string();
-
-                    fields.push(s);
+                for rank in ranks.iter() {
+                    let (tax_id, sci_name) = nwr::find_rank(&lineage, rank);
+                    fields.push(sci_name.to_string());
                     if is_id {
-                        fields.push(format!("{}", id));
-                    }
-                } else {
-                    let lineage = match nwr::get_lineage(&conn, id) {
-                        Err(err) => {
-                            warn!("Errors on get_lineage({}): {}", id, err);
-                            continue;
-                        }
-                        Ok(x) => x,
-                    };
-
-                    for rank in ranks.iter() {
-                        let (tax_id, sci_name) =
-                            nwr::find_rank(&lineage, rank.to_string());
-                        fields.push(sci_name.to_string());
-                        if is_id {
-                            fields.push(format!("{}", tax_id));
-                        }
+                        fields.push(format!("{}", tax_id));
                     }
                 }
             }

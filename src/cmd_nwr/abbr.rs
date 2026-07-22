@@ -4,36 +4,41 @@ use regex::Regex;
 use std::collections::HashMap;
 use std::io::BufRead;
 
+/// Common subspecies designation terms removed by `clean_subspecies`.
+const SUBSPECIES_TERMS: &[&str] = &[
+    "subsp",
+    "serovar",
+    "str",
+    "strain",
+    "substr",
+    "serotype",
+    "biovar",
+    "var",
+    "group",
+    "variant",
+    "genomovar",
+    "genomosp",
+    "breed",
+    "cultivar",
+    "ecotype",
+    "n/a",
+    "NA",
+    "microbial",
+    "clinical",
+    "pathogenic",
+    "isolate",
+];
+
 lazy_static! {
-    static ref SUBSPECIES_REGEXS: Vec<Regex> = {
-        let patterns = [
-            "subsp",
-            "serovar",
-            "str",
-            "strain",
-            "substr",
-            "serotype",
-            "biovar",
-            "var",
-            "group",
-            "variant",
-            "genomovar",
-            "genomosp",
-            "breed",
-            "cultivar",
-            "ecotype",
-            "n/a",
-            "NA",
-            "microbial",
-            "clinical",
-            "pathogenic",
-            "isolate",
-        ];
-        patterns
+    static ref SUBSPECIES_REGEXS: Regex = Regex::new(&format!(
+        r"(?xi)\b({})\b",
+        SUBSPECIES_TERMS
             .iter()
-            .filter_map(|p| Regex::new(&format!(r"(?i)\b{}\b", regex::escape(p))).ok())
-            .collect()
-    };
+            .map(|t| regex::escape(t))
+            .collect::<Vec<_>>()
+            .join("|")
+    ))
+    .unwrap();
 }
 
 /// Structure to hold name parts
@@ -119,19 +124,20 @@ fn abbr(words: &[String], min_len: usize) -> HashMap<String, String> {
     let mut table: HashMap<String, usize> = HashMap::new();
 
     for word in words {
-        let word_len = word.len();
+        let chars: Vec<char> = word.chars().collect();
+        let word_len = chars.len();
         for len in (min_len..word_len).rev() {
-            let abbrev = &word[..len];
-            let seen = table.entry(abbrev.to_string()).or_insert(0);
+            let abbrev: String = chars[..len].iter().collect();
+            let seen = table.entry(abbrev.clone()).or_insert(0);
             *seen += 1;
 
             if *seen == 1 {
                 // We're the first word so far to have this abbreviation
-                result.insert(abbrev.to_string(), word.clone());
+                result.insert(abbrev, word.clone());
             } else if *seen == 2 {
                 // We're the second word to have this abbreviation,
                 // so we can't use it
-                result.remove(abbrev);
+                result.remove(&abbrev);
             }
             // We're the third word to have this abbreviation,
             // so skip to the next word
@@ -154,12 +160,16 @@ fn abbr(words: &[String], min_len: usize) -> HashMap<String, String> {
 /// # Arguments
 /// * `words` - List of words to abbreviate
 /// * `min_len` - Minimum length for abbreviations
-/// * `creat` - If true, don't abbreviate when only 1 character would be saved.
+/// * `avoid_one_char_saving` - If true, don't abbreviate when only 1 character would be saved.
 ///   "I'd spell creat with an e."
 ///
 /// # Returns
 /// A HashMap mapping each full word to its longest valid abbreviation
-fn abbr_most(words: &[String], min_len: usize, creat: bool) -> HashMap<String, String> {
+fn abbr_most(
+    words: &[String],
+    min_len: usize,
+    avoid_one_char_saving: bool,
+) -> HashMap<String, String> {
     if words.is_empty() {
         return HashMap::new();
     }
@@ -196,7 +206,7 @@ fn abbr_most(words: &[String], min_len: usize, creat: bool) -> HashMap<String, S
     }
 
     // Don't abbreviate 1 letter difference
-    if creat {
+    if avoid_one_char_saving {
         let keys_to_update: Vec<(String, String)> = abbr_of
             .iter()
             .filter(|(k, v)| k.len() - v.len() == 1)
@@ -244,11 +254,7 @@ fn clean_name(name: &str) -> String {
 /// # Returns
 /// The strain name with subspecies designations removed
 fn clean_subspecies(strain: &str) -> String {
-    let mut result = strain.to_string();
-    for re in SUBSPECIES_REGEXS.iter() {
-        result = re.replace_all(&result, "").to_string();
-    }
-    result
+    SUBSPECIES_REGEXS.replace_all(strain, "").to_string()
 }
 
 /// Process a single line and extract name parts for abbreviation.
@@ -370,7 +376,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut all_fields: Vec<Vec<String>> = Vec::new();
     let mut all_parts: Vec<NameParts> = Vec::new();
 
-    for line in reader.lines().map_while(Result::ok) {
+    for line in reader.lines() {
+        let line = line?;
         if let Some((fields, parts)) = process_line(&line, columns, separator, shortsub)
         {
             all_fields.push(fields);

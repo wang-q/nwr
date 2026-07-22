@@ -124,7 +124,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     const COL_FTP_PATH: usize = 19;
 
     conn.execute_batch("BEGIN;")?;
-    for (i, line) in rdr.lines().map_while(Result::ok).enumerate() {
+    for (i, line) in rdr.lines().enumerate() {
+        let line = line?;
         if line.starts_with('#') {
             continue;
         }
@@ -226,9 +227,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             }
             Ok(x) => x,
         };
-        let (species_id, species) = nwr::find_rank(&lineage, "species".to_string());
-        let (genus_id, genus) = nwr::find_rank(&lineage, "genus".to_string());
-        let (family_id, family) = nwr::find_rank(&lineage, "family".to_string());
+        let (species_id, species) = nwr::find_rank(&lineage, "species");
+        let (genus_id, genus) = nwr::find_rank(&lineage, "genus");
+        let (family_id, family) = nwr::find_rank(&lineage, "family");
 
         stmt.execute(rusqlite::params![
             tax_id,
