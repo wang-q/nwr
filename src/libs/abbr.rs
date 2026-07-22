@@ -44,9 +44,13 @@ lazy_static! {
 
 /// Parsed name parts extracted from an input line.
 pub struct NameParts {
+    /// Strain name (the full input name with subspecies terms removed).
     pub strain: String,
+    /// Species-level scientific name.
     pub species: String,
+    /// Genus name.
     pub genus: String,
+    /// Whether the name follows the expected `genus species strain` pattern.
     pub is_normal: bool,
 }
 
@@ -245,12 +249,19 @@ pub fn process_line(
 
 /// Options controlling abbreviation generation.
 pub struct AbbrOptions {
+    /// Input TSV file path.
     pub infile: String,
+    /// Output file path.
     pub outfile: String,
+    /// 1-based column indices for (strain, species, genus).
     pub columns: (usize, usize, usize),
+    /// Field separator used in the input file.
     pub separator: String,
+    /// Minimum abbreviation length.
     pub min_len: usize,
+    /// Whether to drop the trailing species abbreviation character.
     pub tight: bool,
+    /// Whether to shorten subspecies terms before abbreviation.
     pub shortsub: bool,
 }
 
@@ -421,11 +432,7 @@ mod tests {
         let output_file = temp_dir.path().join("output.tsv");
 
         let mut file = std::fs::File::create(&input_file).unwrap();
-        writeln!(
-            file,
-            "Escherichia coli K-12\tEscherichia coli\tEscherichia"
-        )
-        .unwrap();
+        writeln!(file, "Escherichia coli K-12\tEscherichia coli\tEscherichia").unwrap();
         drop(file);
 
         let result = run(&AbbrOptions {

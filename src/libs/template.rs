@@ -119,21 +119,37 @@ pub fn open_writer(
 
 /// Parsed options for template generation.
 pub struct TemplateOptions {
+    /// Output directory (or "stdout" for dry-run output).
     pub outdir: String,
+    /// Input TSV files containing strain information.
     pub infiles: Vec<String>,
+    /// Strain names to include in the pipeline.
     pub ins: Vec<String>,
+    /// Strain names to exclude from the pipeline.
     pub not_ins: Vec<String>,
+    /// Number of parallel workers.
     pub parallel: usize,
+    /// Mash sketch size.
     pub sketch: usize,
+    /// ANI threshold for alignment blocks.
     pub ani_ab: f64,
+    /// ANI threshold for non-redundant clustering.
     pub ani_nr: f64,
+    /// Maximum tree height for visualization.
     pub height: f64,
+    /// Taxonomic ranks to include in reports.
     pub ranks: Vec<String>,
+    /// Lineage ranks to output in annotations.
     pub lineages: Vec<String>,
+    /// Generate assembly scripts.
     pub do_ass: bool,
+    /// Generate bootstrap scripts.
     pub do_bs: bool,
+    /// Generate mash sketches.
     pub do_mh: bool,
+    /// Generate count matrices.
     pub do_count: bool,
+    /// Generate protein-related scripts.
     pub do_pro: bool,
 }
 

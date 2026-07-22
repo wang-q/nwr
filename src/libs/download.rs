@@ -6,9 +6,13 @@ use std::path::{Path, PathBuf};
 /// File paths used by the download operation.
 #[derive(Debug, Clone)]
 pub struct DownloadPaths {
+    /// Local path for the taxonomy dump tarball.
     pub tarball: PathBuf,
+    /// Local path for the RefSeq assembly summary.
     pub ar_refseq: PathBuf,
+    /// Local path for the GenBank assembly summary.
     pub ar_genbank: PathBuf,
+    /// Local path for the tarball MD5 checksum file.
     pub md5_file: PathBuf,
 }
 

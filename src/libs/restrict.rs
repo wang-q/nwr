@@ -6,11 +6,17 @@ use std::path::PathBuf;
 
 /// Parsed options for restrict operations.
 pub struct RestrictOptions {
+    /// Directory containing NCBI taxonomy databases.
     pub nwrdir: PathBuf,
+    /// Ancestor terms used to filter input lines.
     pub terms: Vec<String>,
+    /// Input TSV files.
     pub files: Vec<String>,
+    /// 1-based column index containing the taxon ID.
     pub column: usize,
+    /// Whether to exclude (rather than include) matching descendants.
     pub is_exclude: bool,
+    /// Output file path.
     pub outfile: String,
 }
 

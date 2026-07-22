@@ -6,11 +6,17 @@ use std::path::Path;
 /// A single NCBI taxonomy node with its names and lineage metadata.
 #[derive(Debug, Clone, Default)]
 pub struct Taxon {
+    /// NCBI taxon ID.
     pub tax_id: i64,
+    /// Parent taxon ID.
     pub parent_tax_id: i64,
+    /// Taxonomic rank (e.g. species, genus).
     pub rank: String,
+    /// NCBI division name.
     pub division: String,
-    pub names: HashMap<String, Vec<String>>, // many synonym or common names
+    /// Map of name classes to their values (scientific names, synonyms, etc.).
+    pub names: HashMap<String, Vec<String>>,
+    /// Optional NCBI comments for this taxon.
     pub comments: Option<String>,
 }
 

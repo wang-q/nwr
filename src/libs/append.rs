@@ -5,11 +5,17 @@ use std::path::PathBuf;
 
 /// Parsed options for append operations.
 pub struct AppendOptions {
+    /// Directory containing NCBI taxonomy databases.
     pub nwrdir: PathBuf,
+    /// Input TSV files.
     pub infiles: Vec<String>,
+    /// Output file path.
     pub outfile: String,
+    /// 1-based column index containing the taxon term or ID.
     pub column: usize,
+    /// Taxonomic ranks to append.
     pub ranks: Vec<String>,
+    /// Whether the input column contains taxon IDs instead of names.
     pub is_id: bool,
 }
 

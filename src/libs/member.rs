@@ -3,10 +3,15 @@ use std::path::PathBuf;
 
 /// Parsed options for member operations.
 pub struct MemberOptions {
+    /// Directory containing NCBI taxonomy databases.
     pub nwrdir: PathBuf,
+    /// Ancestor terms whose descendants should be listed.
     pub terms: Vec<String>,
+    /// Ranks to include in the output (empty means all ranks).
     pub ranks: Vec<String>,
+    /// Whether to include environmental samples.
     pub is_env: bool,
+    /// Output file path.
     pub outfile: String,
 }
 

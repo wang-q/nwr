@@ -119,13 +119,21 @@ CREATE INDEX seq_idx_anno ON seq(anno COLLATE NOCASE);
 
 /// Parsed options for seqdb operations.
 pub struct SeqdbOptions {
+    /// Directory containing the seq database and optional input files.
     pub dir: PathBuf,
+    /// Whether to initialize (delete) the database before loading.
     pub is_init: bool,
+    /// Optional strain metadata TSV file.
     pub opt_strain: Option<PathBuf>,
+    /// Optional size metadata TSV file.
     pub opt_size: Option<PathBuf>,
+    /// Optional clustering metadata TSV file.
     pub opt_clust: Option<PathBuf>,
+    /// Optional annotation metadata TSV file.
     pub opt_anno: Option<PathBuf>,
+    /// Optional assembly sequence FASTA file.
     pub opt_asmseq: Option<PathBuf>,
+    /// Optional representative set: (name, TSV file).
     pub opt_rep: Option<(String, PathBuf)>,
 }
 
