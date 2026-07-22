@@ -259,7 +259,14 @@ where
 
     // Check
     info!("==> Checking...");
-    check_taxdump_md5(&paths.tarball, &paths.md5_file)?;
+    if let Err(e) = check_taxdump_md5(&paths.tarball, &paths.md5_file) {
+        // Remove corrupt files so the next run re-downloads instead of
+        // reusing the same corrupt tarball (the skip-guard above would
+        // otherwise block re-download forever).
+        let _ = std::fs::remove_file(&paths.tarball);
+        let _ = std::fs::remove_file(&paths.md5_file);
+        return Err(e);
+    }
 
     // Extract
     info!("==> Extracting...");

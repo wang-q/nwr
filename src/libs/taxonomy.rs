@@ -435,7 +435,13 @@ pub fn get_descendent(
 
     let mut rows = stmt.query([id])?;
     while let Some(row) = rows.next()? {
-        ids.push(row.get(0)?);
+        let child_id: i64 = row.get(0)?;
+        // Skip self-loop: the canonical root (tax_id 1) is its own parent.
+        // For any other node, a self-loop indicates corrupt data.
+        if child_id == id {
+            continue;
+        }
+        ids.push(child_id);
     }
 
     let nodes = get_taxon(conn, &ids)?;

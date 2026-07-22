@@ -219,13 +219,27 @@ pub fn process_line(
         && species.starts_with(&genus)
         && strain.starts_with(&species)
     {
-        // Normal case: genus starts with word char and species starts with genus
-        strain_clean = strain.trim_start_matches(&species).trim_start().to_string();
-        species_clean = species.trim_start_matches(&genus).trim_start().to_string();
+        // Normal case: genus starts with word char and species starts with genus.
+        // strip_prefix removes only the first occurrence; trim_start_matches
+        // would incorrectly remove all leading repetitions.
+        strain_clean = strain
+            .strip_prefix(&species)
+            .unwrap_or(&strain[..])
+            .trim_start()
+            .to_string();
+        species_clean = species
+            .strip_prefix(&genus)
+            .unwrap_or(&species[..])
+            .trim_start()
+            .to_string();
         is_normal = true;
     } else if genus == species && genus_starts_alpha && strain.starts_with(&genus) {
         // No species part
-        strain_clean = strain.trim_start_matches(&genus).trim_start().to_string();
+        strain_clean = strain
+            .strip_prefix(&genus)
+            .unwrap_or(&strain[..])
+            .trim_start()
+            .to_string();
         species_clean = String::new();
         is_normal = true;
     }
