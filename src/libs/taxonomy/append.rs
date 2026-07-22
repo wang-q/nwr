@@ -49,7 +49,7 @@ pub fn run(options: &AppendOptions) -> anyhow::Result<()> {
     for infile in &options.infiles {
         let reader = crate::libs::io::reader(infile)?;
 
-        'line: for line in reader.lines() {
+        'line: for (line_idx, line) in reader.lines().enumerate() {
             let line = line?;
 
             // Lines start with "#"
@@ -80,7 +80,9 @@ pub fn run(options: &AppendOptions) -> anyhow::Result<()> {
             // Check the given field
             let term = fields.get(options.column - 1).ok_or_else(|| {
                 anyhow::anyhow!(
-                    "Column {} out of range (line has {} columns)",
+                    "{}:{}: Column {} out of range (line has {} columns)",
+                    infile,
+                    line_idx + 1,
                     options.column,
                     fields.len()
                 )

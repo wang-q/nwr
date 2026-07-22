@@ -51,7 +51,7 @@ pub fn run(options: &RestrictOptions) -> anyhow::Result<()> {
 
     for infile in &options.files {
         let reader = crate::libs::io::reader(infile)?;
-        for line in reader.lines() {
+        for (line_idx, line) in reader.lines().enumerate() {
             let line = line?;
 
             // Always output lines start with "#"
@@ -63,7 +63,13 @@ pub fn run(options: &RestrictOptions) -> anyhow::Result<()> {
             // Check the given field
             let fields: Vec<&str> = line.split('\t').collect();
             let term = fields.get(options.column - 1).ok_or_else(|| {
-                anyhow::anyhow!("Column {} not found in line: {}", options.column, line)
+                anyhow::anyhow!(
+                    "{}:{}: Column {} not found in line: {}",
+                    infile,
+                    line_idx + 1,
+                    options.column,
+                    line
+                )
             })?;
             if term_failed.contains(*term) {
                 continue;
