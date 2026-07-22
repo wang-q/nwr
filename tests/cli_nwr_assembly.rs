@@ -40,8 +40,9 @@ fn command_template_bs() -> anyhow::Result<()> {
     let stdout = String::from_utf8(output.stdout).unwrap();
     let stderr = String::from_utf8(output.stderr).unwrap();
 
-    assert_eq!(stderr.lines().count(), 4);
+    assert_eq!(stderr.lines().count(), 14);
     assert!(stderr.contains("Create BioSample/sample.tsv"));
+    assert!(stderr.contains("duplicate sample name"));
 
     assert!(stdout.lines().count() > 100);
     assert!(stdout.contains("T_atrov"));

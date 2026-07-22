@@ -242,13 +242,9 @@ pub fn get_taxon(
             e.insert(taxon);
         }
 
-        taxa_map
-            .get_mut(&tax_id)
-            .unwrap()
-            .names
-            .entry(name_class)
-            .or_default()
-            .push(name);
+        if let Some(taxon) = taxa_map.get_mut(&tax_id) {
+            taxon.names.entry(name_class).or_default().push(name);
+        }
     }
 
     let mut taxa = Vec::with_capacity(ids.len());

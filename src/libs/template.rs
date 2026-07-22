@@ -23,7 +23,7 @@ lazy_static! {
     static ref RE_S3: Regex = Regex::new(r#"(?xi)_$"#).unwrap();
     static ref RE_S4: Regex = Regex::new(r#"(?xi)^_"#).unwrap();
     static ref RE_URL: Regex =
-        Regex::new(r#"(?xi)(ftp|https?)://ftp.ncbi.nlm.nih.gov/"#).unwrap();
+        Regex::new(r#"(?xi)(ftp|https?)://ftp\.ncbi\.nlm\.nih\.gov/"#).unwrap();
 }
 
 /// Validate that a string is safe to embed into generated shell scripts and
@@ -192,6 +192,12 @@ pub fn run(options: &TemplateOptions) -> anyhow::Result<()> {
 
             // bs
             if !sample.is_empty() {
+                if options.do_bs && bs_name_of.contains_key(sample) {
+                    eprintln!(
+                        "Warning: duplicate sample name '{}', overwriting previous entry",
+                        sample
+                    );
+                }
                 bs_name_of.insert(sample.to_string(), name.to_string());
                 bs_species_of.insert(sample.to_string(), species_.to_string());
             }
@@ -476,16 +482,36 @@ pub fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
     let mut writer = open_writer(outdir, "ASSEMBLY", outname);
 
     for (key, value) in ass_url_of {
-        let url = value.as_str().unwrap();
-        let species = ass_species_of.get(key).unwrap().as_str().unwrap();
+        let url = value.as_str().ok_or_else(|| {
+            anyhow::anyhow!("ass_url_of value for '{}' is not a string", key)
+        })?;
+        let species = ass_species_of
+            .get(key)
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| {
+                anyhow::anyhow!(
+                    "ass_species_of value for '{}' is missing or not a string",
+                    key
+                )
+            })?;
 
         writer.write_all(format!("{}\t{}\t{}\n", key, url, species).as_ref())?;
     }
 
     let mut writer_rsync = open_writer(outdir, "ASSEMBLY", outname_rsync);
     for (key, value) in ass_url_of {
-        let url = value.as_str().unwrap();
-        let species = ass_species_of.get(key).unwrap().as_str().unwrap();
+        let url = value.as_str().ok_or_else(|| {
+            anyhow::anyhow!("ass_url_of value for '{}' is not a string", key)
+        })?;
+        let species = ass_species_of
+            .get(key)
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| {
+                anyhow::anyhow!(
+                    "ass_species_of value for '{}' is missing or not a string",
+                    key
+                )
+            })?;
 
         let rsync = RE_URL.replace(url, "ftp.ncbi.nlm.nih.gov::");
         writer_rsync.write_all(format!("{}\t{}\t{}\n", key, rsync, species).as_ref())?;
@@ -515,8 +541,19 @@ pub fn gen_bs_data(context: &Context) -> anyhow::Result<()> {
     let mut writer = open_writer(outdir, "BioSample", outname);
 
     for (key, value) in bs_name_of {
-        let name = value.as_str().unwrap();
-        let species = bs_species_of.get(key).unwrap().as_str().unwrap();
+        let name = value.as_str().ok_or_else(|| {
+            anyhow::anyhow!("bs_name_of value for '{}' is not a string", key)
+        })?;
+        let species =
+            bs_species_of
+                .get(key)
+                .and_then(|v| v.as_str())
+                .ok_or_else(|| {
+                    anyhow::anyhow!(
+                        "bs_species_of value for '{}' is missing or not a string",
+                        key
+                    )
+                })?;
 
         writer.write_all(format!("{}\t{}\t{}\n", key, name, species).as_ref())?;
     }
@@ -545,8 +582,18 @@ pub fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
     let mut writer = open_writer(outdir, "MinHash", outname);
 
     for (key, value) in mh_species_of {
-        let species = value.as_str().unwrap();
-        let level = mh_level_of.get(key).unwrap().as_str().unwrap();
+        let species = value.as_str().ok_or_else(|| {
+            anyhow::anyhow!("mh_species_of value for '{}' is not a string", key)
+        })?;
+        let level = mh_level_of
+            .get(key)
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| {
+                anyhow::anyhow!(
+                    "mh_level_of value for '{}' is missing or not a string",
+                    key
+                )
+            })?;
 
         writer.write_all(format!("{}\t{}\t{}\n", key, species, level).as_ref())?;
     }
@@ -573,7 +620,9 @@ pub fn gen_count_data(context: &Context) -> anyhow::Result<()> {
     let mut writer = open_writer(outdir, "Count", outname);
 
     for (key, value) in count_species_of {
-        let species = value.as_str().unwrap();
+        let species = value.as_str().ok_or_else(|| {
+            anyhow::anyhow!("count_species_of value for '{}' is not a string", key)
+        })?;
 
         writer.write_all(format!("{}\t{}\n", key, species).as_ref())?;
     }
@@ -600,7 +649,9 @@ pub fn gen_pro_data(context: &Context) -> anyhow::Result<()> {
     let mut writer = open_writer(outdir, "Protein", outname);
 
     for (key, value) in species_of {
-        let species = value.as_str().unwrap();
+        let species = value.as_str().ok_or_else(|| {
+            anyhow::anyhow!("pro_species_of value for '{}' is not a string", key)
+        })?;
 
         writer.write_all(format!("{}\t{}\n", key, species).as_ref())?;
     }

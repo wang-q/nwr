@@ -430,10 +430,10 @@ pub fn insert_rep(
                 i + 1
             ));
         }
-        let family: String = record[0].trim().to_string();
+        let value: String = record[0].trim().to_string();
         let rep: String = record[1].trim().to_string();
 
-        stmt.execute(rusqlite::params![&family, &rep])?;
+        stmt.execute(rusqlite::params![&value, &rep])?;
 
         if i > 0 && i % 10000 == 0 {
             print!(".");
