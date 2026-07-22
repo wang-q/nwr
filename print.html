@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-78729e89.js";
+            window.path_to_searchindex_js = "searchindex-c0f1df56.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-17c0c826.js"></script>
@@ -1340,7 +1340,7 @@ CREATE TABLE IF NOT EXISTS ar (
 <ul>
 <li>Accepts a TSV/CSV file or standard input.</li>
 <li>Each row should contain strain, species, and genus names in separate columns.</li>
-<li>Use <code>--column</code> to specify which columns contain these names (default: 1,2,3).</li>
+<li>Use <code>--columns</code> to specify which columns contain these names (default: 1,2,3).</li>
 <li>Common column patterns:
 <ul>
 <li><code>1,2,3</code> - strain in column 1, species in 2, genus in 3</li>
@@ -1372,11 +1372,11 @@ CREATE TABLE IF NOT EXISTS ar (
 <ol>
 <li>
 <p>Basic usage with default columns
-<code>echo -e 'Homo sapiens,Homo\nHomo erectus,Homo' | nwr abbr -s ',' -c "1,1,2"</code></p>
+<code>echo -e 'Homo sapiens,Homo\nHomo erectus,Homo' | nwr abbr -s ',' -C "1,1,2"</code></p>
 </li>
 <li>
 <p>Tight mode (no underscore between genus and species)
-<code>echo -e 'Homo sapiens,Homo\nHomo erectus,Homo' | nwr abbr -s ',' -c "1,1,2" --tight</code></p>
+<code>echo -e 'Homo sapiens,Homo\nHomo erectus,Homo' | nwr abbr -s ',' -C "1,1,2" --tight</code></p>
 </li>
 <li>
 <p>Clean subspecies names
@@ -1388,7 +1388,7 @@ CREATE TABLE IF NOT EXISTS ar (
 </li>
 <li>
 <p>Custom separator and columns
-<code>nwr abbr data.csv -s ',' -c "1,2,3" -o output.tsv</code></p>
+<code>nwr abbr data.csv -s ',' -C "1,2,3" -o output.tsv</code></p>
 </li>
 </ol>
 <div style="break-before: page; page-break-before: always;"></div>
