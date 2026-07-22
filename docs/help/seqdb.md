@@ -76,7 +76,7 @@ CREATE INDEX seq_idx_anno ON seq(anno COLLATE NOCASE);
 
 Notes:
 
-* If `--strain` is called without specifying a path, it will load the default file under `--dir`.
+* If `--strain` is called without specifying a path, it will load the default file under `--workdir`.
 * `--rep` requires a key-value pair in the format `--rep f1=file`.
 * Valid fields for `--rep` are: f1, f2, f3, f4, f5, f6, f7, f8.
 

@@ -2,7 +2,6 @@
 
 Behavior:
 
-* Retrieves taxonomic information from the local taxonomy database.
 * Appends scientific names and/or taxon IDs of specified ranks to each row.
 * If `--rank` is not specified, appends the scientific name of the input taxon.
 * Header lines (starting with "#") are processed to append appropriate column names.

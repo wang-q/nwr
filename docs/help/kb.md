@@ -19,7 +19,7 @@ Output:
 Examples:
 
 1. Extract bacterial marker genes
-   `nwr kb bac120 -o marker_genes/`
+   `nwr kb bac120 --outdir marker_genes/`
 
 2. Extract archaeal marker genes
-   `nwr kb ar53 -o marker_genes/`
+   `nwr kb ar53 --outdir marker_genes/`

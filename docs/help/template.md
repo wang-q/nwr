@@ -49,7 +49,7 @@ Examples:
    `nwr template input.assembly.tsv --ass --bs --mh --count --pro`
 
 3. Specify output directory
-   `nwr template input.assembly.tsv --ass -o output_dir`
+   `nwr template input.assembly.tsv --ass --outdir output_dir`
 
 4. Use parallel processing
    `nwr template input.assembly.tsv --mh --parallel 16`
