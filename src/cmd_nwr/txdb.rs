@@ -19,7 +19,7 @@ pub fn make_subcommand() -> Command {
         )
 }
 
-static DDL_TX: &str = r###"
+static DDL_TX: &str = r"
 DROP TABLE IF EXISTS division;
 DROP TABLE IF EXISTS node;
 DROP TABLE IF EXISTS name;
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS name (
     name       VARCHAR (50) NOT NULL,
     name_class VARCHAR (50) NOT NULL
 );
-"###;
+";
 
 // command implementation
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {

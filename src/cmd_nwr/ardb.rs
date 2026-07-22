@@ -35,7 +35,7 @@ pub fn make_subcommand() -> Command {
         )
 }
 
-static DDL_AR: &str = r###"
+static DDL_AR: &str = r"
 DROP TABLE IF EXISTS ar;
 
 CREATE TABLE IF NOT EXISTS ar (
@@ -60,7 +60,7 @@ CREATE TABLE IF NOT EXISTS ar (
     family_id          INTEGER
 );
 
-"###;
+";
 
 // command implementation
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {

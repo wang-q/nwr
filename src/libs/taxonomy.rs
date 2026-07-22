@@ -1,5 +1,6 @@
 use itertools::Itertools;
 use std::collections::HashMap;
+use std::fmt::Write as FmtWrite;
 use std::io::Write;
 use std::path::Path;
 
@@ -32,39 +33,39 @@ impl std::fmt::Display for Taxon {
         let l2 = "-".repeat(l1.len() - 1);
         lines.push_str(&l1);
         lines.push_str(&l2);
-        lines.push_str(&format!("\nNCBI Taxonomy ID: {}\n", self.tax_id));
+        let _ = write!(lines, "\nNCBI Taxonomy ID: {}\n", self.tax_id);
 
         if let Some(synonyms) = self.names.get("synonym") {
             lines.push_str("Same as:\n");
             for synonym in synonyms {
-                lines.push_str(&format!("* {}\n", synonym));
+                let _ = writeln!(lines, "* {}", synonym);
             }
         }
 
         if let Some(genbank_names) = self.names.get("genbank common name") {
             if let Some(genbank) = genbank_names.first() {
-                lines.push_str(&format!("Commonly named {}.\n", genbank));
+                let _ = writeln!(lines, "Commonly named {}.", genbank);
             }
         }
 
         if let Some(common_names) = self.names.get("common name") {
             lines.push_str("Also known as:\n");
             for name in common_names {
-                lines.push_str(&format!("* {}\n", name));
+                let _ = writeln!(lines, "* {}", name);
             }
         }
 
         if let Some(authorities) = self.names.get("authority") {
             lines.push_str("First description:\n");
             for authority in authorities {
-                lines.push_str(&format!("* {}\n", authority));
+                let _ = writeln!(lines, "* {}", authority);
             }
         }
 
-        lines.push_str(&format!("Part of the {}.\n", self.division));
+        let _ = writeln!(lines, "Part of the {}.", self.division);
 
         if let Some(ref comments) = self.comments {
-            lines.push_str(&format!("\nComments: {}", comments));
+            let _ = write!(lines, "\nComments: {}", comments);
         }
 
         writeln!(f, "{}\n", lines)

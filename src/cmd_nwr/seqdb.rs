@@ -132,7 +132,7 @@ pub fn make_subcommand() -> Command {
 }
 
 // https://stackoverflow.com/questions/58684279/can-an-index-on-a-text-column-speed-up-prefix-based-like-queries
-static DDL_SEQ: &str = r###"
+static DDL_SEQ: &str = r"
 CREATE TABLE rank (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR NOT NULL UNIQUE
@@ -192,7 +192,7 @@ CREATE INDEX rep_idx_f8 ON rep(f8);
 -- Case-insensitive indices for `like`
 CREATE INDEX seq_idx_anno ON seq(anno COLLATE NOCASE);
 
-"###;
+";
 
 // command implementation
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {

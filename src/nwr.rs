@@ -28,7 +28,7 @@ fn main() -> anyhow::Result<()> {
         .subcommand(cmd_nwr::kb::make_subcommand())
         .subcommand(cmd_nwr::seqdb::make_subcommand())
         .after_help(
-            r###"Subcommand groups:
+            r"Subcommand groups:
 
 * Database
     * download / txdb / ardb
@@ -36,7 +36,7 @@ fn main() -> anyhow::Result<()> {
     * info / lineage / member / append / restrict / common
 * Assembly
     * template / abbr / kb / seqdb
-"###,
+",
         );
 
     // Check which subcommand the user ran...
