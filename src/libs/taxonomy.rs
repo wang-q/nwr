@@ -313,14 +313,16 @@ pub fn get_lineage(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<T
     )?;
 
     loop {
+        // Reached the canonical root; no need to query its parent again.
+        if id == 1 {
+            break;
+        }
+
         let parent_id = stmt.query_row([id], |row| row.get(0))?;
         ids.push(parent_id);
 
         // Only the canonical root (tax_id 1) may be self-referential.
         if parent_id == id {
-            if id == 1 {
-                break;
-            }
             return Err(anyhow::anyhow!(
                 "Taxonomy cycle detected: tax_id {} is its own parent",
                 id
@@ -332,11 +334,6 @@ pub fn get_lineage(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<T
                 "Taxonomy cycle detected involving tax_id {}",
                 parent_id
             ));
-        }
-
-        // Reached the canonical root.
-        if id == 1 {
-            break;
         }
 
         id = parent_id;

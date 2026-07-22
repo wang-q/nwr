@@ -123,6 +123,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     const COL_GBRS_PAIRED_ASM: usize = 17;
     const COL_FTP_PATH: usize = 19;
 
+    // Intentionally use explicit SQL BEGIN/COMMIT rather than rusqlite::Transaction.
     conn.execute_batch("BEGIN;")?;
     for (i, line) in rdr.lines().enumerate() {
         let line = line?;

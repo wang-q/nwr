@@ -271,7 +271,7 @@ where
         "==> Downloading from {} ...",
         args.get_one::<String>("host").unwrap()
     );
-    if taxdump_exists(&paths.tarball) {
+    if taxdump_exists(&paths.tarball) && paths.md5_file.exists() {
         info!("Skipping, {} exists", paths.tarball.to_string_lossy());
     } else {
         info!("Connecting...");

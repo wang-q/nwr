@@ -322,8 +322,8 @@ fn insert_strain(
                 i + 1
             ));
         }
-        let strain: String = record[0].trim().parse()?;
-        let rank: String = record[1].trim().parse()?;
+        let strain: String = record[0].trim().to_string();
+        let rank: String = record[1].trim().to_string();
 
         rank_stmt.execute([&rank])?;
         asm_stmt.execute(rusqlite::params![&strain, &rank])?;
@@ -350,7 +350,7 @@ fn insert_size(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Resu
                 i + 1
             ));
         }
-        let name: String = record[0].trim().parse()?;
+        let name: String = record[0].trim().to_string();
         let size: i64 = record[1].trim().parse()?;
 
         stmt.execute(rusqlite::params![&name, size])?;
@@ -389,8 +389,8 @@ fn insert_clust(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Res
                 i + 1
             ));
         }
-        let rep: String = record[0].trim().parse()?;
-        let seq: String = record[1].trim().parse()?;
+        let rep: String = record[0].trim().to_string();
+        let seq: String = record[1].trim().to_string();
 
         rep_stmt.execute([&rep])?;
         rep_seq_stmt.execute(rusqlite::params![&rep, &seq])?;
@@ -422,8 +422,8 @@ fn insert_anno(dmp: &std::fs::File, conn: &rusqlite::Connection) -> anyhow::Resu
                 i + 1
             ));
         }
-        let name: String = record[0].trim().parse()?;
-        let anno: String = record[1].trim().parse()?;
+        let name: String = record[0].trim().to_string();
+        let anno: String = record[1].trim().to_string();
 
         stmt.execute(rusqlite::params![&anno, &name])?;
 
@@ -464,8 +464,8 @@ fn insert_asmseq(
         }
 
         // sequence name, assembly name
-        let seq: String = record[0].trim().parse()?;
-        let asm: String = record[1].trim().parse()?;
+        let seq: String = record[0].trim().to_string();
+        let asm: String = record[1].trim().to_string();
 
         stmt.execute(rusqlite::params![&asm, &seq])?;
 
@@ -506,8 +506,8 @@ fn insert_rep(
                 i + 1
             ));
         }
-        let family: String = record[0].trim().parse()?;
-        let rep: String = record[1].trim().parse()?;
+        let family: String = record[0].trim().to_string();
+        let rep: String = record[1].trim().to_string();
 
         stmt.execute(rusqlite::params![&family, &rep])?;
 

@@ -100,7 +100,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 ));
             }
             let id: i64 = record[0].trim().parse()?;
-            let name: String = record[2].trim().parse()?;
+            let name: String = record[2].trim().to_string();
             stmt.execute(rusqlite::params![id, name])?;
         }
         conn.execute_batch("COMMIT;")?;
@@ -121,6 +121,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             "INSERT INTO name (tax_id, name, name_class) VALUES (?1, ?2, ?3)",
         )?;
 
+        // Intentionally use explicit SQL BEGIN/COMMIT rather than rusqlite::Transaction.
         conn.execute_batch("BEGIN;")?;
         for (i, result) in tsv_rdr.records().enumerate() {
             let record = result?;
@@ -164,6 +165,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             "INSERT INTO node (tax_id, parent_tax_id, rank, division_id, comment) VALUES (?1, ?2, ?3, ?4, ?5)"
         )?;
 
+        // Intentionally use explicit SQL BEGIN/COMMIT rather than rusqlite::Transaction.
         conn.execute_batch("BEGIN;")?;
         for (i, result) in tsv_rdr.records().enumerate() {
             let record = result?;
@@ -178,9 +180,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             // tax_id, parent, rank, code, divid, undef, gen_code, undef, mito
             let tax_id: i64 = record[0].trim().parse()?;
             let parent_tax_id: i64 = record[1].trim().parse()?;
-            let rank: String = record[2].trim().parse()?;
+            let rank: String = record[2].trim().to_string();
             let division_id: i64 = record[4].trim().parse()?;
-            let comments: String = record[12].trim().parse()?;
+            let comments: String = record[12].trim().to_string();
 
             stmt.execute(rusqlite::params![
                 tax_id,

@@ -44,6 +44,7 @@ fn validate_shell_safe(s: &str) -> anyhow::Result<&str> {
 }
 
 /// Reject strings that would corrupt TSV output or be unsafe in shell contexts.
+/// This project only supports NCBI URLs; non-NCBI URLs are intentionally out of scope.
 fn validate_no_control_chars(s: &str) -> anyhow::Result<&str> {
     if s.chars().any(|c| c.is_ascii_control()) {
         return Err(anyhow::anyhow!(
@@ -53,6 +54,51 @@ fn validate_no_control_chars(s: &str) -> anyhow::Result<&str> {
     }
     Ok(s)
 }
+
+/// Validate that a string is safe to use as a shell/Perl identifier.
+/// Only ASCII alphanumeric characters and underscores are allowed so the
+/// value can be used as a filename stem and as a Perl variable name.
+fn validate_identifier(s: &str) -> anyhow::Result<&str> {
+    if s.is_empty() {
+        return Err(anyhow::anyhow!("Identifier must not be empty"));
+    }
+    if s.chars().all(|c| c.is_ascii_alphanumeric() || c == '_') {
+        Ok(s)
+    } else {
+        Err(anyhow::anyhow!(
+            "Identifier contains characters unsafe for shell/Perl usage: '{}'",
+            s
+        ))
+    }
+}
+
+/// Validate a relative file path used in generated shell scripts.
+/// Allows ASCII alphanumeric characters, underscores, hyphens, dots and
+/// forward slashes. Rejects absolute paths and shell metacharacters.
+fn validate_relative_path(s: &str) -> anyhow::Result<&str> {
+    if s.is_empty() {
+        return Err(anyhow::anyhow!("Path must not be empty"));
+    }
+    if s.starts_with('/') {
+        return Err(anyhow::anyhow!(
+            "Path must be relative, not absolute: '{}'",
+            s
+        ));
+    }
+    if s.chars().all(|c| {
+        c.is_ascii_alphanumeric() || c == '_' || c == '-' || c == '.' || c == '/'
+    }) {
+        Ok(s)
+    } else {
+        Err(anyhow::anyhow!(
+            "Path contains characters unsafe for shell usage: '{}'",
+            s
+        ))
+    }
+}
+
+/// Marker value for stdout output mode.
+const STDOUT_MARKER: &str = "stdout";
 
 // Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
@@ -96,6 +142,7 @@ pub fn make_subcommand() -> Command {
                 .long("parallel")
                 .num_args(1)
                 .default_value("8")
+                .value_parser(value_parser!(usize))
                 .help("Number of threads"),
         )
         // ASSEMBLY
@@ -124,6 +171,7 @@ pub fn make_subcommand() -> Command {
                 .long("sketch")
                 .num_args(1)
                 .default_value("10000")
+                .value_parser(value_parser!(usize))
                 .help("Sketch size passed to `mash sketch`"),
         )
         .arg(
@@ -131,6 +179,7 @@ pub fn make_subcommand() -> Command {
                 .long("ani-ab")
                 .num_args(1)
                 .default_value("0.05")
+                .value_parser(value_parser!(f64))
                 .help("The ANI value for abnormal strains"),
         )
         .arg(
@@ -138,6 +187,7 @@ pub fn make_subcommand() -> Command {
                 .long("ani-nr")
                 .num_args(1)
                 .default_value("0.005")
+                .value_parser(value_parser!(f64))
                 .help("The ANI value for non-redundant strains"),
         )
         .arg(
@@ -145,6 +195,7 @@ pub fn make_subcommand() -> Command {
                 .long("height")
                 .num_args(1)
                 .default_value("0.5")
+                .value_parser(value_parser!(f64))
                 .help("Height value passed to `cutree()`"),
         )
         // Count
@@ -183,21 +234,22 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     // Loading
     //----------------------------
     let outdir = args.get_one::<String>("outdir").unwrap();
-    if outdir != "stdout" {
+    let stdout_mode = outdir == STDOUT_MARKER;
+    if !stdout_mode {
         fs::create_dir_all(outdir)?;
     }
 
     let mut ins = vec![];
     if args.contains_id("in") {
         for i in args.get_many::<String>("in").unwrap() {
-            ins.push(i.to_string());
+            ins.push(validate_relative_path(i)?.to_string());
         }
     }
 
     let mut not_ins = vec![];
     if args.contains_id("not-in") {
         for i in args.get_many::<String>("not-in").unwrap() {
-            not_ins.push(i.to_string());
+            not_ins.push(validate_relative_path(i)?.to_string());
         }
     }
 
@@ -290,14 +342,14 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut ranks = vec![];
     if args.contains_id("rank") {
         for rank in args.get_many::<String>("rank").unwrap() {
-            ranks.push(rank.to_string());
+            ranks.push(validate_identifier(rank)?.to_string());
         }
     }
 
     let mut lineages = vec![];
     if args.contains_id("lineage") {
         for rank in args.get_many::<String>("lineage").unwrap() {
-            lineages.push(rank.to_string());
+            lineages.push(validate_identifier(rank)?.to_string());
         }
     }
 
@@ -316,7 +368,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     context.insert("outdir", outdir);
     context.insert("ins", &ins);
     context.insert("not_ins", &not_ins);
-    context.insert("parallel", args.get_one::<String>("parallel").unwrap());
+    context.insert(
+        "parallel",
+        &args.get_one::<usize>("parallel").unwrap().to_string(),
+    );
 
     context.insert("ass_url_of", &ass_url_of);
     context.insert("ass_species_of", &ass_species_of);
@@ -326,10 +381,22 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     context.insert("mh_species_of", &mh_species_of);
     context.insert("mh_level_of", &mh_level_of);
-    context.insert("mh_sketch", args.get_one::<String>("sketch").unwrap());
-    context.insert("mh_ani_ab", args.get_one::<String>("ani-ab").unwrap());
-    context.insert("mh_ani_nr", args.get_one::<String>("ani-nr").unwrap());
-    context.insert("mh_height", args.get_one::<String>("height").unwrap());
+    context.insert(
+        "mh_sketch",
+        &args.get_one::<usize>("sketch").unwrap().to_string(),
+    );
+    context.insert(
+        "mh_ani_ab",
+        &args.get_one::<f64>("ani-ab").unwrap().to_string(),
+    );
+    context.insert(
+        "mh_ani_nr",
+        &args.get_one::<f64>("ani-nr").unwrap().to_string(),
+    );
+    context.insert(
+        "mh_height",
+        &args.get_one::<f64>("height").unwrap().to_string(),
+    );
 
     context.insert("count_species_of", &count_species_of);
     context.insert("count_ranks", &ranks);
@@ -365,7 +432,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     // Writing
     //----------------------------
     if args.get_flag("ass") {
-        if outdir != "stdout" {
+        if !stdout_mode {
             fs::create_dir_all(format!("{}/ASSEMBLY", outdir))?;
         }
         gen_ass_data(&context)?;
@@ -408,7 +475,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     }
 
     if args.get_flag("bs") {
-        if outdir != "stdout" {
+        if !stdout_mode {
             fs::create_dir_all(format!("{}/BioSample", outdir))?;
         }
         gen_bs_data(&context)?;
@@ -427,7 +494,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     }
 
     if args.get_flag("mh") {
-        if outdir != "stdout" {
+        if !stdout_mode {
             fs::create_dir_all(format!("{}/MinHash", outdir))?;
         }
         gen_mh_data(&context)?;
@@ -458,7 +525,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     }
 
     if args.get_flag("count") {
-        if outdir != "stdout" {
+        if !stdout_mode {
             fs::create_dir_all(format!("{}/Count", outdir))?;
         }
         gen_count_data(&context)?;
@@ -483,7 +550,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     }
 
     if args.get_flag("pro") {
-        if outdir != "stdout" {
+        if !stdout_mode {
             fs::create_dir_all(format!("{}/Protein", outdir))?;
         }
         gen_pro_data(&context)?;
@@ -532,7 +599,7 @@ fn render_shell_script(
         .and_then(|v| v.as_str())
         .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' in template context"))?;
 
-    let mut writer = if outdir == "stdout" {
+    let mut writer = if outdir == STDOUT_MARKER {
         intspan::writer("stdout")
     } else {
         intspan::writer(format!("{}/{}/{}", outdir, subdir, outname).as_ref())
@@ -563,13 +630,13 @@ fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
     let ass_url_of = context.get("ass_url_of").unwrap().as_object().unwrap();
     let ass_species_of = context.get("ass_species_of").unwrap().as_object().unwrap();
 
-    let mut writer = if outdir == "stdout" {
+    let mut writer = if outdir == STDOUT_MARKER {
         intspan::writer("stdout")
     } else {
         intspan::writer(format!("{}/ASSEMBLY/{}", outdir, outname).as_ref())
     };
 
-    let mut writer_rsync = if outdir == "stdout" {
+    let mut writer_rsync = if outdir == STDOUT_MARKER {
         intspan::writer("stdout")
     } else {
         intspan::writer(format!("{}/ASSEMBLY/{}", outdir, outname_rsync).as_ref())
@@ -603,7 +670,7 @@ fn gen_bs_data(context: &Context) -> anyhow::Result<()> {
     let bs_name_of = context.get("bs_name_of").unwrap().as_object().unwrap();
     let bs_species_of = context.get("bs_species_of").unwrap().as_object().unwrap();
 
-    let mut writer = if outdir == "stdout" {
+    let mut writer = if outdir == STDOUT_MARKER {
         intspan::writer("stdout")
     } else {
         intspan::writer(format!("{}/BioSample/{}", outdir, outname).as_ref())
@@ -630,7 +697,7 @@ fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
     let mh_species_of = context.get("mh_species_of").unwrap().as_object().unwrap();
     let mh_level_of = context.get("mh_level_of").unwrap().as_object().unwrap();
 
-    let mut writer = if outdir == "stdout" {
+    let mut writer = if outdir == STDOUT_MARKER {
         intspan::writer("stdout")
     } else {
         intspan::writer(format!("{}/MinHash/{}", outdir, outname).as_ref())
@@ -660,7 +727,7 @@ fn gen_count_data(context: &Context) -> anyhow::Result<()> {
         .as_object()
         .unwrap();
 
-    let mut writer = if outdir == "stdout" {
+    let mut writer = if outdir == STDOUT_MARKER {
         intspan::writer("stdout")
     } else {
         intspan::writer(format!("{}/Count/{}", outdir, outname).as_ref())
@@ -685,7 +752,7 @@ fn gen_pro_data(context: &Context) -> anyhow::Result<()> {
     let outdir = context.get("outdir").unwrap().as_str().unwrap();
     let species_of = context.get("pro_species_of").unwrap().as_object().unwrap();
 
-    let mut writer = if outdir == "stdout" {
+    let mut writer = if outdir == STDOUT_MARKER {
         intspan::writer("stdout")
     } else {
         intspan::writer(format!("{}/Protein/{}", outdir, outname).as_ref())
