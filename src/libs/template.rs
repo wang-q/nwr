@@ -1,6 +1,6 @@
 use lazy_static::lazy_static;
 use regex::Regex;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashSet};
 use std::fs;
 use std::io::BufRead;
 use std::io::Write;
@@ -187,6 +187,11 @@ pub fn run(options: &TemplateOptions) -> anyhow::Result<()> {
 
     let mut pro_species_of = BTreeMap::new();
 
+    // Track duplicate strain names across all input files so that the warning
+    // is emitted once regardless of which name-keyed stages (ass, mh, count,
+    // pro) are enabled.
+    let mut seen_names: HashSet<String> = HashSet::new();
+
     for infile in &options.infiles {
         let reader = crate::libs::io::reader(infile)?;
         for line in reader.lines() {
@@ -231,19 +236,25 @@ pub fn run(options: &TemplateOptions) -> anyhow::Result<()> {
                 _ => LEVEL_OTHER,
             };
 
+            // Warn once about duplicate strain names across all name-keyed
+            // stages (ass, mh, count, pro) so users learn about duplicates
+            // even when --ass is not set.
+            if (options.do_ass || options.do_mh || options.do_count || options.do_pro)
+                && !seen_names.insert(name.to_string())
+            {
+                eprintln!(
+                    "Warning: duplicate strain name '{}', overwriting previous entry",
+                    name
+                );
+            }
+
             // ass
             if options.do_ass {
-                if ass_url_of.contains_key(name) {
-                    eprintln!(
-                        "Warning: duplicate strain name '{}', overwriting previous entry",
-                        name
-                    );
-                }
                 ass_url_of.insert(name.to_string(), url.to_string());
                 ass_species_of.insert(name.to_string(), species_.to_string());
             }
 
-            // bs
+            // bs (keyed by `sample`, so it has its own duplicate check)
             if options.do_bs && !sample.is_empty() {
                 if bs_name_of.contains_key(sample) {
                     eprintln!(
@@ -255,8 +266,7 @@ pub fn run(options: &TemplateOptions) -> anyhow::Result<()> {
                 bs_species_of.insert(sample.to_string(), species_.to_string());
             }
 
-            // mh, count, pro: keyed by `name`; duplicate warnings already
-            // emitted by the `ass` block above.
+            // mh
             if options.do_mh {
                 mh_species_of.insert(name.to_string(), species_.to_string());
                 mh_level_of.insert(name.to_string(), level.to_string());
@@ -337,42 +347,51 @@ pub fn run(options: &TemplateOptions) -> anyhow::Result<()> {
     //----------------------------
     // Writing
     //----------------------------
+    let mut tera = Tera::default();
+    tera.add_raw_template("header", include_str!("../../templates/header.tera.sh"))?;
+
     if options.do_ass {
         if !stdout_mode {
             fs::create_dir_all(format!("{}/ASSEMBLY", outdir))?;
         }
         gen_ass_data(&context)?;
         render_shell_script(
+            &mut tera,
             &context,
             include_str!("../../templates/ass_aria2.tera.sh"),
             "ASSEMBLY",
             "aria2.sh",
         )?;
         render_shell_script(
+            &mut tera,
             &context,
             include_str!("../../templates/ass_check.tera.sh"),
             "ASSEMBLY",
             "check.sh",
         )?;
         render_shell_script(
+            &mut tera,
             &context,
             include_str!("../../templates/ass_reorder.tera.sh"),
             "ASSEMBLY",
             "reorder.sh",
         )?;
         render_shell_script(
+            &mut tera,
             &context,
             include_str!("../../templates/ass_n50.tera.sh"),
             "ASSEMBLY",
             "n50.sh",
         )?;
         render_shell_script(
+            &mut tera,
             &context,
             include_str!("../../templates/ass_collect.tera.sh"),
             "ASSEMBLY",
             "collect.sh",
         )?;
         render_shell_script(
+            &mut tera,
             &context,
             include_str!("../../templates/ass_finish.tera.sh"),
             "ASSEMBLY",
@@ -386,12 +405,14 @@ pub fn run(options: &TemplateOptions) -> anyhow::Result<()> {
         }
         gen_bs_data(&context)?;
         render_shell_script(
+            &mut tera,
             &context,
             include_str!("../../templates/bs_download.tera.sh"),
             "BioSample",
             "download.sh",
         )?;
         render_shell_script(
+            &mut tera,
             &context,
             include_str!("../../templates/bs_collect.tera.sh"),
             "BioSample",
@@ -405,24 +426,28 @@ pub fn run(options: &TemplateOptions) -> anyhow::Result<()> {
         }
         gen_mh_data(&context)?;
         render_shell_script(
+            &mut tera,
             &context,
             include_str!("../../templates/mh_compute.tera.sh"),
             "MinHash",
             "compute.sh",
         )?;
         render_shell_script(
+            &mut tera,
             &context,
             include_str!("../../templates/mh_nr.tera.sh"),
             "MinHash",
             "nr.sh",
         )?;
         render_shell_script(
+            &mut tera,
             &context,
             include_str!("../../templates/mh_abnormal.tera.sh"),
             "MinHash",
             "abnormal.sh",
         )?;
         render_shell_script(
+            &mut tera,
             &context,
             include_str!("../../templates/mh_dist.tera.sh"),
             "MinHash",
@@ -436,18 +461,21 @@ pub fn run(options: &TemplateOptions) -> anyhow::Result<()> {
         }
         gen_count_data(&context)?;
         render_shell_script(
+            &mut tera,
             &context,
             include_str!("../../templates/count_strains.tera.sh"),
             "Count",
             "strains.sh",
         )?;
         render_shell_script(
+            &mut tera,
             &context,
             include_str!("../../templates/count_rank.tera.sh"),
             "Count",
             "rank.sh",
         )?;
         render_shell_script(
+            &mut tera,
             &context,
             include_str!("../../templates/count_lineage.tera.sh"),
             "Count",
@@ -461,24 +489,28 @@ pub fn run(options: &TemplateOptions) -> anyhow::Result<()> {
         }
         gen_pro_data(&context)?;
         render_shell_script(
+            &mut tera,
             &context,
             include_str!("../../templates/pro_collect.tera.sh"),
             "Protein",
             "collect.sh",
         )?;
         render_shell_script(
+            &mut tera,
             &context,
             include_str!("../../templates/pro_cluster.tera.sh"),
             "Protein",
             "cluster.sh",
         )?;
         render_shell_script(
+            &mut tera,
             &context,
             include_str!("../../templates/pro_info.tera.sh"),
             "Protein",
             "info.sh",
         )?;
         render_shell_script(
+            &mut tera,
             &context,
             include_str!("../../templates/pro_count.tera.sh"),
             "Protein",
@@ -489,8 +521,13 @@ pub fn run(options: &TemplateOptions) -> anyhow::Result<()> {
     Ok(())
 }
 
-/// Helper function to render shell scripts from Tera templates.
+/// Render a single shell script from a Tera template.
+///
+/// `tera` must already contain the shared `"header"` template; each call
+/// registers `template_content` as `"t"` and renders it. Reusing a single
+/// `Tera` instance avoids re-parsing the header on every call.
 pub fn render_shell_script(
+    tera: &mut Tera,
     context: &Context,
     template_content: &str,
     subdir: &str,
@@ -502,12 +539,7 @@ pub fn render_shell_script(
 
     let mut writer = open_writer(outdir, subdir, outname)?;
 
-    let mut tera = Tera::default();
-    tera.add_raw_templates(vec![
-        ("header", include_str!("../../templates/header.tera.sh")),
-        ("t", template_content),
-    ])?;
-
+    tera.add_raw_template("t", template_content)?;
     let rendered = tera.render("t", context)?;
     writer.write_all(rendered.as_ref())?;
     writer.flush()?;

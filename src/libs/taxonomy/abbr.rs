@@ -120,7 +120,12 @@ pub fn abbr_most(
         let key = sorted_keys[i];
         let prev_key = sorted_keys[i - 1];
 
-        if !key.starts_with(prev_key) {
+        // Skip only when this key is a longer abbreviation of the *same* word
+        // as the previous key. Without the value check, distinct words that
+        // share a prefix (e.g. "app" and "apple") would lose the longer word
+        // entirely.
+        let same_word = abbr_map.get(key) == abbr_map.get(prev_key);
+        if !key.starts_with(prev_key) || !same_word {
             if let Some(full) = abbr_map.get(key) {
                 abbr_of.insert(full.clone(), key.clone());
             }
@@ -419,6 +424,15 @@ mod tests {
         let words = vec!["apple".to_string()];
         let result = abbr_most(&words, 0, false);
         assert_eq!(result.get("apple").unwrap(), "apple");
+    }
+
+    #[test]
+    fn test_abbr_most_prefix_words() {
+        // "app" is a prefix of "apple"; both must appear in the result.
+        let words = vec!["app".to_string(), "apple".to_string()];
+        let result = abbr_most(&words, 1, false);
+        assert_eq!(result.get("app").unwrap(), "app");
+        assert_eq!(result.get("apple").unwrap(), "appl");
     }
 
     #[test]
