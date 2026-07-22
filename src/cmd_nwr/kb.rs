@@ -1,3 +1,4 @@
+use super::args;
 use clap::*;
 
 /// Create clap subcommand arguments.
@@ -12,13 +13,7 @@ pub fn make_subcommand() -> Command {
                 .required(true)
                 .index(1),
         )
-        .arg(
-            Arg::new("outdir")
-                .long("outdir")
-                .num_args(1)
-                .default_value(".")
-                .help("Output directory (default: current directory)"),
-        )
+        .arg(args::outdir_arg())
 }
 
 /// Command implementation.

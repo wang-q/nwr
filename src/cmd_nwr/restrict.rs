@@ -7,13 +7,7 @@ pub fn make_subcommand() -> Command {
     Command::new("restrict")
         .about("Restricts taxonomy terms to ancestral descendants")
         .after_help(include_str!("../../docs/help/restrict.md"))
-        .arg(
-            Arg::new("terms")
-                .help("The ancestor(s)")
-                .required(true)
-                .num_args(1..)
-                .index(1),
-        )
+        .arg(args::terms_arg("The ancestor(s)"))
         .arg(args::dir_arg())
         .arg(
             Arg::new("file")

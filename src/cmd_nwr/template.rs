@@ -7,20 +7,8 @@ pub fn make_subcommand() -> Command {
         .about("Creates dirs, data and scripts for a phylogenomic research")
         .after_help(include_str!("../../docs/help/template.md"))
         // Global
-        .arg(
-            Arg::new("infiles")
-                .help(".assembly.tsv files")
-                .num_args(1..)
-                .required(true)
-                .index(1),
-        )
-        .arg(
-            Arg::new("outdir")
-                .long("outdir")
-                .num_args(1)
-                .default_value(".")
-                .help("Output directory (default: current directory)"),
-        )
+        .arg(args::infiles_arg(".assembly.tsv files"))
+        .arg(args::outdir_arg())
         .arg(
             Arg::new("include")
                 .long("include")

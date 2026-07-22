@@ -6,13 +6,7 @@ pub fn make_subcommand() -> Command {
     Command::new("common")
         .about("Outputs the common tree of terms")
         .after_help(include_str!("../../docs/help/common.md"))
-        .arg(
-            Arg::new("terms")
-                .help("The NCBI Taxonomy ID or scientific name")
-                .required(true)
-                .num_args(1..)
-                .index(1),
-        )
+        .arg(args::terms_arg("The NCBI Taxonomy ID or scientific name"))
         .arg(args::dir_arg())
         .arg(args::outfile_arg())
 }

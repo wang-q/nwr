@@ -47,3 +47,30 @@ pub fn column_arg() -> Arg {
         .value_parser(clap::builder::RangedU64ValueParser::<usize>::new().range(1..))
         .help("Column number (1-based)")
 }
+
+/// `--outdir` option for output directory (defaults to current directory).
+pub fn outdir_arg() -> Arg {
+    Arg::new("outdir")
+        .long("outdir")
+        .num_args(1)
+        .default_value(".")
+        .help("Output directory (default: current directory)")
+}
+
+/// Positional `terms` argument: required, multi-value, index 1.
+pub fn terms_arg(help: &'static str) -> Arg {
+    Arg::new("terms")
+        .help(help)
+        .required(true)
+        .num_args(1..)
+        .index(1)
+}
+
+/// Positional `infiles` argument: required, multi-value, index 1.
+pub fn infiles_arg(help: &'static str) -> Arg {
+    Arg::new("infiles")
+        .help(help)
+        .required(true)
+        .num_args(1..)
+        .index(1)
+}

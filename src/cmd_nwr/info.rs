@@ -6,13 +6,7 @@ pub fn make_subcommand() -> Command {
     Command::new("info")
         .about("Shows information of Taxonomy ID(s) or scientific name(s)")
         .after_help(include_str!("../../docs/help/info.md"))
-        .arg(
-            Arg::new("terms")
-                .help("Taxonomy ID(s) or scientific name(s)")
-                .required(true)
-                .num_args(1..)
-                .index(1),
-        )
+        .arg(args::terms_arg("Taxonomy ID(s) or scientific name(s)"))
         .arg(args::dir_arg())
         .arg(
             Arg::new("tsv")

@@ -6,13 +6,7 @@ pub fn make_subcommand() -> Command {
     Command::new("member")
         .about("Lists members (of certain ranks) under ancestral term(s)")
         .after_help(include_str!("../../docs/help/member.md"))
-        .arg(
-            Arg::new("terms")
-                .help("The ancestor(s)")
-                .required(true)
-                .num_args(1..)
-                .index(1),
-        )
+        .arg(args::terms_arg("The ancestor(s)"))
         .arg(args::dir_arg())
         .arg(args::rank_arg())
         .arg(

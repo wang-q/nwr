@@ -7,13 +7,9 @@ pub fn make_subcommand() -> Command {
     Command::new("append")
         .about("Appends taxonomic rank fields to a TSV file")
         .after_help(include_str!("../../docs/help/append.md"))
-        .arg(
-            Arg::new("infiles")
-                .required(true)
-                .num_args(1..)
-                .index(1)
-                .help("Input TSV file(s) to process. Use 'stdin' for standard input"),
-        )
+        .arg(args::infiles_arg(
+            "Input TSV file(s) to process. Use 'stdin' for standard input",
+        ))
         .arg(args::dir_arg())
         .arg(args::rank_arg())
         .arg(args::column_arg())
