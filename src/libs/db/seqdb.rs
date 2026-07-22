@@ -11,8 +11,7 @@ pub const VALID_REP_FIELDS: &[&str] = &["f1", "f2", "f3", "f4", "f5", "f6", "f7"
 /// Only simple ASCII identifiers in the whitelist are accepted so that the
 /// field can safely be used as a column name in static SQL statements.
 pub fn validate_rep_field(field: &str) -> anyhow::Result<&str> {
-    let is_safe = field.chars().all(|c| c.is_ascii_alphanumeric() || c == '_');
-    if is_safe && VALID_REP_FIELDS.contains(&field) {
+    if VALID_REP_FIELDS.contains(&field) {
         Ok(field)
     } else {
         Err(anyhow::anyhow!(

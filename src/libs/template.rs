@@ -490,9 +490,20 @@ pub fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
     eprintln!("Create ASSEMBLY/{}", outname);
     eprintln!("Create ASSEMBLY/{}", outname_rsync);
 
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-    let ass_url_of = context.get("ass_url_of").unwrap().as_object().unwrap();
-    let ass_species_of = context.get("ass_species_of").unwrap().as_object().unwrap();
+    let outdir = context
+        .get("outdir")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' in template context"))?;
+    let ass_url_of = context
+        .get("ass_url_of")
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'ass_url_of' in template context"))?;
+    let ass_species_of = context
+        .get("ass_species_of")
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| {
+            anyhow::anyhow!("Missing 'ass_species_of' in template context")
+        })?;
 
     let mut writer = open_writer(outdir, "ASSEMBLY", outname);
     let mut writer_rsync = open_writer(outdir, "ASSEMBLY", outname_rsync);
@@ -515,9 +526,18 @@ pub fn gen_bs_data(context: &Context) -> anyhow::Result<()> {
     let outname = "sample.tsv";
     eprintln!("Create BioSample/{}", outname);
 
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-    let bs_name_of = context.get("bs_name_of").unwrap().as_object().unwrap();
-    let bs_species_of = context.get("bs_species_of").unwrap().as_object().unwrap();
+    let outdir = context
+        .get("outdir")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' in template context"))?;
+    let bs_name_of = context
+        .get("bs_name_of")
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'bs_name_of' in template context"))?;
+    let bs_species_of = context
+        .get("bs_species_of")
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'bs_species_of' in template context"))?;
 
     let mut writer = open_writer(outdir, "BioSample", outname);
 
@@ -536,9 +556,18 @@ pub fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
     let outname = "species.tsv";
     eprintln!("Create MinHash/{}", outname);
 
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-    let mh_species_of = context.get("mh_species_of").unwrap().as_object().unwrap();
-    let mh_level_of = context.get("mh_level_of").unwrap().as_object().unwrap();
+    let outdir = context
+        .get("outdir")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' in template context"))?;
+    let mh_species_of = context
+        .get("mh_species_of")
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'mh_species_of' in template context"))?;
+    let mh_level_of = context
+        .get("mh_level_of")
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'mh_level_of' in template context"))?;
 
     let mut writer = open_writer(outdir, "MinHash", outname);
 
@@ -557,12 +586,16 @@ pub fn gen_count_data(context: &Context) -> anyhow::Result<()> {
     let outname = "species.tsv";
     eprintln!("Create Count/{}", outname);
 
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
+    let outdir = context
+        .get("outdir")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' in template context"))?;
     let count_species_of = context
         .get("count_species_of")
-        .unwrap()
-        .as_object()
-        .unwrap();
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| {
+            anyhow::anyhow!("Missing 'count_species_of' in template context")
+        })?;
 
     let mut writer = open_writer(outdir, "Count", outname);
 
@@ -580,8 +613,16 @@ pub fn gen_pro_data(context: &Context) -> anyhow::Result<()> {
     let outname = "species.tsv";
     eprintln!("Create Protein/{}", outname);
 
-    let outdir = context.get("outdir").unwrap().as_str().unwrap();
-    let species_of = context.get("pro_species_of").unwrap().as_object().unwrap();
+    let outdir = context
+        .get("outdir")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' in template context"))?;
+    let species_of = context
+        .get("pro_species_of")
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| {
+            anyhow::anyhow!("Missing 'pro_species_of' in template context")
+        })?;
 
     let mut writer = open_writer(outdir, "Protein", outname);
 

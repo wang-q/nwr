@@ -139,7 +139,7 @@ pub fn abbr_most(
     if avoid_one_char_saving {
         let keys_to_update: Vec<(String, String)> = abbr_of
             .iter()
-            .filter(|(k, v)| k.len() - v.len() == 1)
+            .filter(|(k, v)| k.chars().count() - v.chars().count() == 1)
             .map(|(k, _v)| (k.clone(), k.clone()))
             .collect();
         for (k, v) in keys_to_update {
@@ -270,6 +270,12 @@ pub struct AbbrOptions {
 /// Reads the input file, extracts strain/species/genus information from the
 /// configured columns, and appends a generated abbreviation to each line.
 pub fn run(options: &AbbrOptions) -> anyhow::Result<()> {
+    if options.columns.0 == 0 || options.columns.1 == 0 || options.columns.2 == 0 {
+        return Err(anyhow::anyhow!(
+            "Columns must be positive integers (1-based)"
+        ));
+    }
+
     let reader = intspan::reader(&options.infile);
     let mut writer = intspan::writer(&options.outfile);
 
