@@ -167,13 +167,13 @@ pub fn run(options: &SeqdbOptions) -> anyhow::Result<()> {
     if let Some(opt_strain) = &options.opt_strain {
         info!("==> Loading `{}` to `rank` and `asm`", opt_strain.display());
         let dmp = File::open(opt_strain)?;
-        insert_strain(&dmp, &conn)?;
+        insert_strain(&dmp, opt_strain, &conn)?;
     }
 
     if let Some(opt_size) = &options.opt_size {
         info!("==> Loading `{}` to `seq`", opt_size.display());
         let dmp = File::open(opt_size)?;
-        insert_size(&dmp, &conn)?;
+        insert_size(&dmp, opt_size, &conn)?;
     }
 
     if let Some(opt_clust) = &options.opt_clust {
@@ -182,19 +182,19 @@ pub fn run(options: &SeqdbOptions) -> anyhow::Result<()> {
             opt_clust.display()
         );
         let dmp = File::open(opt_clust)?;
-        insert_clust(&dmp, &conn)?;
+        insert_clust(&dmp, opt_clust, &conn)?;
     }
 
     if let Some(opt_anno) = &options.opt_anno {
         info!("==> Loading `{}` to `seq`", opt_anno.display());
         let dmp = File::open(opt_anno)?;
-        insert_anno(&dmp, &conn)?;
+        insert_anno(&dmp, opt_anno, &conn)?;
     }
 
     if let Some(opt_asmseq) = &options.opt_asmseq {
         info!("==> Loading `{}` to `asm_seq`", opt_asmseq.display());
         let dmp = File::open(opt_asmseq)?;
-        insert_asmseq(&dmp, &conn)?;
+        insert_asmseq(&dmp, opt_asmseq, &conn)?;
     }
 
     if let Some((rep_field, rep_path)) = &options.opt_rep {
@@ -204,14 +204,18 @@ pub fn run(options: &SeqdbOptions) -> anyhow::Result<()> {
             rep_field
         );
         let dmp = File::open(rep_path)?;
-        insert_rep(&dmp, rep_field, &conn)?;
+        insert_rep(&dmp, rep_field, rep_path, &conn)?;
     }
 
     Ok(())
 }
 
 /// Load strains and ranks into `rank` and `asm`.
-pub fn insert_strain(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<()> {
+pub fn insert_strain(
+    dmp: &File,
+    path: &std::path::Path,
+    conn: &rusqlite::Connection,
+) -> anyhow::Result<()> {
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
@@ -228,8 +232,9 @@ pub fn insert_strain(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<
         let record = result?;
         if record.len() < 2 {
             return Err(anyhow::anyhow!(
-                "Line {} in strains.tsv has fewer than 2 columns",
-                i + 1
+                "Line {} in {} has fewer than 2 columns",
+                i + 1,
+                path.display()
             ));
         }
         let strain: String = record[0].trim().to_string();
@@ -249,7 +254,11 @@ pub fn insert_strain(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<
 }
 
 /// Load sequence sizes into `seq`.
-pub fn insert_size(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<()> {
+pub fn insert_size(
+    dmp: &File,
+    path: &std::path::Path,
+    conn: &rusqlite::Connection,
+) -> anyhow::Result<()> {
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
@@ -263,13 +272,19 @@ pub fn insert_size(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<()
         let record = result?;
         if record.len() < 2 {
             return Err(anyhow::anyhow!(
-                "Line {} in sizes.tsv has fewer than 2 columns",
-                i + 1
+                "Line {} in {} has fewer than 2 columns",
+                i + 1,
+                path.display()
             ));
         }
         let name: String = record[0].trim().to_string();
         let size: i64 = record[1].trim().parse().map_err(|e| {
-            anyhow::anyhow!("Invalid size at line {} in sizes.tsv: {}", i + 1, e)
+            anyhow::anyhow!(
+                "Invalid size at line {} in {}: {}",
+                i + 1,
+                path.display(),
+                e
+            )
         })?;
 
         stmt.execute(rusqlite::params![&name, size])?;
@@ -286,7 +301,11 @@ pub fn insert_size(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<()
 }
 
 /// Load rep/seq clusters into `rep` and `rep_seq`.
-pub fn insert_clust(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<()> {
+pub fn insert_clust(
+    dmp: &File,
+    path: &std::path::Path,
+    conn: &rusqlite::Connection,
+) -> anyhow::Result<()> {
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
@@ -309,8 +328,9 @@ pub fn insert_clust(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<(
         let record = result?;
         if record.len() < 2 {
             return Err(anyhow::anyhow!(
-                "Line {} in rep_cluster.tsv has fewer than 2 columns",
-                i + 1
+                "Line {} in {} has fewer than 2 columns",
+                i + 1,
+                path.display()
             ));
         }
         let rep: String = record[0].trim().to_string();
@@ -320,8 +340,9 @@ pub fn insert_clust(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<(
             seq_exists.query_row(rusqlite::params![&seq], |row| row.get(0))?;
         if !exists {
             return Err(anyhow::anyhow!(
-                "Line {}: seq name '{}' not found in seq table (load strains/sizes first)",
+                "Line {} in {}: seq name '{}' not found in seq table (load strains/sizes first)",
                 i + 1,
+                path.display(),
                 seq
             ));
         }
@@ -341,7 +362,11 @@ pub fn insert_clust(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<(
 }
 
 /// Load annotations into `seq`.
-pub fn insert_anno(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<()> {
+pub fn insert_anno(
+    dmp: &File,
+    path: &std::path::Path,
+    conn: &rusqlite::Connection,
+) -> anyhow::Result<()> {
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
@@ -356,8 +381,9 @@ pub fn insert_anno(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<()
         let record = result?;
         if record.len() < 2 {
             return Err(anyhow::anyhow!(
-                "Line {} in anno.tsv has fewer than 2 columns",
-                i + 1
+                "Line {} in {} has fewer than 2 columns",
+                i + 1,
+                path.display()
             ));
         }
         let name: String = record[0].trim().to_string();
@@ -367,8 +393,9 @@ pub fn insert_anno(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<()
             seq_exists.query_row(rusqlite::params![&name], |row| row.get(0))?;
         if !exists {
             return Err(anyhow::anyhow!(
-                "Line {}: seq name '{}' not found in seq table (load strains/sizes first)",
+                "Line {} in {}: seq name '{}' not found in seq table (load strains/sizes first)",
                 i + 1,
+                path.display(),
                 name
             ));
         }
@@ -387,7 +414,11 @@ pub fn insert_anno(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<()
 }
 
 /// Load assembly/sequence associations into `asm_seq`.
-pub fn insert_asmseq(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<()> {
+pub fn insert_asmseq(
+    dmp: &File,
+    path: &std::path::Path,
+    conn: &rusqlite::Connection,
+) -> anyhow::Result<()> {
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')
@@ -410,8 +441,9 @@ pub fn insert_asmseq(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<
         let record = result?;
         if record.len() < 2 {
             return Err(anyhow::anyhow!(
-                "Line {} in asmseq.tsv has fewer than 2 columns",
-                i + 1
+                "Line {} in {} has fewer than 2 columns",
+                i + 1,
+                path.display()
             ));
         }
 
@@ -423,8 +455,9 @@ pub fn insert_asmseq(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<
             seq_exists.query_row(rusqlite::params![&seq], |row| row.get(0))?;
         if !exists {
             return Err(anyhow::anyhow!(
-                "Line {}: seq name '{}' not found in seq table",
+                "Line {} in {}: seq name '{}' not found in seq table",
                 i + 1,
+                path.display(),
                 seq
             ));
         }
@@ -432,8 +465,9 @@ pub fn insert_asmseq(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<
             asm_exists.query_row(rusqlite::params![&asm], |row| row.get(0))?;
         if !exists {
             return Err(anyhow::anyhow!(
-                "Line {}: asm name '{}' not found in asm table",
+                "Line {} in {}: asm name '{}' not found in asm table",
                 i + 1,
+                path.display(),
                 asm
             ));
         }
@@ -455,6 +489,7 @@ pub fn insert_asmseq(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<
 pub fn insert_rep(
     dmp: &File,
     field: &str,
+    path: &std::path::Path,
     conn: &rusqlite::Connection,
 ) -> anyhow::Result<()> {
     let mut tsv_rdr = csv::ReaderBuilder::new()
@@ -472,8 +507,9 @@ pub fn insert_rep(
         let record = result?;
         if record.len() < 2 {
             return Err(anyhow::anyhow!(
-                "Line {} in rep file has fewer than 2 columns",
-                i + 1
+                "Line {} in {} has fewer than 2 columns",
+                i + 1,
+                path.display()
             ));
         }
         let value: String = record[0].trim().to_string();

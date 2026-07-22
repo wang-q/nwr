@@ -28,7 +28,8 @@ lazy_static! {
 
 /// Validate that a string is safe to embed into generated shell scripts and
 /// to use as a file or directory name. Only ASCII alphanumeric characters,
-/// underscores, hyphens and dots are allowed.
+/// underscores, hyphens and dots are allowed. A leading hyphen is rejected
+/// to prevent the value from being interpreted as a command-line flag.
 pub fn validate_shell_safe(s: &str) -> anyhow::Result<&str> {
     if s.is_empty() {
         return Err(anyhow::anyhow!("Shell-safe identifier must not be empty"));
@@ -37,6 +38,13 @@ pub fn validate_shell_safe(s: &str) -> anyhow::Result<&str> {
     if s == "." || s == ".." {
         return Err(anyhow::anyhow!(
             "Shell-safe identifier must not be '.' or '..': '{}'",
+            s
+        ));
+    }
+    // Reject leading hyphen so the value is not mistaken for a CLI flag.
+    if s.starts_with('-') {
+        return Err(anyhow::anyhow!(
+            "Shell-safe identifier must not start with '-': '{}'",
             s
         ));
     }
@@ -210,12 +218,13 @@ pub fn run(options: &TemplateOptions) -> anyhow::Result<()> {
                 bs_species_of.insert(sample.to_string(), species_.to_string());
             }
 
-            // mh
+            // mh, count, pro: keyed by `name`; duplicate warnings already
+            // emitted by the `ass` block above.
             mh_species_of.insert(name.to_string(), species_.to_string());
             mh_level_of.insert(name.to_string(), level.to_string());
 
             // count
-            count_species_of.insert(name.to_string(), species.to_string());
+            count_species_of.insert(name.to_string(), species_.to_string());
 
             // pro
             pro_species_of.insert(name.to_string(), species_.to_string());

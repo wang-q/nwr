@@ -44,6 +44,7 @@ pub fn run(options: &InfoOptions) -> anyhow::Result<()> {
         for node in nodes.iter() {
             writer.write_fmt(format_args!("{}", node))?;
         }
+        writer.flush()?;
     }
 
     Ok(())

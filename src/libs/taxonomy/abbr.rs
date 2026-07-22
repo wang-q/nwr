@@ -293,11 +293,18 @@ pub fn run(options: &AbbrOptions) -> anyhow::Result<()> {
 
     for line in reader.lines() {
         let line = line?;
-        if let Some((fields, parts)) =
-            process_line(&line, options.columns, &options.separator, options.shortsub)
+        if line.is_empty() {
+            continue;
+        }
+        match process_line(&line, options.columns, &options.separator, options.shortsub)
         {
-            all_fields.push(fields);
-            all_parts.push(parts);
+            Some((fields, parts)) => {
+                all_fields.push(fields);
+                all_parts.push(parts);
+            }
+            None => {
+                eprintln!("Warning: skipping malformed line: {}", line);
+            }
         }
     }
 
