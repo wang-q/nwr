@@ -175,6 +175,7 @@ pub fn get_tax_id(
         WHERE name_class IN ('scientific name', 'synonym', 'genbank synonym')
         AND name=?
         ORDER BY tax_id
+        LIMIT 1
         ",
     )?;
 

@@ -1,6 +1,6 @@
 use log::warn;
 use std::collections::hash_map::Entry;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::io::BufRead;
 use std::io::Write;
 use std::path::PathBuf;
@@ -37,10 +37,14 @@ pub fn run(options: &AppendOptions) -> anyhow::Result<()> {
     let conn = crate::connect_txdb(&options.nwrdir)?;
 
     // Cache repeated lookups so that input files with duplicate terms don't
-    // trigger redundant SQL queries.
+    // trigger redundant SQL queries. Failed lookups are also cached so that
+    // repeated invalid terms/ids skip without re-querying.
     let mut term_cache: HashMap<String, i64> = HashMap::new();
+    let mut term_failed: HashSet<String> = HashSet::new();
     let mut lineage_cache: HashMap<i64, Vec<crate::Taxon>> = HashMap::new();
+    let mut lineage_failed: HashSet<i64> = HashSet::new();
     let mut taxon_cache: HashMap<i64, crate::Taxon> = HashMap::new();
+    let mut taxon_failed: HashSet<i64> = HashSet::new();
 
     for infile in &options.infiles {
         let reader = crate::libs::io::reader(infile)?;
@@ -81,6 +85,9 @@ pub fn run(options: &AppendOptions) -> anyhow::Result<()> {
                     fields.len()
                 )
             })?;
+            if term_failed.contains(term.as_str()) {
+                continue 'line;
+            }
             let id = match term_cache.get(term.as_str()) {
                 Some(&id) => id,
                 None => match crate::term_to_tax_id(&conn, term) {
@@ -90,12 +97,16 @@ pub fn run(options: &AppendOptions) -> anyhow::Result<()> {
                     }
                     Err(err) => {
                         warn!("Error converting term '{}': {}", term, err);
+                        term_failed.insert(term.clone());
                         continue 'line;
                     }
                 },
             };
 
             if options.ranks.is_empty() {
+                if taxon_failed.contains(&id) {
+                    continue 'line;
+                }
                 if let Entry::Vacant(e) = taxon_cache.entry(id) {
                     match crate::get_taxon(&conn, &[id]) {
                         Ok(x) => {
@@ -109,6 +120,7 @@ pub fn run(options: &AppendOptions) -> anyhow::Result<()> {
                         }
                         Err(err) => {
                             warn!("Error getting taxon {}: {}", id, err);
+                            taxon_failed.insert(id);
                             continue 'line;
                         }
                     }
@@ -121,10 +133,14 @@ pub fn run(options: &AppendOptions) -> anyhow::Result<()> {
                     fields.push(id.to_string());
                 }
             } else {
+                if lineage_failed.contains(&id) {
+                    continue 'line;
+                }
                 if let Entry::Vacant(e) = lineage_cache.entry(id) {
                     match crate::get_lineage(&conn, id) {
                         Err(err) => {
                             warn!("Errors on get_lineage({}): {}", id, err);
+                            lineage_failed.insert(id);
                             continue 'line;
                         }
                         Ok(x) => {

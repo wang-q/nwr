@@ -44,8 +44,10 @@ pub fn run(options: &RestrictOptions) -> anyhow::Result<()> {
     }
 
     // Cache term lookups so that input files with duplicate terms don't
-    // trigger redundant SQL queries.
+    // trigger redundant SQL queries. Failed lookups are also cached so that
+    // repeated invalid terms skip without re-querying.
     let mut term_cache: HashMap<String, i64> = HashMap::new();
+    let mut term_failed: HashSet<String> = HashSet::new();
 
     for infile in &options.files {
         let reader = crate::libs::io::reader(infile)?;
@@ -63,6 +65,9 @@ pub fn run(options: &RestrictOptions) -> anyhow::Result<()> {
             let term = fields.get(options.column - 1).ok_or_else(|| {
                 anyhow::anyhow!("Column {} not found in line: {}", options.column, line)
             })?;
+            if term_failed.contains(*term) {
+                continue;
+            }
             let id = match term_cache.get(*term) {
                 Some(&id) => id,
                 None => match crate::term_to_tax_id(&conn, term) {
@@ -72,6 +77,7 @@ pub fn run(options: &RestrictOptions) -> anyhow::Result<()> {
                     }
                     Err(err) => {
                         warn!("Error converting term '{}': {}", term, err);
+                        term_failed.insert((*term).to_string());
                         continue;
                     }
                 },

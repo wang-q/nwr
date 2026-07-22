@@ -99,6 +99,14 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         if pos == 0 || pos + 1 >= rep.len() {
             anyhow::bail!("invalid KEY=value: empty field or path in `{rep}`");
         }
+        let field = &rep[..pos];
+        if !nwr::libs::db::seqdb::VALID_REP_FIELDS.contains(&field) {
+            anyhow::bail!(
+                "Invalid rep field '{}'. Valid fields are: {:?}",
+                field,
+                nwr::libs::db::seqdb::VALID_REP_FIELDS
+            );
+        }
         Some((rep[..pos].to_string(), rep[pos + 1..].to_string()))
     } else {
         None
