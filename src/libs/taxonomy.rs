@@ -249,8 +249,9 @@ pub fn get_taxon(
     let mut taxa = Vec::with_capacity(ids.len());
     for id in ids {
         let taxon = taxa_map
-            .remove(id)
-            .ok_or_else(|| anyhow::anyhow!("No such ID: {}", id))?;
+            .get(id)
+            .ok_or_else(|| anyhow::anyhow!("No such ID: {}", id))?
+            .clone();
         taxa.push(taxon);
     }
 
@@ -402,6 +403,7 @@ pub fn get_all_descendent(
 ) -> anyhow::Result<Vec<i64>> {
     let mut ids: Vec<i64> = vec![];
     let mut temp_ids = vec![id];
+    let mut seen = std::collections::HashSet::new();
 
     let mut stmt = conn.prepare(
         "
@@ -412,6 +414,12 @@ pub fn get_all_descendent(
     )?;
 
     while let Some(id) = temp_ids.pop() {
+        if !seen.insert(id) {
+            return Err(anyhow::anyhow!(
+                "Taxonomy cycle detected involving tax_id {}",
+                id
+            ));
+        }
         ids.push(id);
 
         let mut rows = stmt.query([id])?;
@@ -584,6 +592,18 @@ mod tests {
         let result = get_taxon(&conn, &[999999999]);
         assert!(result.is_err());
         assert!(result.unwrap_err().to_string().contains("No such ID"));
+    }
+
+    #[test]
+    fn test_get_taxon_duplicate_ids() {
+        let path = std::path::PathBuf::from("tests/nwr/");
+        let conn = connect_txdb(&path).unwrap();
+
+        // 12340 is Enterobacteria phage 933J
+        let taxa = get_taxon(&conn, &[12340, 12340]).unwrap();
+        assert_eq!(taxa.len(), 2);
+        assert_eq!(taxa[0].tax_id, 12340);
+        assert_eq!(taxa[1].tax_id, 12340);
     }
 
     #[test]
@@ -797,6 +817,43 @@ mod tests {
         let descendents = get_all_descendent(&conn, 375032).unwrap();
         assert!(descendents.contains(&375032)); // Should include self
         assert!(descendents.len() > 1); // Should have children
+    }
+
+    #[test]
+    fn test_get_all_descendent_cycle() {
+        let conn = rusqlite::Connection::open_in_memory().unwrap();
+        conn.execute_batch(
+            "
+            CREATE TABLE node (
+                tax_id        INTEGER PRIMARY KEY,
+                parent_tax_id INTEGER,
+                rank          VARCHAR NOT NULL,
+                division_id   INTEGER NOT NULL,
+                comment       TEXT
+            );
+            ",
+        )
+        .unwrap();
+        // Create a two-node cycle: 2 -> 3 -> 2.
+        conn.execute(
+            "INSERT INTO node (tax_id, parent_tax_id, rank, division_id, comment)
+             VALUES (2, 3, 'species', 1, '')",
+            [],
+        )
+        .unwrap();
+        conn.execute(
+            "INSERT INTO node (tax_id, parent_tax_id, rank, division_id, comment)
+             VALUES (3, 2, 'species', 1, '')",
+            [],
+        )
+        .unwrap();
+
+        let result = get_all_descendent(&conn, 2);
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .to_string()
+            .contains("Taxonomy cycle detected"));
     }
 
     #[test]
