@@ -189,9 +189,12 @@ pub fn get_taxon(
     conn: &rusqlite::Connection,
     ids: &[i64],
 ) -> anyhow::Result<Vec<Taxon>> {
-    let mut taxa = vec![];
+    if ids.is_empty() {
+        return Ok(vec![]);
+    }
 
-    let mut stmt = conn.prepare(
+    let placeholders = (0..ids.len()).map(|_| "?").collect::<Vec<_>>().join(",");
+    let sql = format!(
         "
         SELECT
             node.tax_id,
@@ -204,42 +207,49 @@ pub fn get_taxon(
         FROM node
             INNER JOIN name ON node.tax_id = name.tax_id
             INNER JOIN division ON node.division_id = division.id
-        WHERE node.tax_id=?
+        WHERE node.tax_id IN ({})
         ",
-    )?;
+        placeholders
+    );
 
-    for id in ids {
-        let mut rows = stmt.query([id])?;
+    let mut stmt = conn.prepare(&sql)?;
+    let mut rows = stmt.query(rusqlite::params_from_iter(ids.iter()))?;
 
-        let mut taxon: Taxon = Default::default();
-        if let Some(row) = rows.next()? {
-            taxon.tax_id = row.get(0)?;
-            taxon.parent_tax_id = row.get(1)?;
-            taxon.rank = row.get(2)?;
-            taxon.division = row.get(3)?;
+    let mut taxa_map: HashMap<i64, Taxon> = HashMap::new();
+    while let Some(row) = rows.next()? {
+        let tax_id: i64 = row.get(0)?;
+        let name_class: String = row.get(4)?;
+        let name: String = row.get(5)?;
 
+        if let std::collections::hash_map::Entry::Vacant(e) = taxa_map.entry(tax_id) {
+            let mut taxon = Taxon {
+                tax_id,
+                parent_tax_id: row.get(1)?,
+                rank: row.get(2)?,
+                division: row.get(3)?,
+                ..Default::default()
+            };
             let comments: String = row.get(6)?;
             if !comments.is_empty() {
                 taxon.comments = Some(comments);
             }
-
-            let name_class: String = row.get(4)?;
-            let name: String = row.get(5)?;
-            taxon.names.entry(name_class).or_insert_with(|| vec![name]);
-        } else {
-            return Err(anyhow::anyhow!("No such ID: {}", id));
+            e.insert(taxon);
         }
 
-        while let Some(row) = rows.next()? {
-            let name_class: String = row.get(4)?;
-            let name: String = row.get(5)?;
-            taxon
-                .names
-                .entry(name_class)
-                .and_modify(|n| n.push(name.clone()))
-                .or_insert_with(|| vec![name]);
-        }
+        taxa_map
+            .get_mut(&tax_id)
+            .unwrap()
+            .names
+            .entry(name_class)
+            .or_default()
+            .push(name);
+    }
 
+    let mut taxa = Vec::with_capacity(ids.len());
+    for id in ids {
+        let taxon = taxa_map
+            .remove(id)
+            .ok_or_else(|| anyhow::anyhow!("No such ID: {}", id))?;
         taxa.push(taxon);
     }
 
@@ -476,7 +486,10 @@ pub fn find_rank(lineage: &[Taxon], rank: &str) -> (i64, String) {
     (tax_id, sci_name)
 }
 
-/// Helper function to handle batch execution of SQL statements
+/// Helper function to handle batch execution of SQL statements.
+///
+/// Call this once per iteration. When the loop ends, call
+/// [`batch_exec_finalize`] to commit any remaining statements.
 ///
 /// ```
 /// let path = std::path::PathBuf::from("tests/nwr/");
@@ -484,6 +497,8 @@ pub fn find_rank(lineage: &[Taxon], rank: &str) -> (i64, String) {
 /// let mut stmts = vec![String::from("BEGIN;")];
 /// stmts.push(String::from("SELECT 1;"));
 /// let result = nwr::batch_exec(&conn, &mut stmts, 1001);
+/// assert!(result.is_ok());
+/// let result = nwr::batch_exec_finalize(&conn, &mut stmts);
 /// assert!(result.is_ok());
 /// ```
 pub fn batch_exec(
@@ -498,16 +513,31 @@ pub fn batch_exec(
         stmts.clear();
         stmts.push(String::from("BEGIN;"));
     }
-    if i == usize::MAX {
-        stmts.push(String::from("COMMIT;"));
-        let stmt = &stmts.join("\n");
-        conn.execute_batch(stmt)?;
-        println!("\n    Finished");
-    }
     if i > 1 && i.is_multiple_of(10000) {
         print!(".");
         std::io::stdout().flush()?; // Ensure the dot is printed immediately
     }
+    Ok(())
+}
+
+/// Commit any remaining statements produced by [`batch_exec`].
+///
+/// ```
+/// let path = std::path::PathBuf::from("tests/nwr/");
+/// let conn = nwr::connect_txdb(&path).unwrap();
+/// let mut stmts = vec![String::from("BEGIN;")];
+/// stmts.push(String::from("SELECT 1;"));
+/// let result = nwr::batch_exec_finalize(&conn, &mut stmts);
+/// assert!(result.is_ok());
+/// ```
+pub fn batch_exec_finalize(
+    conn: &rusqlite::Connection,
+    stmts: &mut Vec<String>,
+) -> anyhow::Result<()> {
+    stmts.push(String::from("COMMIT;"));
+    let stmt = &stmts.join("\n");
+    conn.execute_batch(stmt)?;
+    println!("\n    Finished");
     Ok(())
 }
 
@@ -596,8 +626,8 @@ mod tests {
         let conn = connect_txdb(&path).unwrap();
         let mut stmts = vec![String::from("BEGIN;")];
 
-        // Test finalization with usize::MAX
-        let result = batch_exec(&conn, &mut stmts, usize::MAX);
+        // Test finalization with batch_exec_finalize
+        let result = batch_exec_finalize(&conn, &mut stmts);
         assert!(result.is_ok());
     }
 

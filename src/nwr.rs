@@ -39,7 +39,7 @@ fn main() -> anyhow::Result<()> {
 "###,
         );
 
-    // Check which subcomamnd the user ran...
+    // Check which subcommand the user ran...
     match app.get_matches().subcommand() {
         Some(("download", sub_matches)) => cmd_nwr::download::execute(sub_matches),
         Some(("txdb", sub_matches)) => cmd_nwr::txdb::execute(sub_matches),

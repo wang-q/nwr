@@ -134,7 +134,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
                 fields.push(s);
                 if is_id {
-                    fields.push(format!("{}", id));
+                    fields.push(id.to_string());
                 }
             } else {
                 let lineage = match nwr::get_lineage(&conn, id) {
