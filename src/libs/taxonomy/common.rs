@@ -54,7 +54,7 @@ pub fn run(options: &CommonOptions) -> anyhow::Result<()> {
 
     tree.compress()?;
     let out_string = tree.to_newick()?;
-    writer.write_all((out_string + "\n").as_ref())?;
+    writeln!(writer, "{}", out_string)?;
     writer.flush()?;
 
     Ok(())

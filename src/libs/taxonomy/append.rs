@@ -110,7 +110,7 @@ pub fn run(options: &AppendOptions) -> anyhow::Result<()> {
                     let (tax_id, sci_name) = crate::find_rank(&lineage, rank);
                     fields.push(sci_name.to_string());
                     if options.is_id {
-                        fields.push(format!("{}", tax_id));
+                        fields.push(tax_id.to_string());
                     }
                 }
             }

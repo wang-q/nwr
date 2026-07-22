@@ -6,22 +6,6 @@ use std::path::PathBuf;
 /// Valid field names for the rep table
 pub const VALID_REP_FIELDS: &[&str] = &["f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8"];
 
-/// Validate that a field name is allowed for the rep table.
-///
-/// Only simple ASCII identifiers in the whitelist are accepted so that the
-/// field can safely be used as a column name in static SQL statements.
-pub fn validate_rep_field(field: &str) -> anyhow::Result<&str> {
-    if VALID_REP_FIELDS.contains(&field) {
-        Ok(field)
-    } else {
-        Err(anyhow::anyhow!(
-            "Invalid field name '{}'. Valid fields are: {:?}",
-            field,
-            VALID_REP_FIELDS
-        ))
-    }
-}
-
 /// Return the static SQL used to clear a rep field.
 pub fn rep_clear_sql(field: &str) -> anyhow::Result<&'static str> {
     let sql = match field {
@@ -473,9 +457,6 @@ pub fn insert_rep(
     field: &str,
     conn: &rusqlite::Connection,
 ) -> anyhow::Result<()> {
-    // Validate field name to prevent SQL injection
-    let field = validate_rep_field(field)?;
-
     let mut tsv_rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .delimiter(b'\t')

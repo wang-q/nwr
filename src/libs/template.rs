@@ -72,7 +72,7 @@ pub fn open_writer(
     if outdir == STDOUT_MARKER {
         crate::libs::io::writer("stdout")
     } else {
-        crate::libs::io::writer(format!("{}/{}/{}", outdir, subdir, outname).as_ref())
+        crate::libs::io::writer(&format!("{}/{}/{}", outdir, subdir, outname))
     }
 }
 
@@ -497,7 +497,7 @@ pub fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
                 )
             })?;
 
-        writer.write_all(format!("{}\t{}\t{}\n", key, url, species).as_ref())?;
+        writeln!(writer, "{}\t{}\t{}", key, url, species)?;
     }
 
     let mut writer_rsync = open_writer(outdir, "ASSEMBLY", outname_rsync)?;
@@ -516,7 +516,7 @@ pub fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
             })?;
 
         let rsync = RE_URL.replace(url, "ftp.ncbi.nlm.nih.gov::");
-        writer_rsync.write_all(format!("{}\t{}\t{}\n", key, rsync, species).as_ref())?;
+        writeln!(writer_rsync, "{}\t{}\t{}", key, rsync, species)?;
     }
     writer.flush()?;
     writer_rsync.flush()?;
@@ -559,7 +559,7 @@ pub fn gen_bs_data(context: &Context) -> anyhow::Result<()> {
                     )
                 })?;
 
-        writer.write_all(format!("{}\t{}\t{}\n", key, name, species).as_ref())?;
+        writeln!(writer, "{}\t{}\t{}", key, name, species)?;
     }
     writer.flush()?;
 
@@ -600,7 +600,7 @@ pub fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
                 )
             })?;
 
-        writer.write_all(format!("{}\t{}\t{}\n", key, species, level).as_ref())?;
+        writeln!(writer, "{}\t{}\t{}", key, species, level)?;
     }
     writer.flush()?;
 
@@ -630,7 +630,7 @@ pub fn gen_count_data(context: &Context) -> anyhow::Result<()> {
             anyhow::anyhow!("count_species_of value for '{}' is not a string", key)
         })?;
 
-        writer.write_all(format!("{}\t{}\n", key, species).as_ref())?;
+        writeln!(writer, "{}\t{}", key, species)?;
     }
     writer.flush()?;
 
@@ -660,7 +660,7 @@ pub fn gen_pro_data(context: &Context) -> anyhow::Result<()> {
             anyhow::anyhow!("pro_species_of value for '{}' is not a string", key)
         })?;
 
-        writer.write_all(format!("{}\t{}\n", key, species).as_ref())?;
+        writeln!(writer, "{}\t{}", key, species)?;
     }
     writer.flush()?;
 

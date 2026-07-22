@@ -85,10 +85,10 @@ impl std::fmt::Display for Taxon {
         let _ = writeln!(lines, "Part of the {}.", self.division);
 
         if let Some(ref comments) = self.comments {
-            let _ = write!(lines, "\nComments: {}", comments);
+            let _ = writeln!(lines, "\nComments: {}", comments);
         }
 
-        writeln!(f, "{}\n", lines)
+        writeln!(f, "{}", lines)
     }
 }
 
@@ -247,6 +247,7 @@ pub fn get_taxon(
                 INNER JOIN name ON node.tax_id = name.tax_id
                 INNER JOIN division ON node.division_id = division.id
             WHERE node.tax_id IN ({})
+            ORDER BY name.name
             ",
             placeholders
         );

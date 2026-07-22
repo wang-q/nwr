@@ -295,7 +295,7 @@ fn command_seqdb_invalid_rep_field() -> anyhow::Result<()> {
         .arg(&rep_arg)
         .assert()
         .failure()
-        .stderr(predicate::str::contains("Invalid field name"));
+        .stderr(predicate::str::contains("Invalid rep field"));
 
     Ok(())
 }
