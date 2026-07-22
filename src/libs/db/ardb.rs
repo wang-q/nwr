@@ -254,7 +254,7 @@ pub fn run(
         ])?;
 
         inserted += 1;
-        if inserted > 0 && inserted.is_multiple_of(10000) {
+        if inserted.is_multiple_of(10000) {
             print!(".");
             std::io::stdout().flush()?;
         }

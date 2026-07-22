@@ -364,6 +364,8 @@ pub fn insert_anno(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<()
         .from_reader(dmp);
 
     let mut stmt = conn.prepare("UPDATE seq SET anno = ?1 WHERE seq.name = ?2")?;
+    let mut seq_exists =
+        conn.prepare("SELECT EXISTS(SELECT 1 FROM seq WHERE name = ?1)")?;
 
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
@@ -376,6 +378,16 @@ pub fn insert_anno(dmp: &File, conn: &rusqlite::Connection) -> anyhow::Result<()
         }
         let name: String = record[0].trim().to_string();
         let anno: String = record[1].trim().to_string();
+
+        let exists: bool =
+            seq_exists.query_row(rusqlite::params![&name], |row| row.get(0))?;
+        if !exists {
+            return Err(anyhow::anyhow!(
+                "Line {}: seq name '{}' not found in seq table (load strains/sizes first)",
+                i + 1,
+                name
+            ));
+        }
 
         stmt.execute(rusqlite::params![&anno, &name])?;
 

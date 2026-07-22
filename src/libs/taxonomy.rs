@@ -2,6 +2,21 @@ use std::collections::HashMap;
 use std::fmt::Write as FmtWrite;
 use std::path::Path;
 
+/// Abbreviation generation for strain/species/genus names.
+pub mod abbr;
+/// Append taxonomic rank columns to TSV files.
+pub mod append;
+/// Shared helpers for taxonomy tree operations.
+pub mod common;
+/// Display information for taxonomy IDs or names.
+pub mod info;
+/// Output the lineage of a taxonomy term.
+pub mod lineage;
+/// List taxonomy members under ancestor terms.
+pub mod member;
+/// Restrict TSV lines to descendants of ancestor terms.
+pub mod restrict;
+
 /// A single NCBI taxonomy node with its names and lineage metadata.
 #[derive(Debug, Clone, Default)]
 pub struct Taxon {
@@ -38,39 +53,39 @@ impl std::fmt::Display for Taxon {
         let l2 = "-".repeat(l1.chars().count() - 1);
         lines.push_str(&l1);
         lines.push_str(&l2);
-        write!(lines, "\nNCBI Taxonomy ID: {}\n", self.tax_id)?;
+        let _ = writeln!(lines, "\nNCBI Taxonomy ID: {}", self.tax_id);
 
         if let Some(synonyms) = self.names.get("synonym") {
             lines.push_str("Same as:\n");
             for synonym in synonyms {
-                writeln!(lines, "* {}", synonym)?;
+                let _ = writeln!(lines, "* {}", synonym);
             }
         }
 
         if let Some(genbank_names) = self.names.get("genbank common name") {
             if let Some(genbank) = genbank_names.first() {
-                writeln!(lines, "Commonly named {}.", genbank)?;
+                let _ = writeln!(lines, "Commonly named {}.", genbank);
             }
         }
 
         if let Some(common_names) = self.names.get("common name") {
             lines.push_str("Also known as:\n");
             for name in common_names {
-                writeln!(lines, "* {}", name)?;
+                let _ = writeln!(lines, "* {}", name);
             }
         }
 
         if let Some(authorities) = self.names.get("authority") {
             lines.push_str("First description:\n");
             for authority in authorities {
-                writeln!(lines, "* {}", authority)?;
+                let _ = writeln!(lines, "* {}", authority);
             }
         }
 
-        writeln!(lines, "Part of the {}.", self.division)?;
+        let _ = writeln!(lines, "Part of the {}.", self.division);
 
         if let Some(ref comments) = self.comments {
-            write!(lines, "\nComments: {}", comments)?;
+            let _ = write!(lines, "\nComments: {}", comments);
         }
 
         writeln!(f, "{}\n", lines)
@@ -851,18 +866,3 @@ mod tests {
             .contains("is its own parent"));
     }
 }
-
-/// Abbreviation generation for strain/species/genus names.
-pub mod abbr;
-/// Append taxonomic rank columns to TSV files.
-pub mod append;
-/// Shared helpers for taxonomy tree operations.
-pub mod common;
-/// Display information for taxonomy IDs or names.
-pub mod info;
-/// Output the lineage of a taxonomy term.
-pub mod lineage;
-/// List taxonomy members under ancestor terms.
-pub mod member;
-/// Restrict TSV lines to descendants of ancestor terms.
-pub mod restrict;
