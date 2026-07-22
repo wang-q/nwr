@@ -3,6 +3,7 @@ use std::fmt::Write as FmtWrite;
 use std::io::Write;
 use std::path::Path;
 
+/// A single NCBI taxonomy node with its names and lineage metadata.
 #[derive(Debug, Clone, Default)]
 pub struct Taxon {
     pub tax_id: i64,
