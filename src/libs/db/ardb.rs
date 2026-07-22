@@ -181,12 +181,11 @@ pub fn run(
         })?;
 
         // clean NA/na
-        let infraspecific_name =
-            if infraspecific_name == "NA" || infraspecific_name == "na" {
-                ""
-            } else {
-                infraspecific_name
-            };
+        let infraspecific_name = if infraspecific_name.eq_ignore_ascii_case("NA") {
+            ""
+        } else {
+            infraspecific_name
+        };
 
         // Skip incompetent strains
         if RE_INCOMPETENT.is_match(organism_name) {
@@ -256,7 +255,7 @@ pub fn run(
         inserted += 1;
         crate::libs::io::progress_dot(inserted)?;
     }
-    println!();
+    eprintln!();
     conn.execute_batch("COMMIT;")?;
 
     debug!("Creating indexes for ar");

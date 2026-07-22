@@ -280,7 +280,7 @@ pub fn insert_strain(
 
         crate::libs::io::progress_dot(i)?;
     }
-    println!();
+    eprintln!();
     conn.execute_batch("COMMIT;")?;
     Ok(())
 }
@@ -317,7 +317,7 @@ pub fn insert_size(
 
         crate::libs::io::progress_dot(i)?;
     }
-    println!();
+    eprintln!();
     conn.execute_batch("COMMIT;")?;
 
     Ok(())
@@ -360,7 +360,7 @@ pub fn insert_clust(
 
         crate::libs::io::progress_dot(i)?;
     }
-    println!();
+    eprintln!();
     conn.execute_batch("COMMIT;")?;
 
     Ok(())
@@ -394,7 +394,7 @@ pub fn insert_anno(
 
         crate::libs::io::progress_dot(i)?;
     }
-    println!();
+    eprintln!();
     conn.execute_batch("COMMIT;")?;
 
     Ok(())
@@ -439,7 +439,7 @@ pub fn insert_asmseq(
 
         crate::libs::io::progress_dot(i)?;
     }
-    println!();
+    eprintln!();
     conn.execute_batch("COMMIT;")?;
 
     Ok(())
@@ -473,7 +473,7 @@ pub fn insert_rep(
 
         crate::libs::io::progress_dot(i)?;
     }
-    println!();
+    eprintln!();
     conn.execute_batch("COMMIT;")?;
 
     Ok(())

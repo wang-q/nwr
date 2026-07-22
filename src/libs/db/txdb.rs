@@ -130,7 +130,7 @@ pub fn run(nwrdir: &std::path::Path) -> anyhow::Result<()> {
 
             crate::libs::io::progress_dot(i)?;
         }
-        println!();
+        eprintln!();
         conn.execute_batch("COMMIT;")?;
 
         debug!("Creating indexes for name");
@@ -194,7 +194,7 @@ pub fn run(nwrdir: &std::path::Path) -> anyhow::Result<()> {
 
             crate::libs::io::progress_dot(i)?;
         }
-        println!();
+        eprintln!();
         conn.execute_batch("COMMIT;")?;
 
         debug!("Creating indexes for node");

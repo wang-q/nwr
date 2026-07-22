@@ -48,11 +48,12 @@ const PROGRESS_INTERVAL: usize = 10000;
 /// Pass the current 0-based or 1-based loop counter as `i`; the leading dot
 /// at `i == 0` is suppressed so callers that enumerate from 0 do not emit a
 /// spurious dot on the first iteration. The caller is responsible for printing
-/// a trailing newline after the loop completes.
+/// a trailing newline after the loop completes. Output goes to stderr so it
+/// does not pollute stdout when the user redirects data output.
 pub fn progress_dot(i: usize) -> anyhow::Result<()> {
     if i > 0 && i.is_multiple_of(PROGRESS_INTERVAL) {
-        print!(".");
-        std::io::stdout().flush()?;
+        eprint!(".");
+        std::io::stderr().flush()?;
     }
     Ok(())
 }
