@@ -194,7 +194,7 @@ pub fn run(options: &TemplateOptions) -> anyhow::Result<()> {
 
     for infile in &options.infiles {
         let reader = crate::libs::io::reader(infile)?;
-        for line in reader.lines() {
+        for (line_num, line) in reader.lines().enumerate() {
             let line = line?;
             if line.starts_with('#') {
                 continue;
@@ -204,29 +204,36 @@ pub fn run(options: &TemplateOptions) -> anyhow::Result<()> {
 
             if fields.len() < 5 {
                 return Err(anyhow::anyhow!(
-                    "Line has {} fields, expected at least 5: {}",
+                    "{}:{}: Line has {} fields, expected at least 5: {}",
+                    infile,
+                    line_num + 1,
                     fields.len(),
                     line
                 ));
             }
 
-            let name = validate_shell_safe(fields[0])?;
-            let url = validate_no_control_chars(fields[1])?;
+            let name = validate_shell_safe(fields[0])
+                .map_err(|e| anyhow::anyhow!("{}:{}: {}", infile, line_num + 1, e))?;
+            let url = validate_no_control_chars(fields[1])
+                .map_err(|e| anyhow::anyhow!("{}:{}: {}", infile, line_num + 1, e))?;
             let sample = fields[2];
             let sample = if sample.is_empty() {
                 sample
             } else {
-                validate_shell_safe(sample)?
+                validate_shell_safe(sample)
+                    .map_err(|e| anyhow::anyhow!("{}:{}: {}", infile, line_num + 1, e))?
             };
 
             // format species strings
-            let species = validate_no_control_chars(fields[3])?;
+            let species = validate_no_control_chars(fields[3])
+                .map_err(|e| anyhow::anyhow!("{}:{}: {}", infile, line_num + 1, e))?;
             let s1 = RE_S1.replace_all(species, "_");
             let s2 = RE_S2.replace_all(&s1, "_");
             let s3 = RE_S3.replace_all(&s2, "");
             let s4 = RE_S4.replace_all(&s3, "");
             let species_formatted = s4.to_string();
-            let species_ = validate_shell_safe(&species_formatted)?;
+            let species_ = validate_shell_safe(&species_formatted)
+                .map_err(|e| anyhow::anyhow!("{}:{}: {}", infile, line_num + 1, e))?;
 
             let level = match fields[4] {
                 "Complete Genome" => LEVEL_COMPLETE_GENOME,

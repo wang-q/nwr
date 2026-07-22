@@ -540,7 +540,8 @@ pub fn term_to_tax_id(conn: &rusqlite::Connection, term: &str) -> anyhow::Result
 ///
 /// Returns `(tax_id, scientific_name)` for the first node whose `rank` matches.
 /// If no match is found, returns the sentinel `(0, "NA")` — callers rely on
-/// this convention to represent a missing rank.
+/// this convention to represent a missing rank. The returned `&str` borrows
+/// from `lineage` to avoid per-call allocations in hot loops.
 ///
 /// ```
 /// let path = std::path::PathBuf::from("tests/nwr/");
@@ -550,19 +551,13 @@ pub fn term_to_tax_id(conn: &rusqlite::Connection, term: &str) -> anyhow::Result
 /// assert_eq!(species_id, 12340);
 /// assert_eq!(species_name, "Enterobacteria phage 933J");
 /// ```
-pub fn find_rank(lineage: &[Taxon], rank: &str) -> (i64, String) {
-    let mut tax_id: i64 = 0;
-    let mut sci_name = "NA".to_string();
-
+pub fn find_rank<'a>(lineage: &'a [Taxon], rank: &str) -> (i64, &'a str) {
     for node in lineage.iter() {
         if node.rank == rank {
-            sci_name = node.scientific_name().unwrap_or("NA").to_string();
-            tax_id = node.tax_id;
-            break;
+            return (node.tax_id, node.scientific_name().unwrap_or("NA"));
         }
     }
-
-    (tax_id, sci_name)
+    (0, "NA")
 }
 
 #[cfg(test)]
