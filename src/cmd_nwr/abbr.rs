@@ -14,9 +14,9 @@ pub fn make_subcommand() -> Command {
                 .index(1),
         )
         .arg(
-            Arg::new("column")
-                .long("column")
-                .short('c')
+            Arg::new("columns")
+                .long("columns")
+                .short('C')
                 .num_args(1)
                 .default_value("1,2,3")
                 .help("Columns of strain,species,genus (1-based)"),
@@ -55,7 +55,7 @@ pub fn make_subcommand() -> Command {
 
 /// Command implementation
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    let column_str = args.get_one::<String>("column").unwrap();
+    let column_str = args.get_one::<String>("columns").unwrap();
     let cols: Vec<usize> = column_str
         .split(',')
         .map(|s| {

@@ -1,5 +1,6 @@
 use super::args;
 use clap::*;
+use simplelog::*;
 
 /// Create clap subcommand arguments.
 pub fn make_subcommand() -> Command {
@@ -36,6 +37,8 @@ pub fn make_subcommand() -> Command {
 
 /// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
+    SimpleLogger::init(LevelFilter::Info, Config::default())?;
+
     let nwrdir = nwr::get_nwr_dir(args, "dir")?;
 
     let column: usize = *args.get_one("column").unwrap();

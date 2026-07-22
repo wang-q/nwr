@@ -11,7 +11,7 @@ Input:
 
 * Accepts a TSV/CSV file or standard input.
 * Each row should contain strain, species, and genus names in separate columns.
-* Use `--column` to specify which columns contain these names (default: 1,2,3).
+* Use `--columns` to specify which columns contain these names (default: 1,2,3).
 * Common column patterns:
   * `1,2,3` - strain in column 1, species in 2, genus in 3
   * `1,1,2` - no strain: strain and species both in column 1, genus in 2
@@ -33,10 +33,10 @@ Output:
 Examples:
 
 1. Basic usage with default columns
-   `echo -e 'Homo sapiens,Homo\nHomo erectus,Homo' | nwr abbr -s ',' -c "1,1,2"`
+   `echo -e 'Homo sapiens,Homo\nHomo erectus,Homo' | nwr abbr -s ',' -C "1,1,2"`
 
 2. Tight mode (no underscore between genus and species)
-   `echo -e 'Homo sapiens,Homo\nHomo erectus,Homo' | nwr abbr -s ',' -c "1,1,2" --tight`
+   `echo -e 'Homo sapiens,Homo\nHomo erectus,Homo' | nwr abbr -s ',' -C "1,1,2" --tight`
 
 3. Clean subspecies names
    `echo 'Legionella pneumophila subsp. pneumophila' | nwr abbr --shortsub`
@@ -45,4 +45,4 @@ Examples:
    `nwr abbr names.tsv -o abbreviated.tsv`
 
 5. Custom separator and columns
-   `nwr abbr data.csv -s ',' -c "1,2,3" -o output.tsv`
+   `nwr abbr data.csv -s ',' -C "1,2,3" -o output.tsv`

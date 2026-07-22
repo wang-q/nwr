@@ -4,7 +4,7 @@
 //! for arguments that appear in more than one subcommand, as required by
 //! `AGENTS.md`.
 
-use clap::{value_parser, Arg, ArgAction};
+use clap::{Arg, ArgAction};
 
 /// `--dir` (`-d`) option pointing at the NWR data directory.
 pub fn dir_arg() -> Arg {
@@ -37,12 +37,13 @@ pub fn rank_arg() -> Arg {
 }
 
 /// `--column` (`-c`) option for 1-based column index (defaults to 1).
+/// Rejects 0 at CLI parse time so users get an immediate, targeted error.
 pub fn column_arg() -> Arg {
     Arg::new("column")
         .long("column")
         .short('c')
         .num_args(1)
         .default_value("1")
-        .value_parser(value_parser!(usize))
+        .value_parser(clap::builder::RangedU64ValueParser::<usize>::new().range(1..))
         .help("Column number (1-based)")
 }

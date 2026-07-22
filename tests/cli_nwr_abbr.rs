@@ -131,7 +131,7 @@ fn command_abbr_custom_column() -> anyhow::Result<()> {
     let output = cmd
         .arg("abbr")
         .arg("tests/nwr/strains.tsv")
-        .arg("--column")
+        .arg("--columns")
         .arg("1,2,3")
         .output()
         .unwrap();
@@ -171,7 +171,7 @@ fn command_abbr_invalid_column_format() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     cmd.arg("abbr")
         .arg("tests/nwr/strains.tsv")
-        .arg("--column")
+        .arg("--columns")
         .arg("1,2") // Invalid: needs 3 columns
         .assert()
         .failure()
@@ -185,7 +185,7 @@ fn command_abbr_zero_column() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     cmd.arg("abbr")
         .arg("tests/nwr/strains.tsv")
-        .arg("--column")
+        .arg("--columns")
         .arg("0,2,3")
         .assert()
         .failure()
