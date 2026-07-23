@@ -87,20 +87,16 @@
 
 ### 分层原则
 
-**复杂逻辑放 `libs/`，`cmd_nwr/` 保持薄壳。**
+**算法原语放 `libs/`，命令编排放 `cmd_nwr/`。**
 
-- `src/libs/` 是复杂逻辑、算法、格式 I/O、共享工具的归宿。
-- `src/cmd_nwr/` 仅负责：CLI 参数解析、参数转换、调用 `libs`、输出格式化。
-- 单命令专用的复杂逻辑也放 `libs/`，即使当前只有一个消费者。
-- 命令文件中内联的算法/业务逻辑应回迁 `libs/`。
-- CLI 参数构建器（`clap::Arg` 定义）出现两次即应提取到 `src/cmd_nwr/args.rs`，以保证跨子命令的选项名称、短标志、帮助文本、默认值一致。
+- `libs/` 只暴露细粒度算法原语（如 `process_line`、`abbr_most`）；不暴露命令编排函数（不要 `pub fn run` + `XxxOptions` 包装）。
+- `cmd_nwr/` 的 `execute` 直接做编排：`parse(matches) → 读文件 → 循环调 libs 原语 → 写输出`，不再分出 `run`。
+- 单命令专用的复杂逻辑也放 `libs/`，即使只有一个消费者；命令文件中内联的算法应回迁 `libs/`。
+- CLI 参数构建器（`clap::Arg`）出现两次即提取到 `src/cmd_nwr/args.rs`。
 
-判断标准：涉及算法、数据结构、复杂流程控制的代码属 `libs/`；只是 `clap` 参数 → 调用 → 打印的代码属 `cmd_nwr/`。
+判断标准：算法、数据结构、复杂流程控制 → `libs/`；读文件、循环调用、写文件、CLI 参数包装 → `cmd_nwr/`。
 
-反例：在 `cmd_nwr/foo.rs` 里实现距离计算函数 → 应迁到 `libs/`。
-正例：`cmd_nwr/foo.rs` 只做 `let args = parse(matches); let result = libs::foo::run(args); println!("{result}")`。
-
-> 注："三次相似代码"原则（同一模式出现三次后再抽象）针对的是重复代码的抽象提取，与本节的代码分层无关。
+> 注：现有 `libs/*/run` 形式属待重构存量，新代码不应再采用。
 
 ## 项目概览
 

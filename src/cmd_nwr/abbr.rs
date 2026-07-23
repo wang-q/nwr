@@ -1,5 +1,8 @@
 use super::args;
 use clap::*;
+use std::collections::HashSet;
+use std::io::BufRead;
+use std::io::Write;
 
 /// Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
@@ -77,13 +80,84 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
     }
 
-    nwr::libs::taxonomy::abbr::run(&nwr::libs::taxonomy::abbr::AbbrOptions {
-        infile: args.get_one::<String>("infile").unwrap().clone(),
-        outfile: args.get_one::<String>("outfile").unwrap().clone(),
-        columns: (cols[0], cols[1], cols[2]),
-        separator: args.get_one::<String>("separator").unwrap().clone(),
-        min_len: *args.get_one("min").unwrap(),
-        tight: args.get_flag("tight"),
-        shortsub: args.get_flag("shortsub"),
-    })
+    let columns = (cols[0], cols[1], cols[2]);
+    let separator = args.get_one::<String>("separator").unwrap();
+    let min_len = *args.get_one("min").unwrap();
+    let tight = args.get_flag("tight");
+    let shortsub = args.get_flag("shortsub");
+
+    let reader = nwr::libs::io::reader(args.get_one::<String>("infile").unwrap())?;
+    let mut writer = nwr::libs::io::writer(args.get_one::<String>("outfile").unwrap())?;
+
+    let mut all_fields: Vec<Vec<String>> = Vec::new();
+    let mut all_parts: Vec<nwr::libs::taxonomy::abbr::NameParts> = Vec::new();
+
+    for line in reader.lines() {
+        let line = line?;
+        if line.is_empty() {
+            continue;
+        }
+        match nwr::libs::taxonomy::abbr::process_line(
+            &line, columns, separator, shortsub,
+        ) {
+            Some((fields, parts)) => {
+                all_fields.push(fields);
+                all_parts.push(parts);
+            }
+            None => {
+                eprintln!("Warning: skipping malformed line: {}", line);
+            }
+        }
+    }
+
+    let genus_list: Vec<String> = all_parts
+        .iter()
+        .filter(|p| p.is_normal)
+        .map(|p| p.genus.clone())
+        .collect::<HashSet<_>>()
+        .into_iter()
+        .collect();
+
+    let species_list: Vec<String> = all_parts
+        .iter()
+        .filter(|p| p.is_normal)
+        .map(|p| p.species.clone())
+        .filter(|s| !s.is_empty())
+        .collect::<HashSet<_>>()
+        .into_iter()
+        .collect();
+
+    let genus_abbr = nwr::libs::taxonomy::abbr::abbr_most(&genus_list, 1, true);
+    let species_abbr =
+        nwr::libs::taxonomy::abbr::abbr_most(&species_list, min_len, true);
+
+    for (i, parts) in all_parts.iter().enumerate() {
+        let fields = &all_fields[i];
+        let original_line = fields.join(separator);
+
+        let abbr = if parts.is_normal {
+            let spacer = if tight { "" } else { "_" };
+            let ge = genus_abbr.get(&parts.genus).unwrap_or(&parts.genus);
+            let sp = species_abbr.get(&parts.species).unwrap_or(&parts.species);
+
+            let ge_sp = if parts.species.is_empty() {
+                ge.to_string()
+            } else {
+                format!("{}{}{}", ge, spacer, sp)
+            };
+
+            if parts.strain.is_empty() {
+                ge_sp
+            } else {
+                format!("{}_{}", ge_sp, parts.strain)
+            }
+        } else {
+            parts.strain.clone()
+        };
+
+        writer.write_fmt(format_args!("{}\t{}\n", original_line, abbr))?;
+    }
+    writer.flush()?;
+
+    Ok(())
 }

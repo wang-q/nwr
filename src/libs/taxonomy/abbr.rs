@@ -1,9 +1,6 @@
 use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::HashMap;
-use std::collections::HashSet;
-use std::io::BufRead;
-use std::io::Write;
 
 /// Common subspecies designation terms removed by [`clean_subspecies`].
 pub const SUBSPECIES_TERMS: &[&str] = &[
@@ -280,114 +277,9 @@ pub fn process_line(
     ))
 }
 
-/// Options controlling abbreviation generation.
-pub struct AbbrOptions {
-    /// Input TSV file path.
-    pub infile: String,
-    /// Output file path.
-    pub outfile: String,
-    /// 1-based column indices for (strain, species, genus).
-    pub columns: (usize, usize, usize),
-    /// Field separator used in the input file.
-    pub separator: String,
-    /// Minimum abbreviation length.
-    pub min_len: usize,
-    /// Whether to drop the trailing species abbreviation character.
-    pub tight: bool,
-    /// Whether to shorten subspecies terms before abbreviation.
-    pub shortsub: bool,
-}
-
-/// Generate abbreviations for strain names in a TSV file.
-///
-/// Reads the input file, extracts strain/species/genus information from the
-/// configured columns, and appends a generated abbreviation to each line.
-pub fn run(options: &AbbrOptions) -> anyhow::Result<()> {
-    if options.columns.0 == 0 || options.columns.1 == 0 || options.columns.2 == 0 {
-        return Err(anyhow::anyhow!(
-            "Columns must be positive integers (1-based)"
-        ));
-    }
-
-    let reader = crate::libs::io::reader(&options.infile)?;
-    let mut writer = crate::libs::io::writer(&options.outfile)?;
-
-    let mut all_fields: Vec<Vec<String>> = Vec::new();
-    let mut all_parts: Vec<NameParts> = Vec::new();
-
-    for line in reader.lines() {
-        let line = line?;
-        if line.is_empty() {
-            continue;
-        }
-        match process_line(&line, options.columns, &options.separator, options.shortsub)
-        {
-            Some((fields, parts)) => {
-                all_fields.push(fields);
-                all_parts.push(parts);
-            }
-            None => {
-                eprintln!("Warning: skipping malformed line: {}", line);
-            }
-        }
-    }
-
-    let genus_list: Vec<String> = all_parts
-        .iter()
-        .filter(|p| p.is_normal)
-        .map(|p| p.genus.clone())
-        .collect::<HashSet<_>>()
-        .into_iter()
-        .collect();
-
-    let species_list: Vec<String> = all_parts
-        .iter()
-        .filter(|p| p.is_normal)
-        .map(|p| p.species.clone())
-        .filter(|s| !s.is_empty())
-        .collect::<HashSet<_>>()
-        .into_iter()
-        .collect();
-
-    let genus_abbr = abbr_most(&genus_list, 1, true);
-    let species_abbr = abbr_most(&species_list, options.min_len, true);
-
-    for (i, parts) in all_parts.iter().enumerate() {
-        let fields = &all_fields[i];
-        let original_line = fields.join(&options.separator);
-
-        let abbr = if parts.is_normal {
-            let spacer = if options.tight { "" } else { "_" };
-            let ge = genus_abbr.get(&parts.genus).unwrap_or(&parts.genus);
-            let sp = species_abbr.get(&parts.species).unwrap_or(&parts.species);
-
-            let ge_sp = if parts.species.is_empty() {
-                ge.to_string()
-            } else {
-                format!("{}{}{}", ge, spacer, sp)
-            };
-
-            if parts.strain.is_empty() {
-                ge_sp
-            } else {
-                format!("{}_{}", ge_sp, parts.strain)
-            }
-        } else {
-            parts.strain.clone()
-        };
-
-        writer.write_fmt(format_args!("{}\t{}\n", original_line, abbr))?;
-    }
-    writer.flush()?;
-
-    Ok(())
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::Write;
-    use tempfile::TempDir;
 
     #[test]
     fn test_clean_name_with_special_chars() {
@@ -453,85 +345,5 @@ mod tests {
     #[test]
     fn test_process_line_empty() {
         assert!(process_line("", (1, 2, 3), "\t", false).is_none());
-    }
-
-    #[test]
-    fn test_run_basic() {
-        let temp_dir = TempDir::new().unwrap();
-        let input_file = temp_dir.path().join("input.tsv");
-        let output_file = temp_dir.path().join("output.tsv");
-
-        let mut file = std::fs::File::create(&input_file).unwrap();
-        writeln!(file, "Escherichia coli K-12\tEscherichia coli\tEscherichia").unwrap();
-        drop(file);
-
-        let result = run(&AbbrOptions {
-            infile: input_file.to_str().unwrap().to_string(),
-            outfile: output_file.to_str().unwrap().to_string(),
-            columns: (1, 2, 3),
-            separator: "\t".to_string(),
-            min_len: 3,
-            tight: false,
-            shortsub: false,
-        });
-        assert!(result.is_ok());
-
-        let output = std::fs::read_to_string(&output_file).unwrap();
-        assert!(output.contains("Escherichia coli K-12"));
-        assert!(output.contains("E_coli_K_12"));
-    }
-
-    #[test]
-    fn test_run_tight() {
-        let temp_dir = TempDir::new().unwrap();
-        let input_file = temp_dir.path().join("input.tsv");
-        let output_file = temp_dir.path().join("output.tsv");
-
-        let mut file = std::fs::File::create(&input_file).unwrap();
-        writeln!(file, "Escherichia coli K-12\tEscherichia coli\tEscherichia").unwrap();
-        drop(file);
-
-        let result = run(&AbbrOptions {
-            infile: input_file.to_str().unwrap().to_string(),
-            outfile: output_file.to_str().unwrap().to_string(),
-            columns: (1, 2, 3),
-            separator: "\t".to_string(),
-            min_len: 3,
-            tight: true,
-            shortsub: false,
-        });
-        assert!(result.is_ok());
-
-        let output = std::fs::read_to_string(&output_file).unwrap();
-        assert!(output.contains("Ecoli_K_12"));
-    }
-
-    #[test]
-    fn test_run_shortsub() {
-        let temp_dir = TempDir::new().unwrap();
-        let input_file = temp_dir.path().join("input.tsv");
-        let output_file = temp_dir.path().join("output.tsv");
-
-        let mut file = std::fs::File::create(&input_file).unwrap();
-        writeln!(
-            file,
-            "Escherichia coli strain K-12\tEscherichia coli\tEscherichia"
-        )
-        .unwrap();
-        drop(file);
-
-        let result = run(&AbbrOptions {
-            infile: input_file.to_str().unwrap().to_string(),
-            outfile: output_file.to_str().unwrap().to_string(),
-            columns: (1, 2, 3),
-            separator: "\t".to_string(),
-            min_len: 3,
-            tight: false,
-            shortsub: true,
-        });
-        assert!(result.is_ok());
-
-        let output = std::fs::read_to_string(&output_file).unwrap();
-        assert!(output.contains("E_coli_K_12"));
     }
 }
