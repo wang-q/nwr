@@ -38,6 +38,15 @@ CREATE TABLE name (
 );
 ";
 
+/// Returns `true` if every field in the record is empty or whitespace only.
+///
+/// The `csv` crate parses a completely blank line as a record with one empty
+/// field, so callers should skip such records rather than treating them as
+/// malformed data.
+fn is_blank_record(record: &csv::StringRecord) -> bool {
+    record.iter().all(|f| f.trim().is_empty())
+}
+
 /// Create clap subcommand arguments.
 #[must_use]
 pub fn make_subcommand() -> Command {
@@ -88,6 +97,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         conn.execute_batch("BEGIN;")?;
         for (i, result) in tsv_rdr.records().enumerate() {
             let record = result?;
+            if is_blank_record(&record) {
+                continue;
+            }
             if record.len() < 3 {
                 return Err(anyhow::anyhow!(
                     "division.dmp record has {} fields, expected at least 3: {:?}",
@@ -123,6 +135,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         conn.execute_batch("BEGIN;")?;
         for (i, result) in tsv_rdr.records().enumerate() {
             let record = result?;
+            if is_blank_record(&record) {
+                continue;
+            }
             if record.len() < 4 {
                 return Err(anyhow::anyhow!(
                     "names.dmp record has {} fields, expected at least 4: {:?}",
@@ -167,6 +182,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         conn.execute_batch("BEGIN;")?;
         for (i, result) in tsv_rdr.records().enumerate() {
             let record = result?;
+            if is_blank_record(&record) {
+                continue;
+            }
             if record.len() < 13 {
                 return Err(anyhow::anyhow!(
                     "nodes.dmp record has {} fields, expected at least 13: {:?}",

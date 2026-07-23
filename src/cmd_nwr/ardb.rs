@@ -134,6 +134,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         if line.starts_with('#') {
             continue;
         }
+        if line.trim().is_empty() {
+            continue;
+        }
 
         let fields: Vec<&str> = line.split('\t').collect();
         if fields.len() <= COL_FTP_PATH {
