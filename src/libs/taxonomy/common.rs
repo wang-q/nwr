@@ -1,66 +1,11 @@
 use crate::Taxon;
-use std::collections::HashMap;
-use std::io::Write;
-use std::path::PathBuf;
 
-/// Parsed options for common-tree operations.
-pub struct CommonOptions {
-    /// Directory containing NCBI taxonomy databases.
-    pub nwrdir: PathBuf,
-    /// Taxonomy IDs or scientific names whose common tree should be output.
-    pub terms: Vec<String>,
-    /// Output file path.
-    pub outfile: String,
-}
-
-/// Build and output the common phylogenetic tree for the given terms.
+/// Add a taxon node to a phylogenetic tree.
 ///
-/// `terms` are NCBI taxonomy IDs or scientific names. They are resolved against
-/// the taxonomy database in `nwrdir`, and the resulting Newick string is written
-/// to `outfile` followed by a newline.
-pub fn run(options: &CommonOptions) -> anyhow::Result<()> {
-    let mut writer = crate::libs::io::writer(&options.outfile)?;
-    let conn = crate::connect_txdb(&options.nwrdir)?;
-
-    let mut tax_ids = vec![];
-    for term in &options.terms {
-        let id = crate::term_to_tax_id(&conn, term)?;
-        tax_ids.push(id);
-    }
-
-    let mut tree = phylotree::tree::Tree::new();
-    // tax_id to NodeID
-    let mut id_of: HashMap<i64, usize> = HashMap::new();
-
-    for tax_id in tax_ids {
-        let lineage = crate::get_lineage(&conn, tax_id)?;
-
-        for taxon in lineage.iter() {
-            let cur_tax_id = taxon.tax_id;
-            if !id_of.contains_key(&cur_tax_id) {
-                let node_id = if cur_tax_id == 1 {
-                    add_taxon(&mut tree, taxon, None)?
-                } else {
-                    let parent_tax_id = taxon.parent_tax_id;
-                    let parent_id = id_of.get(&parent_tax_id).ok_or_else(|| {
-                        anyhow::anyhow!("Parent ID not found: {}", parent_tax_id)
-                    })?;
-                    add_taxon(&mut tree, taxon, Some(*parent_id))?
-                };
-                id_of.insert(cur_tax_id, node_id);
-            }
-        }
-    }
-
-    tree.compress()?;
-    let out_string = tree.to_newick()?;
-    writeln!(writer, "{}", out_string)?;
-    writer.flush()?;
-
-    Ok(())
-}
-
-fn add_taxon(
+/// Creates a `phylotree` node named after the taxon's scientific name (or
+/// `"Unknown"` if absent) and attaches it as a child of `parent`, or as the
+/// root when `parent` is `None`. Returns the new node id.
+pub fn add_taxon(
     tree: &mut phylotree::tree::Tree,
     taxon: &Taxon,
     parent: Option<usize>,

@@ -1,5 +1,7 @@
 use super::args;
 use clap::*;
+use std::collections::HashMap;
+use std::io::Write;
 
 /// Create clap subcommand arguments.
 pub fn make_subcommand() -> Command {
@@ -13,13 +15,54 @@ pub fn make_subcommand() -> Command {
 
 /// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    nwr::libs::taxonomy::common::run(&nwr::libs::taxonomy::common::CommonOptions {
-        nwrdir: nwr::get_nwr_dir(args, "dir")?,
-        terms: args
-            .get_many::<String>("terms")
-            .ok_or_else(|| anyhow::anyhow!("No terms provided"))?
-            .cloned()
-            .collect(),
-        outfile: args.get_one::<String>("outfile").unwrap().clone(),
-    })
+    let nwrdir = nwr::get_nwr_dir(args, "dir")?;
+    let terms: Vec<String> = args
+        .get_many::<String>("terms")
+        .ok_or_else(|| anyhow::anyhow!("No terms provided"))?
+        .cloned()
+        .collect();
+
+    let mut writer = nwr::libs::io::writer(args.get_one::<String>("outfile").unwrap())?;
+    let conn = nwr::connect_txdb(&nwrdir)?;
+
+    let mut tax_ids = vec![];
+    for term in &terms {
+        let id = nwr::term_to_tax_id(&conn, term)?;
+        tax_ids.push(id);
+    }
+
+    let mut tree = phylotree::tree::Tree::new();
+    // tax_id to NodeId
+    let mut id_of: HashMap<i64, usize> = HashMap::new();
+
+    for tax_id in tax_ids {
+        let lineage = nwr::get_lineage(&conn, tax_id)?;
+
+        for taxon in lineage.iter() {
+            let cur_tax_id = taxon.tax_id;
+            if !id_of.contains_key(&cur_tax_id) {
+                let node_id = if cur_tax_id == 1 {
+                    nwr::libs::taxonomy::common::add_taxon(&mut tree, taxon, None)?
+                } else {
+                    let parent_tax_id = taxon.parent_tax_id;
+                    let parent_id = id_of.get(&parent_tax_id).ok_or_else(|| {
+                        anyhow::anyhow!("Parent ID not found: {}", parent_tax_id)
+                    })?;
+                    nwr::libs::taxonomy::common::add_taxon(
+                        &mut tree,
+                        taxon,
+                        Some(*parent_id),
+                    )?
+                };
+                id_of.insert(cur_tax_id, node_id);
+            }
+        }
+    }
+
+    tree.compress()?;
+    let out_string = tree.to_newick()?;
+    writeln!(writer, "{}", out_string)?;
+    writer.flush()?;
+
+    Ok(())
 }

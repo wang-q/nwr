@@ -1,6 +1,13 @@
 use super::args;
 use clap::*;
+use log::info;
 use simplelog::*;
+
+use nwr::libs::db::download::{
+    assembly_reports_exist, check_taxdump_md5, download_assembly_reports,
+    download_taxdump, extract_taxdump, format_file_sizes, get_download_paths,
+    taxdump_exists, FtpConnection, FtpConnectionTrait,
+};
 
 /// Create clap subcommand arguments
 pub fn make_subcommand() -> Command {
@@ -40,8 +47,59 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let tx_path = args.get_one::<String>("tx").unwrap();
     let ar_path = args.get_one::<String>("ar").unwrap();
 
-    nwr::libs::db::download::run(&nwrdir, host, tx_path, ar_path, |host| {
-        let conn = nwr::libs::db::download::FtpConnection::connect(host)?;
-        Ok(Box::new(conn) as Box<dyn nwr::libs::db::download::FtpConnectionTrait>)
-    })
+    let paths = get_download_paths(&nwrdir)?;
+
+    // Download taxdump
+    info!("==> Downloading from {} ...", host);
+    if taxdump_exists(&paths.tarball) && paths.md5_file.exists() {
+        info!("Skipping, {} exists", paths.tarball.to_string_lossy());
+    } else {
+        info!("Connecting...");
+        let mut conn = FtpConnection::connect(host)?;
+        conn.login("ftp", "example@example.com")?;
+        info!("Connected.");
+        download_taxdump(&mut conn, &paths, tx_path)?;
+        conn.quit()?;
+        info!("End connection.");
+    }
+
+    // Check
+    info!("==> Checking...");
+    if let Err(e) = check_taxdump_md5(&paths.tarball, &paths.md5_file) {
+        // Remove corrupt files so the next run re-downloads instead of
+        // reusing the same corrupt tarball (the skip-guard above would
+        // otherwise block re-download forever).
+        let _ = std::fs::remove_file(&paths.tarball);
+        let _ = std::fs::remove_file(&paths.md5_file);
+        return Err(e);
+    }
+
+    // Extract
+    info!("==> Extracting...");
+    extract_taxdump(&paths.tarball, &nwrdir)?;
+
+    // Assembly reports
+    info!("==> Downloading from {} ...", host);
+    if assembly_reports_exist(&paths.ar_refseq, &paths.ar_genbank) {
+        info!(
+            "Skipping, {} & {} exist",
+            paths.ar_refseq.to_string_lossy(),
+            paths.ar_genbank.to_string_lossy()
+        );
+    } else {
+        info!("Connecting...");
+        let mut conn = FtpConnection::connect(host)?;
+        conn.login("ftp", "example@example.com")?;
+        info!("Connected.");
+        download_assembly_reports(&mut conn, &paths, ar_path)?;
+        conn.quit()?;
+        info!("End connection.");
+    }
+
+    info!("File sizes:");
+    for size_line in format_file_sizes(&paths)? {
+        info!("{}", size_line);
+    }
+
+    Ok(())
 }

@@ -1,6 +1,5 @@
-use log::info;
 use std::fs::File;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 /// Valid field names for the rep table
 pub const VALID_REP_FIELDS: &[&str] = &["f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8"];
@@ -93,7 +92,7 @@ fn ensure_exists(
 
 /// DDL for the seq SQLite database.
 // https://stackoverflow.com/questions/58684279/can-an-index-on-a-text-column-speed-up-prefix-based-like-queries
-static DDL_SEQ: &str = r"
+pub static DDL_SEQ: &str = r"
 CREATE TABLE rank (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name VARCHAR NOT NULL UNIQUE
@@ -154,102 +153,6 @@ CREATE INDEX rep_idx_f8 ON rep(f8);
 CREATE INDEX seq_idx_anno ON seq(anno COLLATE NOCASE);
 
 ";
-
-/// Parsed options for seqdb operations.
-pub struct SeqdbOptions {
-    /// Directory containing the seq database and optional input files.
-    pub dir: PathBuf,
-    /// Whether to initialize (delete) the database before loading.
-    pub is_init: bool,
-    /// Optional strain metadata TSV file.
-    pub opt_strain: Option<PathBuf>,
-    /// Optional size metadata TSV file.
-    pub opt_size: Option<PathBuf>,
-    /// Optional clustering metadata TSV file.
-    pub opt_clust: Option<PathBuf>,
-    /// Optional annotation metadata TSV file.
-    pub opt_anno: Option<PathBuf>,
-    /// Optional assembly sequence FASTA file.
-    pub opt_asmseq: Option<PathBuf>,
-    /// Optional representative set: (name, TSV file).
-    pub opt_rep: Option<(String, PathBuf)>,
-}
-
-/// Initialize and/or load data into the seq database.
-pub fn run(options: &SeqdbOptions) -> anyhow::Result<()> {
-    let db = options.dir.join("seq.sqlite");
-    if options.is_init && db.exists() {
-        std::fs::remove_file(&db)?;
-    }
-
-    info!("==> Opening database `{}`", db.display());
-    let conn = rusqlite::Connection::open(db)?;
-    conn.execute_batch(
-        "
-        -- To improve performance
-        -- disables the rollback journal
-        PRAGMA journal_mode = OFF;
-        -- SQLite will not wait for data to be written to disk
-        PRAGMA synchronous = 0;
-        -- reducing disk I/O
-        PRAGMA cache_size = 1000000;
-        -- reducing lock contention, as no others would use the db
-        PRAGMA locking_mode = EXCLUSIVE;
-        -- stores temporary tables and indices in memory
-        PRAGMA temp_store = MEMORY;
-        ",
-    )?;
-
-    if options.is_init {
-        info!("==> Create tables");
-        conn.execute_batch(DDL_SEQ)?;
-    }
-
-    if let Some(opt_strain) = &options.opt_strain {
-        info!("==> Loading `{}` to `rank` and `asm`", opt_strain.display());
-        let dmp = File::open(opt_strain)?;
-        insert_strain(&dmp, opt_strain, &conn)?;
-    }
-
-    if let Some(opt_size) = &options.opt_size {
-        info!("==> Loading `{}` to `seq`", opt_size.display());
-        let dmp = File::open(opt_size)?;
-        insert_size(&dmp, opt_size, &conn)?;
-    }
-
-    if let Some(opt_clust) = &options.opt_clust {
-        info!(
-            "==> Loading `{}` to `rep` and `rep_seq`",
-            opt_clust.display()
-        );
-        let dmp = File::open(opt_clust)?;
-        insert_clust(&dmp, opt_clust, &conn)?;
-    }
-
-    if let Some(opt_anno) = &options.opt_anno {
-        info!("==> Loading `{}` to `seq`", opt_anno.display());
-        let dmp = File::open(opt_anno)?;
-        insert_anno(&dmp, opt_anno, &conn)?;
-    }
-
-    if let Some(opt_asmseq) = &options.opt_asmseq {
-        info!("==> Loading `{}` to `asm_seq`", opt_asmseq.display());
-        let dmp = File::open(opt_asmseq)?;
-        insert_asmseq(&dmp, opt_asmseq, &conn)?;
-    }
-
-    if let Some((rep_field, rep_path)) = &options.opt_rep {
-        info!(
-            "==> Loading `{}` to `rep.{}`",
-            rep_path.display(),
-            rep_field
-        );
-        let dmp = File::open(rep_path)?;
-        insert_rep(&dmp, rep_field, rep_path, &conn)?;
-    }
-
-    Ok(())
-}
 
 /// Load strains and ranks into `rank` and `asm`.
 pub fn insert_strain(

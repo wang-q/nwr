@@ -4,18 +4,8 @@ use std::path::Path;
 
 /// Abbreviation generation for strain/species/genus names.
 pub mod abbr;
-/// Append taxonomic rank columns to TSV files.
-pub mod append;
 /// Shared helpers for taxonomy tree operations.
 pub mod common;
-/// Display information for taxonomy IDs or names.
-pub mod info;
-/// Output the lineage of a taxonomy term.
-pub mod lineage;
-/// List taxonomy members under ancestor terms.
-pub mod member;
-/// Restrict TSV lines to descendants of ancestor terms.
-pub mod restrict;
 
 /// A single NCBI taxonomy node with its names and lineage metadata.
 #[derive(Debug, Clone, Default)]
