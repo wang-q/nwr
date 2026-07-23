@@ -35,7 +35,7 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-53432746.js";
+            window.path_to_searchindex_js = "../searchindex-5151e5c2.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../toc-17c0c826.js"></script>
@@ -187,6 +187,10 @@
 <li>Generates materials for ASSEMBLY, BioSample, MinHash, Count, and Protein steps.</li>
 <li>Uses Tera templates to generate Bash scripts.</li>
 </ul>
+<p>Valid ranks:</p>
+<ul>
+<li><code>--rank</code> and <code>--lineage</code> only accept: <code>genus</code>, <code>family</code>, <code>order</code>, <code>class</code>.</li>
+</ul>
 <p>Input File Format:</p>
 <p><code>.assembly.tsv</code> is a TAB-delimited file to guide downloading and processing:</p>
 <div class="table-wrapper">
@@ -209,7 +213,7 @@
 <p><code>--ass</code>: ASSEMBLY/</p>
 <ul>
 <li>One TSV file: url.tsv</li>
-<li>Five Bash scripts: rsync.sh, check.sh, n50.sh, collect.sh, finish.sh</li>
+<li>Six Bash scripts: aria2.sh, check.sh, reorder.sh, n50.sh, collect.sh, finish.sh</li>
 </ul>
 </li>
 <li>
@@ -223,7 +227,7 @@
 <p><code>--mh</code>: MinHash/</p>
 <ul>
 <li>One TSV file: species.tsv</li>
-<li>Five Bash scripts: compute.sh, species.sh, abnormal.sh, nr.sh, dist.sh</li>
+<li>Four Bash scripts: compute.sh, nr.sh, abnormal.sh, dist.sh</li>
 </ul>
 </li>
 <li>
@@ -237,7 +241,7 @@
 <p><code>--pro</code>: Protein/</p>
 <ul>
 <li>One TSV file: species.tsv</li>
-<li>Bash scripts: collect.sh, info.sh, count.sh</li>
+<li>Four Bash scripts: collect.sh, cluster.sh, info.sh, count.sh</li>
 </ul>
 </li>
 </ul>
