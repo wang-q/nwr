@@ -197,7 +197,7 @@ pub fn process_line(
     separator: &str,
     shortsub: bool,
 ) -> Option<(Vec<String>, NameParts)> {
-    if line.is_empty() {
+    if line.trim().is_empty() {
         return None;
     }
     // Columns are 1-based; reject 0 to avoid usize underflow on `columns.n - 1`.

@@ -107,7 +107,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     for line in reader.lines() {
         let line = line?;
-        if line.is_empty() {
+        if line.trim().is_empty() {
             continue;
         }
         match nwr::libs::abbr::process_line(&line, columns, separator, shortsub) {

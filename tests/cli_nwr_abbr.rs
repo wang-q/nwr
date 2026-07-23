@@ -1,5 +1,6 @@
 use assert_cmd::prelude::*;
 use predicates::prelude::*;
+use std::io::Write;
 use std::process::Command;
 
 #[test]
@@ -190,6 +191,51 @@ fn command_abbr_zero_column() -> anyhow::Result<()> {
         .assert()
         .failure()
         .stderr(predicate::str::contains("positive integer"));
+
+    Ok(())
+}
+
+#[test]
+fn command_abbr_skips_empty_lines() -> anyhow::Result<()> {
+    let mut temp = tempfile::NamedTempFile::new()?;
+    writeln!(temp, "#strain\tspecies\tgenus")?;
+    writeln!(temp)?;
+    writeln!(temp, "Escherichia coli K-12\tEscherichia coli\tEscherichia")?;
+    let path = temp.into_temp_path();
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("abbr")
+        .arg(path.to_str().unwrap())
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert_eq!(stdout.lines().count(), 2, "header plus valid line");
+
+    Ok(())
+}
+
+#[test]
+fn command_abbr_skips_whitespace_lines() -> anyhow::Result<()> {
+    let mut temp = tempfile::NamedTempFile::new()?;
+    writeln!(temp, "#strain\tspecies\tgenus")?;
+    writeln!(temp, "   ")?;
+    writeln!(temp, "\t")?;
+    writeln!(temp, "Escherichia coli K-12\tEscherichia coli\tEscherichia")?;
+    let path = temp.into_temp_path();
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("abbr")
+        .arg(path.to_str().unwrap())
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert_eq!(stdout.lines().count(), 2, "header plus valid line");
 
     Ok(())
 }
