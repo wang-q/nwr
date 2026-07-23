@@ -73,15 +73,15 @@ while read SPECIES; do
 
     log_debug "${SPECIES}"
 
-    nwr seqdb -d ${SPECIES} --init --strain
+    nwr seqdb -w ${SPECIES} --init --strain
 
-    nwr seqdb -d ${SPECIES} \
+    nwr seqdb -w ${SPECIES} \
         --size <(
             pgr fa size ${SPECIES}/pro.fa.gz
         ) \
         --clust
 
-    nwr seqdb -d ${SPECIES} \
+    nwr seqdb -w ${SPECIES} \
         --anno <(
             gzip -dcf "${SPECIES}"/anno.tsv.gz
         ) \
@@ -89,8 +89,8 @@ while read SPECIES; do
             gzip -dcf "${SPECIES}"/asmseq.tsv.gz
         )
 
-    nwr seqdb -d ${SPECIES} --rep f1="${SPECIES}"/fam88_cluster.tsv
-    nwr seqdb -d ${SPECIES} --rep f2="${SPECIES}"/fam38_cluster.tsv
+    nwr seqdb -w ${SPECIES} --rep f1="${SPECIES}"/fam88_cluster.tsv
+    nwr seqdb -w ${SPECIES} --rep f2="${SPECIES}"/fam38_cluster.tsv
 
 done
 
