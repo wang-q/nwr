@@ -60,6 +60,44 @@ pub fn validate_no_control_chars(s: &str) -> anyhow::Result<&str> {
     Ok(s)
 }
 
+/// Validate that a path is safe to embed into generated shell scripts.
+///
+/// Only ASCII alphanumeric characters, underscores, hyphens, dots and forward
+/// slashes are allowed. The path must be relative (no leading `/`), must not
+/// start with `-`, and must not contain `..` components. This keeps generated
+/// scripts robust against spaces and shell metacharacters in `--include` /
+/// `--exclude` arguments.
+pub fn validate_path_safe(s: &str) -> anyhow::Result<&str> {
+    if s.is_empty() {
+        return Err(anyhow::anyhow!("Path must not be empty"));
+    }
+    if s.starts_with('/') {
+        return Err(anyhow::anyhow!("Path must be relative: '{s}'"));
+    }
+    if s.starts_with('-') {
+        return Err(anyhow::anyhow!("Path must not start with '-': '{s}'"));
+    }
+    if s == "." || s == ".." {
+        return Err(anyhow::anyhow!("Path must not be '.' or '..': '{s}'"));
+    }
+    if s.chars().all(|c| {
+        c.is_ascii_alphanumeric() || c == '_' || c == '-' || c == '.' || c == '/'
+    }) {
+        for component in s.split('/') {
+            if component == ".." {
+                return Err(anyhow::anyhow!(
+                    "Path must not contain '..' components: '{s}'"
+                ));
+            }
+        }
+        Ok(s)
+    } else {
+        Err(anyhow::anyhow!(
+            "Path contains characters unsafe for shell usage: '{s}'"
+        ))
+    }
+}
+
 /// Marker value for stdout output mode.
 pub const STDOUT_MARKER: &str = "stdout";
 
@@ -113,4 +151,49 @@ pub fn render_shell_script(
     writer.finish()?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_validate_path_safe_ok() {
+        assert_eq!(validate_path_safe("file.lst").unwrap(), "file.lst");
+        assert_eq!(validate_path_safe("dir/file.lst").unwrap(), "dir/file.lst");
+        assert_eq!(
+            validate_path_safe("dir/sub_dir/file.lst").unwrap(),
+            "dir/sub_dir/file.lst"
+        );
+    }
+
+    #[test]
+    fn test_validate_path_safe_empty() {
+        assert!(validate_path_safe("").is_err());
+    }
+
+    #[test]
+    fn test_validate_path_safe_absolute() {
+        assert!(validate_path_safe("/etc/passwd").is_err());
+    }
+
+    #[test]
+    fn test_validate_path_safe_leading_hyphen() {
+        assert!(validate_path_safe("-evil").is_err());
+    }
+
+    #[test]
+    fn test_validate_path_safe_dot_components() {
+        assert!(validate_path_safe(".").is_err());
+        assert!(validate_path_safe("..").is_err());
+        assert!(validate_path_safe("dir/../file.lst").is_err());
+    }
+
+    #[test]
+    fn test_validate_path_safe_shell_metacharacters() {
+        assert!(validate_path_safe("file;rm -rf /").is_err());
+        assert!(validate_path_safe("file lst").is_err());
+        assert!(validate_path_safe("file&lst").is_err());
+        assert!(validate_path_safe("file$HOME").is_err());
+    }
 }

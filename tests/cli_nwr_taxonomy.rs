@@ -1,4 +1,5 @@
 use assert_cmd::prelude::*;
+use std::io::Write;
 use std::process::Command;
 
 #[test]
@@ -31,6 +32,31 @@ fn command_info() -> anyhow::Result<()> {
 
     assert_eq!(stdout.lines().count(), 12);
     assert!(stdout.contains("ID: 10239"), "first record");
+
+    Ok(())
+}
+
+#[test]
+fn command_info_duplicate_terms() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("info")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("--tsv")
+        .arg("Viruses")
+        .arg("Viruses")
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    let data_lines: Vec<&str> = stdout.lines().filter(|l| !l.starts_with('#')).collect();
+    assert_eq!(
+        data_lines.len(),
+        2,
+        "duplicate input terms produce duplicate output rows"
+    );
 
     Ok(())
 }
@@ -193,6 +219,30 @@ fn command_member() -> anyhow::Result<()> {
 }
 
 #[test]
+fn command_member_env() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("member")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("--env")
+        .arg("Synechococcus phage S")
+        .arg("-r")
+        .arg("species")
+        .output()
+        .unwrap();
+    let stdout = String::from_utf8(output.stdout).unwrap();
+
+    assert!(output.status.success());
+    assert!(
+        stdout.contains("375032\tSynechococcus phage S"),
+        "ancestor present"
+    );
+
+    Ok(())
+}
+
+#[test]
 fn command_append() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
@@ -220,6 +270,116 @@ fn command_append() -> anyhow::Result<()> {
         3,
         "fields"
     );
+
+    Ok(())
+}
+
+#[test]
+fn command_append_skips_empty_lines() -> anyhow::Result<()> {
+    let mut temp = tempfile::NamedTempFile::new()?;
+    writeln!(temp, "#sci_name\ttax_id")?;
+    writeln!(temp)?;
+    writeln!(temp, "Actinophage JHJ-1\t12347")?;
+    let path = temp.into_temp_path();
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("append")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("-c")
+        .arg("2")
+        .arg(path.to_str().unwrap())
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert_eq!(stdout.lines().count(), 2, "header plus valid line");
+
+    Ok(())
+}
+
+#[test]
+fn command_append_skips_whitespace_lines() -> anyhow::Result<()> {
+    let mut temp = tempfile::NamedTempFile::new()?;
+    writeln!(temp, "#sci_name\ttax_id")?;
+    writeln!(temp, "   ")?;
+    writeln!(temp, "\t")?;
+    writeln!(temp, "Actinophage JHJ-1\t12347")?;
+    let path = temp.into_temp_path();
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("append")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("-c")
+        .arg("2")
+        .arg(path.to_str().unwrap())
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert_eq!(stdout.lines().count(), 2, "header plus valid line");
+
+    Ok(())
+}
+
+#[test]
+fn command_restrict_skips_empty_lines() -> anyhow::Result<()> {
+    let mut temp = tempfile::NamedTempFile::new()?;
+    writeln!(temp, "#name")?;
+    writeln!(temp)?;
+    writeln!(temp, "Actinophage JHJ-1")?;
+    let path = temp.into_temp_path();
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("restrict")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("Viruses")
+        .arg("-c")
+        .arg("1")
+        .arg("-f")
+        .arg(path.to_str().unwrap())
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert_eq!(stdout.lines().count(), 2, "header plus valid line");
+
+    Ok(())
+}
+
+#[test]
+fn command_restrict_skips_whitespace_lines() -> anyhow::Result<()> {
+    let mut temp = tempfile::NamedTempFile::new()?;
+    writeln!(temp, "#name")?;
+    writeln!(temp, "   ")?;
+    writeln!(temp, "\t")?;
+    writeln!(temp, "Actinophage JHJ-1")?;
+    let path = temp.into_temp_path();
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("restrict")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("Viruses")
+        .arg("-c")
+        .arg("1")
+        .arg("-f")
+        .arg(path.to_str().unwrap())
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert_eq!(stdout.lines().count(), 2, "header plus valid line");
 
     Ok(())
 }

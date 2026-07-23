@@ -1,5 +1,4 @@
 use anyhow::Context;
-use std::ffi::OsStr;
 use std::fs::File;
 use std::io::{BufRead, BufWriter, Stdout, Write};
 use std::path::{Component, Path, PathBuf};
@@ -16,7 +15,12 @@ pub fn reader(input: &str) -> anyhow::Result<Box<dyn BufRead>> {
         let path = Path::new(input);
         let file = std::fs::File::open(path)
             .map_err(|e| anyhow::anyhow!("Could not open {}: {}", path.display(), e))?;
-        if path.extension() == Some(OsStr::new("gz")) {
+        let is_gz = path
+            .extension()
+            .and_then(|ext| ext.to_str())
+            .map(|ext| ext.eq_ignore_ascii_case("gz"))
+            .unwrap_or(false);
+        if is_gz {
             Ok(Box::new(std::io::BufReader::new(
                 flate2::read::MultiGzDecoder::new(file),
             )))
@@ -175,7 +179,7 @@ pub fn progress_dot(i: usize) -> anyhow::Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::io::Write;
+    use std::io::{Read, Write};
     use tempfile::TempDir;
 
     #[test]
@@ -233,5 +237,26 @@ mod tests {
     fn test_validate_tar_entry_path_parent() {
         assert!(validate_tar_entry_path(Path::new("../names.dmp")).is_err());
         assert!(validate_tar_entry_path(Path::new("dir/../../names.dmp")).is_err());
+    }
+
+    #[test]
+    fn test_reader_gz_case_insensitive() {
+        let dir = TempDir::new().unwrap();
+
+        for ext in ["gz", "GZ", "Gz"] {
+            let path = dir.path().join(format!("input.{ext}"));
+            {
+                let file = std::fs::File::create(&path).unwrap();
+                let mut encoder =
+                    flate2::write::GzEncoder::new(file, flate2::Compression::default());
+                encoder.write_all(b"hello").unwrap();
+                encoder.finish().unwrap();
+            }
+
+            let mut reader = reader(path.to_str().unwrap()).unwrap();
+            let mut buf = String::new();
+            reader.read_to_string(&mut buf).unwrap();
+            assert_eq!(buf, "hello", "extension .{ext} should be decompressed");
+        }
     }
 }

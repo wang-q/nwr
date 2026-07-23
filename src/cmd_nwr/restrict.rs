@@ -96,6 +96,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         let reader = nwr::libs::io::reader(infile)?;
         for (line_idx, line) in reader.lines().enumerate() {
             let line = line?;
+            if line.trim().is_empty() {
+                continue;
+            }
 
             // Always output lines start with "#"
             if line.starts_with('#') {

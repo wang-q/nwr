@@ -372,6 +372,40 @@ fn command_seqdb_invalid_rep_field() -> anyhow::Result<()> {
 }
 
 #[test]
+fn command_seqdb_skips_empty_lines() -> anyhow::Result<()> {
+    let temp_dir = TempDir::new()?;
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    cmd.arg("seqdb")
+        .arg("--workdir")
+        .arg(temp_dir.path())
+        .arg("--init")
+        .output()
+        .unwrap();
+
+    // Create a strain file with blank lines interleaved.
+    let strain_file = temp_dir.path().join("strains.tsv");
+    std::fs::write(
+        &strain_file,
+        "strain_001\tspecies\n\nstrain_002\tspecies\n\n",
+    )?;
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("seqdb")
+        .arg("--workdir")
+        .arg(temp_dir.path())
+        .arg("--strain")
+        .arg(&strain_file)
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+
+    Ok(())
+}
+
+#[test]
 fn command_seqdb_full_workflow() -> anyhow::Result<()> {
     let temp_dir = TempDir::new()?;
 

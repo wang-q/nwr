@@ -1,4 +1,6 @@
 use assert_cmd::prelude::*;
+use predicates::prelude::*;
+use std::io::Write;
 use std::process::Command;
 use tempfile::TempDir;
 
@@ -116,6 +118,113 @@ fn command_template_pro() -> anyhow::Result<()> {
 
     assert!(stderr.contains("Create Protein/"));
     assert!(stdout.lines().count() > 50);
+
+    Ok(())
+}
+
+#[test]
+fn command_template_invalid_rank() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("template")
+        .arg("tests/assembly/Trichoderma.assembly.tsv")
+        .arg("--count")
+        .arg("--rank")
+        .arg("species")
+        .arg("--outdir")
+        .arg("stdout")
+        .output()
+        .unwrap();
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("Invalid rank 'species'"));
+
+    Ok(())
+}
+
+#[test]
+fn command_template_skips_empty_lines() -> anyhow::Result<()> {
+    let mut temp = tempfile::NamedTempFile::new()?;
+    writeln!(temp, "#name\turl\tsample\tspecies\tassembly_level")?;
+    writeln!(temp)?;
+    writeln!(
+        temp,
+        "strain1\tftp://ftp.ncbi.nlm.nih.gov/genomes/all/foo\tsample1\tEscherichia coli\tComplete Genome"
+    )?;
+    let path = temp.into_temp_path();
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("template")
+        .arg(path.to_str().unwrap())
+        .arg("--ass")
+        .arg("--outdir")
+        .arg("stdout")
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+
+    Ok(())
+}
+
+#[test]
+fn command_template_skips_whitespace_lines() -> anyhow::Result<()> {
+    let mut temp = tempfile::NamedTempFile::new()?;
+    writeln!(temp, "#name\turl\tsample\tspecies\tassembly_level")?;
+    writeln!(temp, "   ")?;
+    writeln!(temp, "\t")?;
+    writeln!(
+        temp,
+        "strain1\tftp://ftp.ncbi.nlm.nih.gov/genomes/all/foo\tsample1\tEscherichia coli\tComplete Genome"
+    )?;
+    let path = temp.into_temp_path();
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("template")
+        .arg(path.to_str().unwrap())
+        .arg("--ass")
+        .arg("--outdir")
+        .arg("stdout")
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+
+    Ok(())
+}
+
+#[test]
+fn command_kb_invalid() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    cmd.arg("kb")
+        .arg("invalid")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("Invalid document name"));
+
+    Ok(())
+}
+
+#[test]
+fn command_template_invalid_include_path() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("template")
+        .arg("tests/assembly/Trichoderma.assembly.tsv")
+        .arg("--mh")
+        .arg("--include")
+        .arg("bad path;rm -rf /")
+        .arg("--outdir")
+        .arg("stdout")
+        .output()
+        .unwrap();
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("Invalid --include path"));
 
     Ok(())
 }

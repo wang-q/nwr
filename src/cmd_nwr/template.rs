@@ -189,6 +189,13 @@ fn gen_pro_data(context: &Context) -> anyhow::Result<()> {
     write_species_tsv(context, "Protein", "pro_species_of")
 }
 
+/// Ranks supported by the Count stage.
+///
+/// These are the only ranks that have a fixed column index in
+/// `strains.taxon.tsv`; passing anything else to `--rank` or `--lineage`
+/// would generate invalid shell scripts.
+const VALID_COUNT_RANKS: &[&str] = &["genus", "family", "order", "class"];
+
 /// Create clap subcommand arguments.
 #[must_use]
 pub fn make_subcommand() -> Command {
@@ -332,6 +339,35 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         .map(|v| v.cloned().collect())
         .unwrap_or_default();
 
+    // Ranks and lineages are interpolated into generated shell scripts and Perl
+    // variable names; restrict them to the supported set to avoid broken
+    // scripts or accidental shell injection.
+    for rank in &ranks {
+        if !VALID_COUNT_RANKS.contains(&rank.as_str()) {
+            anyhow::bail!(
+                "Invalid rank '{rank}' for --count. Valid ranks are: {VALID_COUNT_RANKS:?}"
+            );
+        }
+    }
+    for rank in &lineages {
+        if !VALID_COUNT_RANKS.contains(&rank.as_str()) {
+            anyhow::bail!(
+                "Invalid rank '{rank}' for --lineage. Valid ranks are: {VALID_COUNT_RANKS:?}"
+            );
+        }
+    }
+
+    // Include/exclude paths are embedded unquoted in generated scripts; reject
+    // values that would break the script or be interpreted as shell syntax.
+    for path in &ins {
+        nwr::libs::template::validate_path_safe(path)
+            .map_err(|e| anyhow::anyhow!("Invalid --include path: {e}"))?;
+    }
+    for path in &not_ins {
+        nwr::libs::template::validate_path_safe(path)
+            .map_err(|e| anyhow::anyhow!("Invalid --exclude path: {e}"))?;
+    }
+
     let parallel = *args
         .get_one::<usize>("parallel")
         .ok_or_else(|| anyhow::anyhow!("Missing 'parallel' argument"))?;
@@ -383,6 +419,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         let reader = nwr::libs::io::reader(infile)?;
         for (line_num, line) in reader.lines().enumerate() {
             let line = line?;
+            if line.trim().is_empty() {
+                continue;
+            }
             if line.starts_with('#') {
                 continue;
             }
@@ -474,10 +513,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     // column index in strains.taxon.tsv
     let mut rank_col_of = BTreeMap::new();
-    rank_col_of.insert("genus".to_string(), "3".to_string());
-    rank_col_of.insert("family".to_string(), "4".to_string());
-    rank_col_of.insert("order".to_string(), "5".to_string());
-    rank_col_of.insert("class".to_string(), "6".to_string());
+    for (i, rank) in VALID_COUNT_RANKS.iter().enumerate() {
+        // strains.taxon.tsv columns: 1=name, 2=species, 3=genus, 4=family, ...
+        rank_col_of.insert((*rank).to_string(), (i + 3).to_string());
+    }
 
     //----------------------------
     // Context

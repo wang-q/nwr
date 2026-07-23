@@ -64,6 +64,15 @@ fn require_min_fields(
     Ok(())
 }
 
+/// Returns `true` if every field in the record is empty or whitespace only.
+///
+/// The `csv` crate parses a completely blank line as a record with one empty
+/// field, so callers should skip such records rather than treating them as
+/// malformed data.
+fn is_blank_record(record: &csv::StringRecord) -> bool {
+    record.iter().all(|f| f.trim().is_empty())
+}
+
 /// DDL for the seq `SQLite` database.
 // https://stackoverflow.com/questions/58684279/can-an-index-on-a-text-column-speed-up-prefix-based-like-queries
 pub static DDL_SEQ: &str = r"
@@ -153,6 +162,9 @@ pub fn insert_strain(
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
+        if is_blank_record(&record) {
+            continue;
+        }
         require_min_fields(&record, 2, i, path)?;
         let strain: String = record[0].trim().to_string();
         let rank: String = record[1].trim().to_string();
@@ -193,6 +205,9 @@ pub fn insert_size(
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
+        if is_blank_record(&record) {
+            continue;
+        }
         require_min_fields(&record, 2, i, path)?;
         let name: String = record[0].trim().to_string();
         let size: i64 = record[1].trim().parse().map_err(|e| {
@@ -241,6 +256,9 @@ pub fn insert_clust(
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
+        if is_blank_record(&record) {
+            continue;
+        }
         require_min_fields(&record, 2, i, path)?;
         let rep: String = record[0].trim().to_string();
         let seq: String = record[1].trim().to_string();
@@ -298,6 +316,9 @@ pub fn insert_anno(
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
+        if is_blank_record(&record) {
+            continue;
+        }
         require_min_fields(&record, 2, i, path)?;
         let name: String = record[0].trim().to_string();
         let anno: String = record[1].trim().to_string();
@@ -353,6 +374,9 @@ pub fn insert_asmseq(
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
+        if is_blank_record(&record) {
+            continue;
+        }
         require_min_fields(&record, 2, i, path)?;
 
         // sequence name, assembly name
@@ -414,6 +438,9 @@ pub fn insert_rep(
     conn.execute_batch(rep_clear_sql(field)?)?;
     for (i, result) in tsv_rdr.records().enumerate() {
         let record = result?;
+        if is_blank_record(&record) {
+            continue;
+        }
         require_min_fields(&record, 2, i, path)?;
         let value: String = record[0].trim().to_string();
         let rep: String = record[1].trim().to_string();

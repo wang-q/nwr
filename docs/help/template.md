@@ -6,6 +6,10 @@ Behavior:
 * Generates materials for ASSEMBLY, BioSample, MinHash, Count, and Protein steps.
 * Uses Tera templates to generate Bash scripts.
 
+Valid ranks:
+
+* `--rank` and `--lineage` only accept: `genus`, `family`, `order`, `class`.
+
 Input File Format:
 
 `.assembly.tsv` is a TAB-delimited file to guide downloading and processing:

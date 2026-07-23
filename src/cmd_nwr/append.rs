@@ -87,6 +87,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
         'line: for (line_idx, line) in reader.lines().enumerate() {
             let line = line?;
+            if line.trim().is_empty() {
+                continue;
+            }
 
             // Lines start with "#"
             if line.starts_with('#') {

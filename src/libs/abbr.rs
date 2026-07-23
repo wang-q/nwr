@@ -351,4 +351,14 @@ mod tests {
     fn test_process_line_empty() {
         assert!(process_line("", (1, 2, 3), "\t", false).is_none());
     }
+
+    #[test]
+    fn test_process_line_candidatus() {
+        let line = "Candidatus Foo bar strain X\tCandidatus Foo bar\tCandidatus Foo";
+        let (_, parts) = process_line(line, (1, 2, 3), "\t", false).unwrap();
+        assert!(parts.is_normal);
+        assert_eq!(parts.genus, "CFoo");
+        assert_eq!(parts.species, "bar");
+        assert_eq!(parts.strain, "strain_X");
+    }
 }
