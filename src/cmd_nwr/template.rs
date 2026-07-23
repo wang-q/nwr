@@ -5,14 +5,6 @@ use std::fs;
 use std::io::{BufRead, Write};
 use tera::{Context, Tera};
 
-/// Retrieve the `outdir` string from a Tera context.
-fn get_outdir(context: &Context) -> anyhow::Result<&str> {
-    context
-        .get("outdir")
-        .and_then(|v| v.as_str())
-        .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' in template context"))
-}
-
 /// Write a two-column `species.tsv` (`key<TAB>species`) from a single map in
 /// the context. Used by the Count and Protein output stages.
 fn write_species_tsv(
@@ -23,7 +15,7 @@ fn write_species_tsv(
     let outname = "species.tsv";
     eprintln!("Create {subdir}/{outname}");
 
-    let outdir = get_outdir(context)?;
+    let outdir = nwr::libs::template::get_outdir(context)?;
     let map = context
         .get(map_key)
         .and_then(|v| v.as_object())
@@ -46,7 +38,7 @@ fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
     let outname = "url.tsv";
     eprintln!("Create ASSEMBLY/{outname}");
 
-    let outdir = get_outdir(context)?;
+    let outdir = nwr::libs::template::get_outdir(context)?;
     let ass_url_of = context
         .get("ass_url_of")
         .and_then(|v| v.as_object())
@@ -85,7 +77,7 @@ fn gen_bs_data(context: &Context) -> anyhow::Result<()> {
     let outname = "sample.tsv";
     eprintln!("Create BioSample/{outname}");
 
-    let outdir = get_outdir(context)?;
+    let outdir = nwr::libs::template::get_outdir(context)?;
     let bs_name_of = context
         .get("bs_name_of")
         .and_then(|v| v.as_object())
@@ -124,7 +116,7 @@ fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
     let outname = "species.tsv";
     eprintln!("Create MinHash/{outname}");
 
-    let outdir = get_outdir(context)?;
+    let outdir = nwr::libs::template::get_outdir(context)?;
     let mh_species_of = context
         .get("mh_species_of")
         .and_then(|v| v.as_object())

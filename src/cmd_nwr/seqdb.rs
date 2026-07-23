@@ -1,6 +1,6 @@
 use clap::{Arg, ArgAction, ArgMatches, Command};
 use log::info;
-use simplelog::{ColorChoice, Config, LevelFilter, TermLogger, TerminalMode};
+
 use std::fs::File;
 use std::path::PathBuf;
 
@@ -108,14 +108,7 @@ where
 
 /// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    // Ignore re-initialization errors so that tests or other callers that
-    // already set up a logger do not fail here.
-    let _ = TermLogger::init(
-        LevelFilter::Info,
-        Config::default(),
-        TerminalMode::Stderr,
-        ColorChoice::Auto,
-    );
+    nwr::libs::io::init_logger();
 
     let dir = std::path::Path::new(
         args.get_one::<String>("workdir")

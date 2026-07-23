@@ -112,7 +112,7 @@ pub fn open_writer(
 }
 
 /// Retrieve the `outdir` string from a Tera context.
-fn get_outdir(context: &Context) -> anyhow::Result<&str> {
+pub fn get_outdir(context: &Context) -> anyhow::Result<&str> {
     context
         .get("outdir")
         .and_then(|v| v.as_str())

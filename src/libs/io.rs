@@ -1,4 +1,5 @@
 use anyhow::Context;
+use simplelog::{ColorChoice, Config, LevelFilter, TermLogger, TerminalMode};
 use std::fs::File;
 use std::io::{BufRead, BufWriter, Stdout, Write};
 use std::path::{Component, Path, PathBuf};
@@ -145,6 +146,19 @@ pub fn writer(output: &str) -> anyhow::Result<Writer> {
             },
         })
     }
+}
+
+/// Initialize the terminal logger for stderr output.
+///
+/// Re-initialization errors are ignored so that tests or other callers that
+/// already set up a logger do not fail here.
+pub fn init_logger() {
+    let _ = TermLogger::init(
+        LevelFilter::Info,
+        Config::default(),
+        TerminalMode::Stderr,
+        ColorChoice::Auto,
+    );
 }
 
 /// Validate that a tar entry path does not escape the destination directory.

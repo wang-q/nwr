@@ -1,7 +1,7 @@
 use super::args;
 use clap::{Arg, ArgAction, ArgMatches, Command};
 use log::warn;
-use simplelog::{ColorChoice, Config, LevelFilter, TermLogger, TerminalMode};
+
 use std::collections::{HashMap, HashSet};
 use std::io::BufRead;
 use std::io::Write;
@@ -42,14 +42,7 @@ pub fn make_subcommand() -> Command {
 
 /// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    // Ignore re-initialization errors so that tests or other callers that
-    // already set up a logger do not fail here.
-    let _ = TermLogger::init(
-        LevelFilter::Info,
-        Config::default(),
-        TerminalMode::Stderr,
-        ColorChoice::Auto,
-    );
+    nwr::libs::io::init_logger();
 
     let nwrdir = nwr::get_nwr_dir(args, "dir")?;
 
