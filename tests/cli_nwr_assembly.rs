@@ -209,6 +209,56 @@ fn command_kb_invalid() -> anyhow::Result<()> {
 }
 
 #[test]
+fn command_template_invalid_parallel_zero() -> anyhow::Result<()> {
+    let mut temp = tempfile::NamedTempFile::new()?;
+    writeln!(temp, "#name\turl\tsample\tspecies\tassembly_level")?;
+    writeln!(
+        temp,
+        "strain1\tftp://ftp.ncbi.nlm.nih.gov/genomes/all/foo\tsample1\tEscherichia coli\tComplete Genome"
+    )?;
+    let path = temp.into_temp_path();
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    cmd.arg("template")
+        .arg(path.to_str().unwrap())
+        .arg("--ass")
+        .arg("--parallel")
+        .arg("0")
+        .arg("--outdir")
+        .arg("stdout")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("0"));
+
+    Ok(())
+}
+
+#[test]
+fn command_template_invalid_sketch_zero() -> anyhow::Result<()> {
+    let mut temp = tempfile::NamedTempFile::new()?;
+    writeln!(temp, "#name\turl\tsample\tspecies\tassembly_level")?;
+    writeln!(
+        temp,
+        "strain1\tftp://ftp.ncbi.nlm.nih.gov/genomes/all/foo\tsample1\tEscherichia coli\tComplete Genome"
+    )?;
+    let path = temp.into_temp_path();
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    cmd.arg("template")
+        .arg(path.to_str().unwrap())
+        .arg("--mh")
+        .arg("--sketch")
+        .arg("0")
+        .arg("--outdir")
+        .arg("stdout")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("0"));
+
+    Ok(())
+}
+
+#[test]
 fn command_template_invalid_include_path() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd

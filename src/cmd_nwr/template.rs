@@ -226,7 +226,7 @@ pub fn make_subcommand() -> Command {
                 .long("parallel")
                 .num_args(1)
                 .default_value("8")
-                .value_parser(value_parser!(usize))
+                .value_parser(clap::builder::RangedU64ValueParser::<usize>::new().range(1..))
                 .help("Number of threads"),
         )
         // ASSEMBLY
@@ -255,7 +255,7 @@ pub fn make_subcommand() -> Command {
                 .long("sketch")
                 .num_args(1)
                 .default_value("10000")
-                .value_parser(value_parser!(usize))
+                .value_parser(clap::builder::RangedU64ValueParser::<usize>::new().range(1..))
                 .help("Sketch size passed to `mash sketch`"),
         )
         .arg(
