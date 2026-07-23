@@ -93,6 +93,33 @@ fn command_info_duplicate_terms() -> anyhow::Result<()> {
 }
 
 #[test]
+fn command_info_sp_fallback() -> anyhow::Result<()> {
+    // "Bacteriophage sp" (no dot) should resolve to "Bacteriophage sp." (tax_id 38018)
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("info")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("Bacteriophage sp")
+        .output()?;
+    assert!(output.status.success(), "sp fallback should succeed");
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(stdout.contains("38018"));
+
+    // Reverse direction: "Bacteriophage sp." (with dot) should still work (regression)
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("info")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("Bacteriophage sp.")
+        .output()?;
+    assert!(output.status.success());
+
+    Ok(())
+}
+
+#[test]
 fn command_lineage() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd

@@ -134,7 +134,69 @@ pub fn connect_txdb(dir: &Path) -> anyhow::Result<rusqlite::Connection> {
     Ok(conn)
 }
 
+/// Build fallback name candidates when an exact match fails.
+///
+/// Handles two common NCBI naming quirks:
+/// - `sp` / `sp.` interchange (e.g. "Cladobotryum sp" -> "Cladobotryum sp.")
+/// - Stripping trailing nomenclatural qualifiers (e.g. "X nom inval" -> "X",
+///   matching the synonym when the scientific name is "X (nom. inval.)")
+///
+/// `cf.` / `aff.` are intentionally NOT handled: they denote independent
+/// taxa in NCBI (verified: 0% of `cf.`/`aff.` names share a tax_id with their
+/// stripped base form), so stripping them would silently mismatch the wrong
+/// taxon.
+fn fallback_candidates(name: &str) -> Vec<String> {
+    let mut candidates = Vec::new();
+
+    // sp <-> sp. (only the trailing species-unspecified marker)
+    if name.ends_with(" sp") && !name.ends_with(" sp.") {
+        candidates.push(format!("{name}."));
+    } else if name.ends_with(" sp.") {
+        candidates.push(name.trim_end_matches('.').to_string());
+    }
+
+    // Strip trailing nomenclatural qualifiers in various user-typed forms.
+    // NCBI canonical form is "(nom. inval.)" etc.; users often type
+    // "nom inval", "nom. inval.", or "(nom. inval.)" without matching punctuation.
+    const QUALIFIERS: &[&str] = &[
+        " (nom. inval.)",
+        " (nom. nud.)",
+        " (nom. illeg.)",
+        " (nom. dub.)",
+        " (nom. rej.)",
+        " (nom. ined.)",
+        " nom. inval.",
+        " nom. nud.",
+        " nom. illeg.",
+        " nom. dub.",
+        " nom. rej.",
+        " nom. ined.",
+        " nom inval",
+        " nom nud",
+        " nom illeg",
+        " nom dub",
+        " nom rej",
+        " nom ined",
+    ];
+    for suffix in QUALIFIERS {
+        if let Some(base) = name.strip_suffix(suffix) {
+            if !base.is_empty() {
+                candidates.push(base.to_string());
+            }
+            break; // only one qualifier can match at the end
+        }
+    }
+
+    candidates
+}
+
 /// Names to Taxonomy IDs
+///
+/// Resolves names via exact match against the `name` table. When an exact
+/// match fails, falls back to common NCBI naming variants:
+/// - `sp` / `sp.` interchange (e.g. "Cladobotryum sp" -> "Cladobotryum sp.")
+/// - Stripping trailing nomenclatural qualifiers (e.g. "X nom inval" -> "X",
+///   matching the synonym when the scientific name is "X (nom. inval.)")
 ///
 /// ```
 /// let path = std::path::PathBuf::from("tests/nwr/");
@@ -158,6 +220,7 @@ pub fn get_tax_id(
 
     let mut name_to_id: HashMap<String, i64> = HashMap::new();
 
+    // 1. Exact match
     for chunk in names.chunks(CHUNK_SIZE) {
         let placeholders = (0..chunk.len()).map(|_| "?").collect::<Vec<_>>().join(",");
         let sql = format!(
@@ -179,6 +242,51 @@ pub fn get_tax_id(
         }
     }
 
+    // 2. Fallback for unresolved names: try common NCBI naming variants
+    let mut fallback_queries: Vec<(String, String)> = Vec::new(); // (original, candidate)
+    for name in names {
+        if !name_to_id.contains_key(name) {
+            for candidate in fallback_candidates(name) {
+                if !name_to_id.contains_key(&candidate) {
+                    fallback_queries.push((name.clone(), candidate));
+                }
+            }
+        }
+    }
+
+    if !fallback_queries.is_empty() {
+        let candidates: Vec<String> =
+            fallback_queries.iter().map(|(_, c)| c.clone()).collect();
+        for chunk in candidates.chunks(CHUNK_SIZE) {
+            let placeholders =
+                (0..chunk.len()).map(|_| "?").collect::<Vec<_>>().join(",");
+            let sql = format!(
+                "
+                SELECT name, MIN(tax_id) AS tax_id
+                FROM name
+                WHERE name_class IN ('scientific name', 'synonym', 'genbank synonym')
+                AND name IN ({placeholders})
+                GROUP BY name
+                "
+            );
+            let mut stmt = conn.prepare(&sql)?;
+            let mut rows = stmt.query(rusqlite::params_from_iter(chunk.iter()))?;
+            while let Some(row) = rows.next()? {
+                let candidate: String = row.get(0)?;
+                let tax_id: i64 = row.get(1)?;
+                name_to_id.insert(candidate, tax_id);
+            }
+        }
+
+        // Map resolved candidates back to original names
+        for (original, candidate) in &fallback_queries {
+            if let Some(tax_id) = name_to_id.get(candidate) {
+                name_to_id.insert(original.clone(), *tax_id);
+            }
+        }
+    }
+
+    // 3. Build result vector
     let mut tax_ids = Vec::with_capacity(names.len());
     for name in names {
         let tax_id = name_to_id
@@ -934,5 +1042,62 @@ mod tests {
             .unwrap_err()
             .to_string()
             .contains("is its own parent"));
+    }
+
+    #[test]
+    fn fallback_sp_without_dot() {
+        // "Cladobotryum sp" -> ["Cladobotryum sp."]
+        let c = fallback_candidates("Cladobotryum sp");
+        assert_eq!(c, vec!["Cladobotryum sp.".to_string()]);
+    }
+
+    #[test]
+    fn fallback_sp_with_dot() {
+        // "Cladobotryum sp." -> ["Cladobotryum sp"]
+        let c = fallback_candidates("Cladobotryum sp.");
+        assert_eq!(c, vec!["Cladobotryum sp".to_string()]);
+    }
+
+    #[test]
+    fn fallback_nom_inval_no_punct() {
+        // "Trichoderma carraovejensis nom inval" -> ["Trichoderma carraovejensis"]
+        let c = fallback_candidates("Trichoderma carraovejensis nom inval");
+        assert_eq!(c, vec!["Trichoderma carraovejensis".to_string()]);
+    }
+
+    #[test]
+    fn fallback_nom_inval_with_parens() {
+        // "Trichoderma carraovejensis (nom. inval.)" -> ["Trichoderma carraovejensis"]
+        let c = fallback_candidates("Trichoderma carraovejensis (nom. inval.)");
+        assert_eq!(c, vec!["Trichoderma carraovejensis".to_string()]);
+    }
+
+    #[test]
+    fn fallback_no_match() {
+        // Names without sp/nom qualifiers produce no fallback candidates
+        let c = fallback_candidates("not_a_real_taxon_name");
+        assert!(c.is_empty());
+    }
+
+    #[test]
+    fn fallback_sp_in_middle_not_matched() {
+        // "sp" in the middle should not trigger fallback
+        let c = fallback_candidates("Homo sapiens");
+        assert!(c.is_empty());
+    }
+
+    #[test]
+    fn fallback_cf_not_stripped() {
+        // cf. is an independent taxon, must NOT be stripped (would mismatch)
+        // e.g. "Trichoderma cf. harzianum" (1715252) != "Trichoderma harzianum" (5544)
+        let c = fallback_candidates("Trichoderma cf. harzianum");
+        assert!(c.is_empty(), "cf. must not generate fallback candidates");
+    }
+
+    #[test]
+    fn fallback_aff_not_stripped() {
+        // aff. is an independent taxon, must NOT be stripped (would mismatch)
+        let c = fallback_candidates("Trichoderma aff. harzianum");
+        assert!(c.is_empty(), "aff. must not generate fallback candidates");
     }
 }
