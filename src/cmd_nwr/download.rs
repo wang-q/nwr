@@ -3,7 +3,7 @@ use clap::*;
 use log::info;
 use simplelog::*;
 
-use nwr::libs::db::download::{
+use nwr::libs::download::{
     assembly_reports_exist, check_taxdump_md5, download_assembly_reports,
     download_taxdump, extract_taxdump, format_file_sizes, get_download_paths,
     taxdump_exists, FtpConnection, FtpConnectionTrait,

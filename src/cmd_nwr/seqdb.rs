@@ -4,7 +4,7 @@ use simplelog::*;
 use std::fs::File;
 use std::path::PathBuf;
 
-use nwr::libs::db::seqdb::{
+use nwr::libs::seqdb::{
     insert_anno, insert_asmseq, insert_clust, insert_rep, insert_size, insert_strain,
     DDL_SEQ, VALID_REP_FIELDS,
 };

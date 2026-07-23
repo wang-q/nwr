@@ -85,19 +85,6 @@
 - 不要用 `unsafe`，除非有充分理由且用户同意
 - 不要写反向兼容的 shim（rename `_vars`、re-export 旧类型等）
 
-### 分层原则
-
-**算法原语放 `libs/`，命令编排放 `cmd_nwr/`。**
-
-- `libs/` 只暴露细粒度算法原语（如 `process_line`、`abbr_most`）；不暴露命令编排函数（不要 `pub fn run` + `XxxOptions` 包装）。
-- `cmd_nwr/` 的 `execute` 直接做编排：`parse(matches) → 读文件 → 循环调 libs 原语 → 写输出`，不再分出 `run`。
-- 单命令专用的复杂逻辑也放 `libs/`，即使只有一个消费者；命令文件中内联的算法应回迁 `libs/`。
-- CLI 参数构建器（`clap::Arg`）出现两次即提取到 `src/cmd_nwr/args.rs`。
-
-判断标准：算法、数据结构、复杂流程控制 → `libs/`；读文件、循环调用、写文件、CLI 参数包装 → `cmd_nwr/`。
-
-> 注：现有 `libs/*/run` 形式属待重构存量，新代码不应再采用。
-
 ## 项目概览
 
 **当前状态**: 活跃开发中 | **主要语言**: Rust

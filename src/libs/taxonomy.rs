@@ -2,11 +2,6 @@ use std::collections::HashMap;
 use std::fmt::Write as FmtWrite;
 use std::path::Path;
 
-/// Abbreviation generation for strain/species/genus names.
-pub mod abbr;
-/// Shared helpers for taxonomy tree operations.
-pub mod common;
-
 /// A single NCBI taxonomy node with its names and lineage metadata.
 #[derive(Debug, Clone, Default)]
 pub struct Taxon {

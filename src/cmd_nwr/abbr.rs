@@ -90,16 +90,14 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let mut writer = nwr::libs::io::writer(args.get_one::<String>("outfile").unwrap())?;
 
     let mut all_fields: Vec<Vec<String>> = Vec::new();
-    let mut all_parts: Vec<nwr::libs::taxonomy::abbr::NameParts> = Vec::new();
+    let mut all_parts: Vec<nwr::libs::abbr::NameParts> = Vec::new();
 
     for line in reader.lines() {
         let line = line?;
         if line.is_empty() {
             continue;
         }
-        match nwr::libs::taxonomy::abbr::process_line(
-            &line, columns, separator, shortsub,
-        ) {
+        match nwr::libs::abbr::process_line(&line, columns, separator, shortsub) {
             Some((fields, parts)) => {
                 all_fields.push(fields);
                 all_parts.push(parts);
@@ -127,9 +125,8 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         .into_iter()
         .collect();
 
-    let genus_abbr = nwr::libs::taxonomy::abbr::abbr_most(&genus_list, 1, true);
-    let species_abbr =
-        nwr::libs::taxonomy::abbr::abbr_most(&species_list, min_len, true);
+    let genus_abbr = nwr::libs::abbr::abbr_most(&genus_list, 1, true);
+    let species_abbr = nwr::libs::abbr::abbr_most(&species_list, min_len, true);
 
     for (i, parts) in all_parts.iter().enumerate() {
         let fields = &all_fields[i];
