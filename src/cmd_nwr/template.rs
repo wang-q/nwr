@@ -176,8 +176,8 @@ pub fn make_subcommand() -> Command {
         .arg(args::infiles_arg(".assembly.tsv files"))
         .arg(args::outdir_arg())
         .arg(
-            Arg::new("include")
-                .long("include")
+            Arg::new("in")
+                .long("in")
                 .num_args(1..)
                 .action(ArgAction::Append)
                 .help(
@@ -185,8 +185,8 @@ pub fn make_subcommand() -> Command {
                 ),
         )
         .arg(
-            Arg::new("exclude")
-                .long("exclude")
+            Arg::new("not-in")
+                .long("not-in")
                 .num_args(1..)
                 .action(ArgAction::Append)
                 .help("Only the assemblies *not in* these lists"),
@@ -306,12 +306,12 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let stdout_mode = outdir == nwr::libs::template::STDOUT_MARKER;
 
     let ins: Vec<String> = args
-        .get_many::<String>("include")
+        .get_many::<String>("in")
         .map(|v| v.cloned().collect())
         .unwrap_or_default();
 
     let not_ins: Vec<String> = args
-        .get_many::<String>("exclude")
+        .get_many::<String>("not-in")
         .map(|v| v.cloned().collect())
         .unwrap_or_default();
 
@@ -349,15 +349,15 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
     }
 
-    // Include/exclude paths are embedded unquoted in generated scripts; reject
+    // in/not-in paths are embedded unquoted in generated scripts; reject
     // values that would break the script or be interpreted as shell syntax.
     for path in &ins {
         nwr::libs::template::validate_path_safe(path)
-            .map_err(|e| anyhow::anyhow!("Invalid --include path: {e}"))?;
+            .map_err(|e| anyhow::anyhow!("Invalid --in path: {e}"))?;
     }
     for path in &not_ins {
         nwr::libs::template::validate_path_safe(path)
-            .map_err(|e| anyhow::anyhow!("Invalid --exclude path: {e}"))?;
+            .map_err(|e| anyhow::anyhow!("Invalid --not-in path: {e}"))?;
     }
 
     let parallel = *args

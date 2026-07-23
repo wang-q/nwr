@@ -58,8 +58,8 @@ pub fn validate_no_control_chars(s: &str) -> anyhow::Result<&str> {
 /// Only ASCII alphanumeric characters, underscores, hyphens, dots and forward
 /// slashes are allowed. The path must be relative (no leading `/`), must not
 /// start with `-`, and must not contain `..` components. This keeps generated
-/// scripts robust against spaces and shell metacharacters in `--include` /
-/// `--exclude` arguments.
+/// scripts robust against spaces and shell metacharacters in `--in` /
+/// `--not-in` arguments.
 pub fn validate_path_safe(s: &str) -> anyhow::Result<&str> {
     if s.is_empty() {
         return Err(anyhow::anyhow!("Path must not be empty"));

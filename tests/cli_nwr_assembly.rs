@@ -258,13 +258,13 @@ fn command_template_invalid_sketch_zero() -> anyhow::Result<()> {
 }
 
 #[test]
-fn command_template_invalid_include_path() -> anyhow::Result<()> {
+fn command_template_invalid_in_path() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
         .arg("template")
         .arg("tests/assembly/Trichoderma.assembly.tsv")
         .arg("--mh")
-        .arg("--include")
+        .arg("--in")
         .arg("bad path;rm -rf /")
         .arg("--outdir")
         .arg("stdout")
@@ -273,7 +273,7 @@ fn command_template_invalid_include_path() -> anyhow::Result<()> {
 
     assert!(!output.status.success());
     let stderr = String::from_utf8_lossy(&output.stderr);
-    assert!(stderr.contains("Invalid --include path"));
+    assert!(stderr.contains("Invalid --in path"));
 
     Ok(())
 }
