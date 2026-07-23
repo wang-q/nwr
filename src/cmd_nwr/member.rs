@@ -36,7 +36,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     let is_env = args.get_flag("env");
 
-    let writer = nwr::libs::io::writer(args.get_one::<String>("outfile").unwrap())?;
+    let writer = nwr::libs::io::writer(
+        args.get_one::<String>("outfile")
+            .ok_or_else(|| anyhow::anyhow!("Missing 'outfile' argument"))?,
+    )?;
     let conn = nwr::connect_txdb(&nwrdir)?;
 
     let mut tsv_wtr = csv::WriterBuilder::new()

@@ -39,7 +39,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     let nwrdir = nwr::get_nwr_dir(args, "dir")?;
 
-    let column: usize = *args.get_one("column").unwrap();
+    let column: usize = *args
+        .get_one("column")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'column' argument"))?;
     let is_exclude = args.get_flag("exclude");
 
     let terms: Vec<String> = args
@@ -54,13 +56,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         .cloned()
         .collect();
 
-    let outfile = args.get_one::<String>("outfile").unwrap();
-
-    if column == 0 {
-        return Err(anyhow::anyhow!(
-            "Column must be a positive integer (1-based)"
-        ));
-    }
+    let outfile = args
+        .get_one::<String>("outfile")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'outfile' argument"))?;
 
     let mut writer = nwr::libs::io::writer(outfile)?;
 

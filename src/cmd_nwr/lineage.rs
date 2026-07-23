@@ -25,7 +25,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         .get_one::<String>("term")
         .ok_or_else(|| anyhow::anyhow!("No term provided"))?;
 
-    let mut writer = nwr::libs::io::writer(args.get_one::<String>("outfile").unwrap())?;
+    let mut writer = nwr::libs::io::writer(
+        args.get_one::<String>("outfile")
+            .ok_or_else(|| anyhow::anyhow!("Missing 'outfile' argument"))?,
+    )?;
     let conn = nwr::connect_txdb(&nwrdir)?;
 
     let id = nwr::term_to_tax_id(&conn, term)?;

@@ -33,7 +33,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     let nwrdir = nwr::get_nwr_dir(args, "dir")?;
 
-    let column: usize = *args.get_one("column").unwrap();
+    let column: usize = *args
+        .get_one("column")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'column' argument"))?;
 
     let ranks: Vec<String> = args
         .get_many::<String>("rank")
@@ -46,14 +48,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         .cloned()
         .collect();
 
-    let outfile = args.get_one::<String>("outfile").unwrap();
+    let outfile = args
+        .get_one::<String>("outfile")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'outfile' argument"))?;
     let is_id = args.get_flag("id");
-
-    if column == 0 {
-        return Err(anyhow::anyhow!(
-            "Column must be a positive integer (1-based)"
-        ));
-    }
 
     let mut writer = nwr::libs::io::writer(outfile)?;
 
@@ -150,7 +148,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                         }
                     }
                 }
-                let node = taxon_cache.get(&id).unwrap();
+                let node = taxon_cache.get(&id).ok_or_else(|| {
+                    anyhow::anyhow!("taxon for id {} missing from cache", id)
+                })?;
                 let s = node.scientific_name().unwrap_or("Unknown").to_string();
 
                 fields.push(s);
@@ -173,7 +173,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                         }
                     }
                 }
-                let lineage = lineage_cache.get(&id).unwrap();
+                let lineage = lineage_cache.get(&id).ok_or_else(|| {
+                    anyhow::anyhow!("lineage for id {} missing from cache", id)
+                })?;
 
                 for rank in ranks.iter() {
                     let (tax_id, sci_name) = nwr::find_rank(lineage, rank);

@@ -46,7 +46,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         .cloned()
         .collect();
 
-    let mut writer = nwr::libs::io::writer(args.get_one::<String>("outfile").unwrap())?;
+    let mut writer = nwr::libs::io::writer(
+        args.get_one::<String>("outfile")
+            .ok_or_else(|| anyhow::anyhow!("Missing 'outfile' argument"))?,
+    )?;
     let conn = nwr::connect_txdb(&nwrdir)?;
 
     let mut tax_ids = vec![];

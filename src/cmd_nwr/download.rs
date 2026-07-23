@@ -43,9 +43,15 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     SimpleLogger::init(LevelFilter::Info, Config::default())?;
 
     let nwrdir = nwr::get_nwr_dir(args, "dir")?;
-    let host = args.get_one::<String>("host").unwrap();
-    let tx_path = args.get_one::<String>("tx").unwrap();
-    let ar_path = args.get_one::<String>("ar").unwrap();
+    let host = args
+        .get_one::<String>("host")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'host' argument"))?;
+    let tx_path = args
+        .get_one::<String>("tx")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'tx' argument"))?;
+    let ar_path = args
+        .get_one::<String>("ar")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'ar' argument"))?;
 
     let paths = get_download_paths(&nwrdir)?;
 

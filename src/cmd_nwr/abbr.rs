@@ -58,7 +58,9 @@ pub fn make_subcommand() -> Command {
 
 /// Command implementation
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    let column_str = args.get_one::<String>("columns").unwrap();
+    let column_str = args
+        .get_one::<String>("columns")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'columns' argument"))?;
     let cols: Vec<usize> = column_str
         .split(',')
         .map(|s| {
@@ -81,13 +83,23 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     }
 
     let columns = (cols[0], cols[1], cols[2]);
-    let separator = args.get_one::<String>("separator").unwrap();
-    let min_len = *args.get_one("min").unwrap();
+    let separator = args
+        .get_one::<String>("separator")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'separator' argument"))?;
+    let min_len = *args
+        .get_one::<usize>("min")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'min' argument"))?;
     let tight = args.get_flag("tight");
     let shortsub = args.get_flag("shortsub");
 
-    let reader = nwr::libs::io::reader(args.get_one::<String>("infile").unwrap())?;
-    let mut writer = nwr::libs::io::writer(args.get_one::<String>("outfile").unwrap())?;
+    let reader = nwr::libs::io::reader(
+        args.get_one::<String>("infile")
+            .ok_or_else(|| anyhow::anyhow!("Missing 'infile' argument"))?,
+    )?;
+    let mut writer = nwr::libs::io::writer(
+        args.get_one::<String>("outfile")
+            .ok_or_else(|| anyhow::anyhow!("Missing 'outfile' argument"))?,
+    )?;
 
     let mut all_fields: Vec<Vec<String>> = Vec::new();
     let mut all_parts: Vec<nwr::libs::abbr::NameParts> = Vec::new();

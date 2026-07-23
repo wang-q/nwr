@@ -146,55 +146,23 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             continue;
         }
 
-        let tax_id = fields
-            .get(COL_TAX_ID)
-            .copied()
-            .ok_or_else(|| anyhow::anyhow!("Missing tax_id field at line {}", line_num))?
-            .parse::<i64>()
-            .map_err(|e| {
-                anyhow::anyhow!("Invalid tax_id at line {}: {}", line_num, e)
-            })?;
-        let organism_name = fields.get(COL_ORGANISM_NAME).copied().ok_or_else(|| {
-            anyhow::anyhow!("Missing organism_name field at line {}", line_num)
+        // Field accesses rely on the `fields.len() <= COL_FTP_PATH` skip above,
+        // which guarantees every COL_* index is in bounds.
+        let tax_id = fields[COL_TAX_ID].parse::<i64>().map_err(|e| {
+            anyhow::anyhow!("Invalid tax_id at line {}: {}", line_num, e)
         })?;
-        let infraspecific_name =
-            fields.get(COL_INFRASPECIFIC_NAME).copied().ok_or_else(|| {
-                anyhow::anyhow!("Missing infraspecific_name field at line {}", line_num)
-            })?;
-        let bioproject = fields.get(COL_BIOPROJECT).copied().ok_or_else(|| {
-            anyhow::anyhow!("Missing bioproject field at line {}", line_num)
-        })?;
-        let biosample = fields.get(COL_BIOSAMPLE).copied().ok_or_else(|| {
-            anyhow::anyhow!("Missing biosample field at line {}", line_num)
-        })?;
-        let assembly_accession =
-            fields.get(COL_ASSEMBLY_ACCESSION).copied().ok_or_else(|| {
-                anyhow::anyhow!("Missing assembly_accession field at line {}", line_num)
-            })?;
-        let refseq_category =
-            fields.get(COL_REFSEQ_CATEGORY).copied().ok_or_else(|| {
-                anyhow::anyhow!("Missing refseq_category field at line {}", line_num)
-            })?;
-        let assembly_level =
-            fields.get(COL_ASSEMBLY_LEVEL).copied().ok_or_else(|| {
-                anyhow::anyhow!("Missing assembly_level field at line {}", line_num)
-            })?;
-        let genome_rep = fields.get(COL_GENOME_REP).copied().ok_or_else(|| {
-            anyhow::anyhow!("Missing genome_rep field at line {}", line_num)
-        })?;
-        let seq_rel_date = fields.get(COL_SEQ_REL_DATE).copied().ok_or_else(|| {
-            anyhow::anyhow!("Missing seq_rel_date field at line {}", line_num)
-        })?;
-        let asm_name = fields.get(COL_ASM_NAME).copied().ok_or_else(|| {
-            anyhow::anyhow!("Missing asm_name field at line {}", line_num)
-        })?;
-        let gbrs_paired_asm =
-            fields.get(COL_GBRS_PAIRED_ASM).copied().ok_or_else(|| {
-                anyhow::anyhow!("Missing gbrs_paired_asm field at line {}", line_num)
-            })?;
-        let ftp_path = fields.get(COL_FTP_PATH).copied().ok_or_else(|| {
-            anyhow::anyhow!("Missing ftp_path field at line {}", line_num)
-        })?;
+        let organism_name = fields[COL_ORGANISM_NAME];
+        let infraspecific_name = fields[COL_INFRASPECIFIC_NAME];
+        let bioproject = fields[COL_BIOPROJECT];
+        let biosample = fields[COL_BIOSAMPLE];
+        let assembly_accession = fields[COL_ASSEMBLY_ACCESSION];
+        let refseq_category = fields[COL_REFSEQ_CATEGORY];
+        let assembly_level = fields[COL_ASSEMBLY_LEVEL];
+        let genome_rep = fields[COL_GENOME_REP];
+        let seq_rel_date = fields[COL_SEQ_REL_DATE];
+        let asm_name = fields[COL_ASM_NAME];
+        let gbrs_paired_asm = fields[COL_GBRS_PAIRED_ASM];
+        let ftp_path = fields[COL_FTP_PATH];
 
         // clean NA/na
         let infraspecific_name = if infraspecific_name.eq_ignore_ascii_case("NA") {

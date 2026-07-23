@@ -21,8 +21,12 @@ pub fn make_subcommand() -> Command {
 
 /// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    let infile = args.get_one::<String>("infile").unwrap();
-    let outdir = args.get_one::<String>("outdir").unwrap();
+    let infile = args
+        .get_one::<String>("infile")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'infile' argument"))?;
+    let outdir = args
+        .get_one::<String>("outdir")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' argument"))?;
 
     static FILE_BAC: &[u8] = include_bytes!("../../docs/bac120.tar.gz");
     static FILE_AR: &[u8] = include_bytes!("../../docs/ar53.tar.gz");

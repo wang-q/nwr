@@ -15,10 +15,6 @@ pub const LEVEL_CONTIG: &str = "3"; // Same as SCAFFOLD - both are treated as le
 pub const LEVEL_OTHER: &str = "5";
 
 lazy_static! {
-    static ref RE_S1: Regex = Regex::new(r#"(?xi)\W+"#).unwrap();
-    static ref RE_S2: Regex = Regex::new(r#"(?xi)_+"#).unwrap();
-    static ref RE_S3: Regex = Regex::new(r#"(?xi)_$"#).unwrap();
-    static ref RE_S4: Regex = Regex::new(r#"(?xi)^_"#).unwrap();
     static ref RE_URL: Regex =
         Regex::new(r#"(?xi)(ftp|https?)://ftp\.ncbi\.nlm\.nih\.gov/"#).unwrap();
 }
@@ -121,18 +117,6 @@ fn write_species_tsv(
     }
     writer.flush()?;
     Ok(())
-}
-
-/// Normalize a species string for use as a shell-safe identifier.
-///
-/// Replaces non-word characters with underscores, collapses repeated
-/// underscores, and strips leading/trailing underscores.
-pub fn format_species_name(species: &str) -> String {
-    let s1 = RE_S1.replace_all(species, "_");
-    let s2 = RE_S2.replace_all(&s1, "_");
-    let s3 = RE_S3.replace_all(&s2, "");
-    let s4 = RE_S4.replace_all(&s3, "");
-    s4.to_string()
 }
 
 /// Render a single shell script from a Tera template.

@@ -116,7 +116,9 @@ pub fn make_subcommand() -> Command {
 
 /// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    let outdir = args.get_one::<String>("outdir").unwrap();
+    let outdir = args
+        .get_one::<String>("outdir")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' argument"))?;
     let stdout_mode = outdir == nwr::libs::template::STDOUT_MARKER;
 
     let ins: Vec<String> = args
@@ -145,11 +147,21 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         .map(|v| v.cloned().collect())
         .unwrap_or_default();
 
-    let parallel = *args.get_one::<usize>("parallel").unwrap();
-    let sketch = *args.get_one::<usize>("sketch").unwrap();
-    let ani_ab = *args.get_one::<f64>("ani-ab").unwrap();
-    let ani_nr = *args.get_one::<f64>("ani-nr").unwrap();
-    let height = *args.get_one::<f64>("height").unwrap();
+    let parallel = *args
+        .get_one::<usize>("parallel")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'parallel' argument"))?;
+    let sketch = *args
+        .get_one::<usize>("sketch")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'sketch' argument"))?;
+    let ani_ab = *args
+        .get_one::<f64>("ani-ab")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'ani-ab' argument"))?;
+    let ani_nr = *args
+        .get_one::<f64>("ani-nr")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'ani-nr' argument"))?;
+    let height = *args
+        .get_one::<f64>("height")
+        .ok_or_else(|| anyhow::anyhow!("Missing 'height' argument"))?;
     let do_ass = args.get_flag("ass");
     let do_bs = args.get_flag("bs");
     let do_mh = args.get_flag("mh");
@@ -217,7 +229,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             // format species strings
             let species = nwr::libs::template::validate_no_control_chars(fields[3])
                 .map_err(|e| anyhow::anyhow!("{}:{}: {}", infile, line_num + 1, e))?;
-            let species_formatted = nwr::libs::template::format_species_name(species);
+            let species_formatted = nwr::libs::abbr::clean_name(species);
             let species_ = nwr::libs::template::validate_shell_safe(&species_formatted)
                 .map_err(|e| anyhow::anyhow!("{}:{}: {}", infile, line_num + 1, e))?;
 

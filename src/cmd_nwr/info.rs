@@ -28,7 +28,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         .collect();
     let is_tsv = args.get_flag("tsv");
 
-    let mut writer = nwr::libs::io::writer(args.get_one::<String>("outfile").unwrap())?;
+    let mut writer = nwr::libs::io::writer(
+        args.get_one::<String>("outfile")
+            .ok_or_else(|| anyhow::anyhow!("Missing 'outfile' argument"))?,
+    )?;
     let conn = nwr::connect_txdb(&nwrdir)?;
 
     let mut ids = vec![];

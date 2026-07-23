@@ -91,8 +91,11 @@ pub fn make_subcommand() -> Command {
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     SimpleLogger::init(LevelFilter::Info, Config::default())?;
 
-    let dir =
-        std::path::Path::new(args.get_one::<String>("workdir").unwrap()).to_path_buf();
+    let dir = std::path::Path::new(
+        args.get_one::<String>("workdir")
+            .ok_or_else(|| anyhow::anyhow!("Missing 'workdir' argument"))?,
+    )
+    .to_path_buf();
     let is_init = args.get_flag("init");
     let opt_strain = opt_path(args, "strain", &dir, "strains.tsv");
     let opt_size = opt_path(args, "size", &dir, "sizes.tsv");
@@ -100,7 +103,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let opt_anno = opt_path(args, "anno", &dir, "anno.tsv");
     let opt_asmseq = opt_path(args, "asmseq", &dir, "asmseq.tsv");
     let opt_rep = if args.contains_id("rep") {
-        let rep = args.get_one::<String>("rep").unwrap();
+        let rep = args
+            .get_one::<String>("rep")
+            .ok_or_else(|| anyhow::anyhow!("Missing 'rep' argument"))?;
         let pos = rep.find('=').ok_or_else(|| {
             anyhow::anyhow!("invalid KEY=value: no `=` found in `{rep}`")
         })?;
