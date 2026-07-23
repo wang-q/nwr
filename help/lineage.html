@@ -35,7 +35,7 @@
             const path_to_root = "../";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "../searchindex-c0f1df56.js";
+            window.path_to_searchindex_js = "../searchindex-53432746.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="../toc-17c0c826.js"></script>
@@ -185,17 +185,15 @@
 <ul>
 <li>Retrieves the lineage of a taxon from root to the specified term.</li>
 <li>Returns the full taxonomic hierarchy including all ranks.</li>
-<li>By default, outputs rank, scientific name, and taxonomy ID for each level.</li>
+<li>Outputs rank, scientific name, and taxonomy ID for each level.</li>
 </ul>
 <p>Input:</p>
 <ul>
 <li>Accepts a single Taxonomy ID or scientific name.</li>
-<li>Use <code>--tsv</code> for tab-separated output format.</li>
 </ul>
 <p>Output:</p>
 <ul>
-<li>Default output: rank, scientific_name, tax_id (tab-separated)</li>
-<li>TSV output: rank, scientific_name, tax_id (tab-separated)</li>
+<li>Output is tab-separated: rank, scientific_name, tax_id.</li>
 <li>By default, output is written to standard output.</li>
 <li>Use <code>--outfile</code> to write to a file instead.</li>
 </ul>
@@ -208,10 +206,6 @@
 <li>
 <p>Get lineage using scientific name
 <code>nwr lineage "Homo sapiens"</code></p>
-</li>
-<li>
-<p>Output as TSV
-<code>nwr lineage 9606 --tsv</code></p>
 </li>
 <li>
 <p>Write to file
