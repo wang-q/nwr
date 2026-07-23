@@ -26,7 +26,7 @@ Generated Materials:
 
 * `--ass`: ASSEMBLY/
     * One TSV file: url.tsv
-    * Five Bash scripts: rsync.sh, check.sh, n50.sh, collect.sh, finish.sh
+    * Six Bash scripts: aria2.sh, check.sh, reorder.sh, n50.sh, collect.sh, finish.sh
 
 * `--bs`: BioSample/
     * One TSV file: sample.tsv
@@ -34,7 +34,7 @@ Generated Materials:
 
 * `--mh`: MinHash/
     * One TSV file: species.tsv
-    * Five Bash scripts: compute.sh, species.sh, abnormal.sh, nr.sh, dist.sh
+    * Four Bash scripts: compute.sh, nr.sh, abnormal.sh, dist.sh
 
 * `--count`: Count/
     * One TSV file: species.tsv
@@ -42,7 +42,7 @@ Generated Materials:
 
 * `--pro`: Protein/
     * One TSV file: species.tsv
-    * Bash scripts: collect.sh, info.sh, count.sh
+    * Four Bash scripts: collect.sh, cluster.sh, info.sh, count.sh
 
 Examples:
 

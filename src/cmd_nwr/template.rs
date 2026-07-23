@@ -41,12 +41,10 @@ fn write_species_tsv(
     Ok(())
 }
 
-/// Generate ASSEMBLY/url.tsv and `url_rsync.tsv`.
+/// Generate ASSEMBLY/url.tsv.
 fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
     let outname = "url.tsv";
-    let outname_rsync = "url_rsync.tsv";
     eprintln!("Create ASSEMBLY/{outname}");
-    eprintln!("Create ASSEMBLY/{outname_rsync}");
 
     let outdir = get_outdir(context)?;
     let ass_url_of = context
@@ -60,9 +58,7 @@ fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
             anyhow::anyhow!("Missing 'ass_species_of' in template context")
         })?;
 
-    // Collect (key, url, species) once so both url.tsv and url_rsync.tsv share
-    // the same extraction/error-handling path.
-    let mut rows: Vec<(&String, String, String)> = Vec::new();
+    let mut writer = nwr::libs::template::open_writer(outdir, "ASSEMBLY", outname)?;
     for (key, value) in ass_url_of {
         let url = value.as_str().ok_or_else(|| {
             anyhow::anyhow!("ass_url_of value for '{key}' is not a string")
@@ -76,28 +72,10 @@ fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
                 )
             })?;
 
-        rows.push((key, url.to_string(), species.to_string()));
-    }
-
-    let mut writer = nwr::libs::template::open_writer(outdir, "ASSEMBLY", outname)?;
-    for (key, url, species) in &rows {
         writeln!(writer, "{key}\t{url}\t{species}")?;
     }
-
-    // Finish url.tsv before creating the second writer so buffered data is not
-    // silently lost (BufWriter swallows flush errors on drop) if the next
-    // open_writer call fails.
     writer.flush()?;
     writer.finish()?;
-
-    let mut writer_rsync =
-        nwr::libs::template::open_writer(outdir, "ASSEMBLY", outname_rsync)?;
-    for (key, url, species) in &rows {
-        let rsync = nwr::libs::template::RE_URL.replace(url, "ftp.ncbi.nlm.nih.gov::");
-        writeln!(writer_rsync, "{key}\t{rsync}\t{species}")?;
-    }
-    writer_rsync.flush()?;
-    writer_rsync.finish()?;
 
     Ok(())
 }

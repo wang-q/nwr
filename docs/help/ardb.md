@@ -83,7 +83,7 @@ The DDL:
 ```sql
 DROP TABLE IF EXISTS ar;
 
-CREATE TABLE IF NOT EXISTS ar (
+CREATE TABLE ar (
     tax_id             INTEGER,
     organism_name      VARCHAR (200),
     infraspecific_name VARCHAR (200),

@@ -63,7 +63,7 @@ cat misplaced.tsv |
         fi
     '
 
-log_info "Temporary files, possibly caused by an interrupted rsync process"
+log_info "Temporary files, possibly caused by an interrupted download process"
 find . -type f -name ".*" |
     grep -v "DS_Store" \
     > remove.lst

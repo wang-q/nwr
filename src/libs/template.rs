@@ -1,6 +1,4 @@
-use regex::Regex;
 use std::io::Write;
-use std::sync::LazyLock;
 use tera::{Context, Tera};
 
 /// Assembly level code for a complete genome.
@@ -13,11 +11,6 @@ pub const LEVEL_SCAFFOLD: &str = "3";
 pub const LEVEL_CONTIG: &str = "3"; // Same as SCAFFOLD - both are treated as level 3
 /// Assembly level code for other incomplete assemblies.
 pub const LEVEL_OTHER: &str = "5";
-
-/// Regex matching NCBI FTP/HTTP URLs for rsync conversion.
-pub static RE_URL: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?xi)(ftp|https?)://ftp\.ncbi\.nlm\.nih\.gov/").unwrap()
-});
 
 /// Validate that a string is safe to embed into generated shell scripts and
 /// to use as a file or directory name.
