@@ -4,6 +4,8 @@
 
 /// Abbreviation generation for strain/species/genus names.
 pub mod abbr;
+/// Database primitives shared by import commands.
+pub mod db;
 /// NCBI taxonomy and assembly report downloader.
 pub mod download;
 /// I/O helpers returning `Result` instead of panicking.

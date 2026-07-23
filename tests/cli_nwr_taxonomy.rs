@@ -282,3 +282,92 @@ fn command_append_rank() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn command_append_skips_invalid() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("append")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("-c")
+        .arg("2")
+        .arg("tests/nwr/taxon-invalid.tsv")
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert_eq!(stdout.lines().count(), 2, "only header and valid line");
+
+    Ok(())
+}
+
+#[test]
+fn command_append_strict_fails() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("append")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("-c")
+        .arg("2")
+        .arg("--strict")
+        .arg("tests/nwr/taxon-invalid.tsv")
+        .output()
+        .unwrap();
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("Error converting term")
+            || stderr.contains("Error getting taxon")
+    );
+
+    Ok(())
+}
+
+#[test]
+fn command_restrict_skips_invalid() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("restrict")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("Viruses")
+        .arg("-c")
+        .arg("1")
+        .arg("-f")
+        .arg("tests/nwr/restrict-invalid.tsv")
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    let stdout = String::from_utf8(output.stdout).unwrap();
+    assert_eq!(stdout.lines().count(), 2, "header plus valid line");
+
+    Ok(())
+}
+
+#[test]
+fn command_restrict_strict_fails() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("restrict")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("Viruses")
+        .arg("-c")
+        .arg("1")
+        .arg("-f")
+        .arg("tests/nwr/restrict-invalid.tsv")
+        .arg("--strict")
+        .output()
+        .unwrap();
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("Error converting term"));
+
+    Ok(())
+}

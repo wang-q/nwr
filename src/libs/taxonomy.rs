@@ -1,5 +1,5 @@
+use anyhow::Context;
 use std::collections::HashMap;
-use std::fmt::Write as FmtWrite;
 use std::path::Path;
 
 /// Chunk size for `SQLite` `IN (...)` placeholder limits in [`get_taxon`].
@@ -35,49 +35,46 @@ impl Taxon {
 
 impl std::fmt::Display for Taxon {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let mut lines = String::new();
-
         let sciname = self.scientific_name().unwrap_or("Unknown");
-        let l1 = format!("{} - {}\n", sciname, self.rank);
-        let l2 = "-".repeat(l1.chars().count() - 1);
-        lines.push_str(&l1);
-        lines.push_str(&l2);
-        let _ = writeln!(lines, "\nNCBI Taxonomy ID: {}", self.tax_id);
+        let l1 = format!("{} - {}", sciname, self.rank);
+        writeln!(f, "{l1}")?;
+        write!(f, "{}", "-".repeat(l1.chars().count()))?;
+        writeln!(f, "\nNCBI Taxonomy ID: {}", self.tax_id)?;
 
         if let Some(synonyms) = self.names.get("synonym") {
-            lines.push_str("Same as:\n");
+            writeln!(f, "Same as:")?;
             for synonym in synonyms {
-                let _ = writeln!(lines, "* {synonym}");
+                writeln!(f, "* {synonym}")?;
             }
         }
 
         if let Some(genbank_names) = self.names.get("genbank common name") {
             if let Some(genbank) = genbank_names.first() {
-                let _ = writeln!(lines, "Commonly named {genbank}.");
+                writeln!(f, "Commonly named {genbank}.")?;
             }
         }
 
         if let Some(common_names) = self.names.get("common name") {
-            lines.push_str("Also known as:\n");
+            writeln!(f, "Also known as:")?;
             for name in common_names {
-                let _ = writeln!(lines, "* {name}");
+                writeln!(f, "* {name}")?;
             }
         }
 
         if let Some(authorities) = self.names.get("authority") {
-            lines.push_str("First description:\n");
+            writeln!(f, "First description:")?;
             for authority in authorities {
-                let _ = writeln!(lines, "* {authority}");
+                writeln!(f, "* {authority}")?;
             }
         }
 
-        let _ = writeln!(lines, "Part of the {}.", self.division);
+        writeln!(f, "Part of the {}.", self.division)?;
 
         if let Some(ref comments) = self.comments {
-            let _ = writeln!(lines, "\nComments: {comments}");
+            writeln!(f, "\nComments: {comments}")?;
         }
 
-        write!(f, "{lines}")
+        Ok(())
     }
 }
 
@@ -99,19 +96,7 @@ pub fn nwr_path() -> anyhow::Result<std::path::PathBuf> {
     Ok(path)
 }
 
-/// Get nwr working directory from command line args or default path
-///
-/// # Arguments
-/// * `args` - Command line arguments from clap
-/// * `arg_name` - The name of the directory argument (typically "dir")
-///
-/// # Returns
-/// * `anyhow::Result<PathBuf>` - The resolved path
-///
-/// # Example
-/// ```ignore
-/// let nwrdir = nwr::get_nwr_dir(&args, "dir").unwrap();
-/// ```
+/// Resolve the nwr working directory from CLI args or the default `~/.nwr`.
 pub fn get_nwr_dir(
     args: &clap::ArgMatches,
     arg_name: &str,
@@ -130,7 +115,21 @@ pub fn get_nwr_dir(
 /// ```
 pub fn connect_txdb(dir: &Path) -> anyhow::Result<rusqlite::Connection> {
     let dbfile = dir.join("taxonomy.sqlite");
-    let conn = rusqlite::Connection::open(dbfile)?;
+    let conn = rusqlite::Connection::open(&dbfile)
+        .with_context(|| format!("failed to open {}", dbfile.display()))?;
+
+    let table_count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM sqlite_master
+         WHERE type='table' AND name IN ('node','name','division')",
+        [],
+        |row| row.get(0),
+    )?;
+    if table_count < 3 {
+        anyhow::bail!(
+            "{} is missing required tables; run `nwr txdb` to initialize it",
+            dbfile.display()
+        );
+    }
 
     Ok(conn)
 }
@@ -153,26 +152,39 @@ pub fn get_tax_id(
     conn: &rusqlite::Connection,
     names: &[String],
 ) -> anyhow::Result<Vec<i64>> {
-    let mut tax_ids = vec![];
+    if names.is_empty() {
+        return Ok(vec![]);
+    }
 
-    let mut stmt = conn.prepare(
-        "
-        SELECT tax_id FROM name
-        WHERE name_class IN ('scientific name', 'synonym', 'genbank synonym')
-        AND name=?
-        ORDER BY tax_id
-        LIMIT 1
-        ",
-    )?;
+    let mut name_to_id: HashMap<String, i64> = HashMap::new();
 
-    for name in names {
-        let mut rows = stmt.query([name])?;
+    for chunk in names.chunks(CHUNK_SIZE) {
+        let placeholders = (0..chunk.len()).map(|_| "?").collect::<Vec<_>>().join(",");
+        let sql = format!(
+            "
+            SELECT name, MIN(tax_id) AS tax_id
+            FROM name
+            WHERE name_class IN ('scientific name', 'synonym', 'genbank synonym')
+            AND name IN ({placeholders})
+            GROUP BY name
+            "
+        );
 
-        if let Some(row) = rows.next()? {
-            tax_ids.push(row.get(0)?);
-        } else {
-            return Err(anyhow::anyhow!("No such name: {name}"));
+        let mut stmt = conn.prepare(&sql)?;
+        let mut rows = stmt.query(rusqlite::params_from_iter(chunk.iter()))?;
+        while let Some(row) = rows.next()? {
+            let name: String = row.get(0)?;
+            let tax_id: i64 = row.get(1)?;
+            name_to_id.insert(name, tax_id);
         }
+    }
+
+    let mut tax_ids = Vec::with_capacity(names.len());
+    for name in names {
+        let tax_id = name_to_id
+            .get(name)
+            .ok_or_else(|| anyhow::anyhow!("No such name: {name}"))?;
+        tax_ids.push(*tax_id);
     }
 
     Ok(tax_ids)
@@ -323,6 +335,12 @@ pub fn get_ancestor(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Taxo
     Ok(ancestor)
 }
 
+/// Maximum recursion depth for taxonomy tree traversals.
+///
+/// NCBI taxonomy depths are well below this limit; the bound acts as a guard
+/// against corrupt cyclic data.
+const MAX_TAXONOMY_DEPTH: usize = 1000;
+
 /// All Nodes to the root (with ID 1)
 ///
 /// ```
@@ -336,47 +354,54 @@ pub fn get_ancestor(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Taxo
 /// assert_eq!(lineage.len(), 4);
 /// ```
 pub fn get_lineage(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<Taxon>> {
-    let mut id = id;
-    let mut ids = vec![id];
-    let mut seen = std::collections::HashSet::new();
-    seen.insert(id);
-
+    // Walk to the root in a single recursive CTE instead of issuing one query
+    // per lineage level. The CTE returns rows from the starting taxon up to
+    // (and including) the canonical root.
     let mut stmt = conn.prepare(
         "
-        SELECT parent_tax_id
-        FROM node
-        WHERE tax_id=?
+        WITH RECURSIVE ancestors(tax_id, parent_tax_id, level) AS (
+            SELECT tax_id, parent_tax_id, 0
+            FROM node
+            WHERE tax_id = ?1
+            UNION ALL
+            SELECT n.tax_id, n.parent_tax_id, a.level + 1
+            FROM node n
+            JOIN ancestors a ON n.tax_id = a.parent_tax_id
+            WHERE a.tax_id != 1
+              AND n.tax_id != a.tax_id
+              AND a.level < ?2
+        )
+        SELECT tax_id, parent_tax_id
+        FROM ancestors
+        ORDER BY level
         ",
     )?;
 
-    loop {
-        // Reached the canonical root; no need to query its parent again.
-        if id == 1 {
-            break;
+    let mut rows = stmt.query(rusqlite::params![id, MAX_TAXONOMY_DEPTH as i64])?;
+    let mut ids = Vec::new();
+    let mut seen = std::collections::HashSet::new();
+
+    while let Some(row) = rows.next()? {
+        let tax_id: i64 = row.get(0)?;
+        let parent_id: i64 = row.get(1)?;
+
+        // Only the canonical root may be self-referential.
+        if tax_id != 1 && tax_id == parent_id {
+            anyhow::bail!("Taxon {tax_id} is its own parent (not root)");
+        }
+        if !seen.insert(tax_id) {
+            anyhow::bail!("Taxonomy cycle detected involving tax_id {tax_id}");
         }
 
-        let parent_id = stmt.query_row([id], |row| row.get(0))?;
-        ids.push(parent_id);
-
-        // Only the canonical root (tax_id 1) may be self-referential.
-        if parent_id == id {
-            return Err(anyhow::anyhow!(
-                "Taxonomy cycle detected: tax_id {id} is its own parent"
-            ));
-        }
-
-        if !seen.insert(parent_id) {
-            return Err(anyhow::anyhow!(
-                "Taxonomy cycle detected involving tax_id {parent_id}"
-            ));
-        }
-
-        id = parent_id;
+        ids.push(tax_id);
     }
 
-    // `ids` is already unique: the `seen` set rejects duplicates above.
-    let mut lineage = get_taxon(conn, &ids)?;
-    lineage.reverse();
+    if ids.last() != Some(&1) {
+        anyhow::bail!("Lineage for tax_id {id} does not reach the root");
+    }
+
+    ids.reverse();
+    let lineage = get_taxon(conn, &ids)?;
 
     Ok(lineage)
 }
@@ -411,10 +436,13 @@ pub fn get_descendent(
     let mut rows = stmt.query([id])?;
     while let Some(row) = rows.next()? {
         let child_id: i64 = row.get(0)?;
-        // Skip self-loop: the canonical root (tax_id 1) is its own parent.
-        // For any other node, a self-loop indicates corrupt data.
+        // Skip self-loop only for the canonical root (tax_id 1), which is
+        // its own parent by definition. Any other self-loop is corrupt data.
         if child_id == id {
-            continue;
+            if id == 1 {
+                continue;
+            }
+            anyhow::bail!("Taxonomy cycle detected: tax_id {id} is its own child");
         }
         ids.push(child_id);
     }
@@ -440,38 +468,41 @@ pub fn get_all_descendent(
     conn: &rusqlite::Connection,
     id: i64,
 ) -> anyhow::Result<Vec<i64>> {
-    let mut ids: Vec<i64> = vec![];
-    let mut temp_ids = vec![id];
-    let mut seen = std::collections::HashSet::new();
-
+    // Fetch the entire subtree in a single recursive CTE instead of issuing
+    // one query per node. The CTE starts with the requested taxon and follows
+    // parent->child edges, ignoring self-loops (only the root is its own
+    // parent by definition).
     let mut stmt = conn.prepare(
         "
+        WITH RECURSIVE descendants(tax_id, level) AS (
+            SELECT tax_id, 0
+            FROM node
+            WHERE tax_id = ?1
+            UNION ALL
+            SELECT n.tax_id, d.level + 1
+            FROM node n
+            JOIN descendants d ON n.parent_tax_id = d.tax_id
+            WHERE n.tax_id != d.tax_id
+              AND d.level < ?2
+        )
         SELECT tax_id
-        FROM node
-        WHERE parent_tax_id=?
+        FROM descendants
+        ORDER BY level
         ",
     )?;
 
-    while let Some(id) = temp_ids.pop() {
-        if !seen.insert(id) {
-            return Err(anyhow::anyhow!(
-                "Taxonomy cycle detected involving tax_id {id}"
-            ));
-        }
-        ids.push(id);
+    let mut rows = stmt.query(rusqlite::params![id, MAX_TAXONOMY_DEPTH as i64])?;
+    let mut ids = Vec::new();
+    let mut seen = std::collections::HashSet::new();
 
-        let mut rows = stmt.query([id])?;
-        while let Some(row) = rows.next()? {
-            let child_id: i64 = row.get(0)?;
-            // Skip self-loop: the canonical root (tax_id 1) is its own parent.
-            if child_id == id {
-                continue;
-            }
-            temp_ids.push(child_id);
+    while let Some(row) = rows.next()? {
+        let tax_id: i64 = row.get(0)?;
+        if !seen.insert(tax_id) {
+            anyhow::bail!("Taxonomy cycle detected involving tax_id {tax_id}");
         }
+        ids.push(tax_id);
     }
 
-    // `ids` is already unique: the `seen` set rejects duplicates above.
     Ok(ids)
 }
 
@@ -500,13 +531,58 @@ pub fn term_to_tax_id(conn: &rusqlite::Connection, term: &str) -> anyhow::Result
     let id: i64 = if let Ok(n) = term.parse::<i64>() {
         n
     } else {
-        let ids = get_tax_id(conn, &[term])?;
-        ids.into_iter()
+        match get_tax_id(conn, std::slice::from_ref(&term))?
+            .into_iter()
             .next()
-            .ok_or_else(|| anyhow::anyhow!("No tax ID found for term"))?
+        {
+            Some(id) => id,
+            None => anyhow::bail!("No tax ID found for term: {term}"),
+        }
     };
 
     Ok(id)
+}
+
+/// Batch-convert a list of terms to Taxonomy IDs.
+///
+/// Numeric strings are parsed directly; other strings are resolved against the
+/// `name` table in a single batched query. The returned vector preserves the
+/// input order.
+///
+/// ```
+/// let path = std::path::PathBuf::from("tests/nwr/");
+/// let conn = nwr::connect_txdb(&path).unwrap();
+///
+/// let ids = nwr::terms_to_tax_ids(&conn, &["10239", "Viruses", "Lactobacillus_phage_mv4"]).unwrap();
+/// assert_eq!(ids, vec![10239, 10239, 12392]);
+/// ```
+pub fn terms_to_tax_ids<S: AsRef<str>>(
+    conn: &rusqlite::Connection,
+    terms: &[S],
+) -> anyhow::Result<Vec<i64>> {
+    let mut ids = vec![0; terms.len()];
+
+    let mut name_terms: Vec<(usize, String)> = Vec::new();
+    for (i, term) in terms.iter().enumerate() {
+        let term = term.as_ref();
+        let normalized = term.trim().replace('_', " ");
+        if let Ok(n) = normalized.parse::<i64>() {
+            ids[i] = n;
+        } else {
+            name_terms.push((i, normalized));
+        }
+    }
+
+    if !name_terms.is_empty() {
+        let names: Vec<String> = name_terms.iter().map(|(_, n)| n.clone()).collect();
+        let resolved = get_tax_id(conn, &names)
+            .map_err(|e| anyhow::anyhow!("Failed to resolve one or more terms: {e}"))?;
+        for ((i, _), tax_id) in name_terms.iter().zip(resolved.iter()) {
+            ids[*i] = *tax_id;
+        }
+    }
+
+    Ok(ids)
 }
 
 /// Find rank in lineage

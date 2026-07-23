@@ -56,6 +56,37 @@ fn command_seqdb_load_strain() -> anyhow::Result<()> {
 }
 
 #[test]
+fn command_seqdb_load_strain_duplicate_ranks() -> anyhow::Result<()> {
+    let temp_dir = TempDir::new()?;
+
+    // Create a strain file where multiple strains share the same rank.
+    let strain_file = temp_dir.path().join("strains.tsv");
+    std::fs::write(&strain_file, "strain_001\tspecies\nstrain_002\tspecies\n")?;
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    cmd.arg("seqdb")
+        .arg("--workdir")
+        .arg(temp_dir.path())
+        .arg("--init")
+        .output()
+        .unwrap();
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("seqdb")
+        .arg("--workdir")
+        .arg(temp_dir.path())
+        .arg("--strain")
+        .arg(strain_file)
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+
+    Ok(())
+}
+
+#[test]
 fn command_seqdb_load_size() -> anyhow::Result<()> {
     let temp_dir = TempDir::new()?;
 
@@ -114,6 +145,46 @@ fn command_seqdb_load_clust() -> anyhow::Result<()> {
         .arg(temp_dir.path())
         .arg("--clust")
         .arg("tests/nwr/seqdb_clust.tsv")
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+
+    Ok(())
+}
+
+#[test]
+fn command_seqdb_load_clust_duplicate_reps() -> anyhow::Result<()> {
+    let temp_dir = TempDir::new()?;
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    cmd.arg("seqdb")
+        .arg("--workdir")
+        .arg(temp_dir.path())
+        .arg("--init")
+        .output()
+        .unwrap();
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    cmd.arg("seqdb")
+        .arg("--workdir")
+        .arg(temp_dir.path())
+        .arg("--size")
+        .arg("tests/nwr/seqdb_sizes.tsv")
+        .output()
+        .unwrap();
+
+    // Create a cluster file where the same rep maps to multiple seqs.
+    let clust_file = temp_dir.path().join("rep_cluster.tsv");
+    std::fs::write(&clust_file, "rep_001\tseq_001\nrep_001\tseq_002\n")?;
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("seqdb")
+        .arg("--workdir")
+        .arg(temp_dir.path())
+        .arg("--clust")
+        .arg(clust_file)
         .output()
         .unwrap();
 

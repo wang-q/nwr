@@ -2,8 +2,192 @@ use super::args;
 use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
 use std::collections::{BTreeMap, HashSet};
 use std::fs;
-use std::io::BufRead;
+use std::io::{BufRead, Write};
 use tera::{Context, Tera};
+
+/// Retrieve the `outdir` string from a Tera context.
+fn get_outdir(context: &Context) -> anyhow::Result<&str> {
+    context
+        .get("outdir")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' in template context"))
+}
+
+/// Write a two-column `species.tsv` (`key<TAB>species`) from a single map in
+/// the context. Used by the Count and Protein output stages.
+fn write_species_tsv(
+    context: &Context,
+    subdir: &str,
+    map_key: &str,
+) -> anyhow::Result<()> {
+    let outname = "species.tsv";
+    eprintln!("Create {subdir}/{outname}");
+
+    let outdir = get_outdir(context)?;
+    let map = context
+        .get(map_key)
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| anyhow::anyhow!("Missing '{map_key}' in template context"))?;
+
+    let mut writer = nwr::libs::template::open_writer(outdir, subdir, outname)?;
+    for (key, value) in map {
+        let species = value.as_str().ok_or_else(|| {
+            anyhow::anyhow!("'{map_key}' value for '{key}' is not a string")
+        })?;
+        writeln!(writer, "{key}\t{species}")?;
+    }
+    writer.flush()?;
+    writer.finish()?;
+    Ok(())
+}
+
+/// Generate ASSEMBLY/url.tsv and `url_rsync.tsv`.
+fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
+    let outname = "url.tsv";
+    let outname_rsync = "url_rsync.tsv";
+    eprintln!("Create ASSEMBLY/{outname}");
+    eprintln!("Create ASSEMBLY/{outname_rsync}");
+
+    let outdir = get_outdir(context)?;
+    let ass_url_of = context
+        .get("ass_url_of")
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'ass_url_of' in template context"))?;
+    let ass_species_of = context
+        .get("ass_species_of")
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| {
+            anyhow::anyhow!("Missing 'ass_species_of' in template context")
+        })?;
+
+    // Collect (key, url, species) once so both url.tsv and url_rsync.tsv share
+    // the same extraction/error-handling path.
+    let mut rows: Vec<(&String, String, String)> = Vec::new();
+    for (key, value) in ass_url_of {
+        let url = value.as_str().ok_or_else(|| {
+            anyhow::anyhow!("ass_url_of value for '{key}' is not a string")
+        })?;
+        let species = ass_species_of
+            .get(key)
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| {
+                anyhow::anyhow!(
+                    "ass_species_of value for '{key}' is missing or not a string"
+                )
+            })?;
+
+        rows.push((key, url.to_string(), species.to_string()));
+    }
+
+    let mut writer = nwr::libs::template::open_writer(outdir, "ASSEMBLY", outname)?;
+    for (key, url, species) in &rows {
+        writeln!(writer, "{key}\t{url}\t{species}")?;
+    }
+
+    // Finish url.tsv before creating the second writer so buffered data is not
+    // silently lost (BufWriter swallows flush errors on drop) if the next
+    // open_writer call fails.
+    writer.flush()?;
+    writer.finish()?;
+
+    let mut writer_rsync =
+        nwr::libs::template::open_writer(outdir, "ASSEMBLY", outname_rsync)?;
+    for (key, url, species) in &rows {
+        let rsync = nwr::libs::template::RE_URL.replace(url, "ftp.ncbi.nlm.nih.gov::");
+        writeln!(writer_rsync, "{key}\t{rsync}\t{species}")?;
+    }
+    writer_rsync.flush()?;
+    writer_rsync.finish()?;
+
+    Ok(())
+}
+
+/// Generate BioSample/sample.tsv.
+fn gen_bs_data(context: &Context) -> anyhow::Result<()> {
+    let outname = "sample.tsv";
+    eprintln!("Create BioSample/{outname}");
+
+    let outdir = get_outdir(context)?;
+    let bs_name_of = context
+        .get("bs_name_of")
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'bs_name_of' in template context"))?;
+    let bs_species_of = context
+        .get("bs_species_of")
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'bs_species_of' in template context"))?;
+
+    let mut writer = nwr::libs::template::open_writer(outdir, "BioSample", outname)?;
+
+    for (key, value) in bs_name_of {
+        let name = value.as_str().ok_or_else(|| {
+            anyhow::anyhow!("bs_name_of value for '{key}' is not a string")
+        })?;
+        let species =
+            bs_species_of
+                .get(key)
+                .and_then(|v| v.as_str())
+                .ok_or_else(|| {
+                    anyhow::anyhow!(
+                        "bs_species_of value for '{key}' is missing or not a string"
+                    )
+                })?;
+
+        writeln!(writer, "{key}\t{name}\t{species}")?;
+    }
+    writer.flush()?;
+    writer.finish()?;
+
+    Ok(())
+}
+
+/// Generate MinHash/species.tsv.
+fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
+    let outname = "species.tsv";
+    eprintln!("Create MinHash/{outname}");
+
+    let outdir = get_outdir(context)?;
+    let mh_species_of = context
+        .get("mh_species_of")
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'mh_species_of' in template context"))?;
+    let mh_level_of = context
+        .get("mh_level_of")
+        .and_then(|v| v.as_object())
+        .ok_or_else(|| anyhow::anyhow!("Missing 'mh_level_of' in template context"))?;
+
+    let mut writer = nwr::libs::template::open_writer(outdir, "MinHash", outname)?;
+
+    for (key, value) in mh_species_of {
+        let species = value.as_str().ok_or_else(|| {
+            anyhow::anyhow!("mh_species_of value for '{key}' is not a string")
+        })?;
+        let level = mh_level_of
+            .get(key)
+            .and_then(|v| v.as_str())
+            .ok_or_else(|| {
+                anyhow::anyhow!(
+                    "mh_level_of value for '{key}' is missing or not a string"
+                )
+            })?;
+
+        writeln!(writer, "{key}\t{species}\t{level}")?;
+    }
+    writer.flush()?;
+    writer.finish()?;
+
+    Ok(())
+}
+
+/// Generate Count/species.tsv.
+fn gen_count_data(context: &Context) -> anyhow::Result<()> {
+    write_species_tsv(context, "Count", "count_species_of")
+}
+
+/// Generate Protein/species.tsv.
+fn gen_pro_data(context: &Context) -> anyhow::Result<()> {
+    write_species_tsv(context, "Protein", "pro_species_of")
+}
 
 /// Create clap subcommand arguments.
 #[must_use]
@@ -325,7 +509,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     context.insert("pro_species_of", &pro_species_of);
 
-    let ass_columns = vec![
+    const ASS_COLUMNS: &[&str] = &[
         "Organism_name",
         "Taxid",
         "Assembly_name",
@@ -346,7 +530,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         "RefSeq_assembly_accession",
         "GenBank_assembly_accession",
     ];
-    context.insert("ass_columns", &ass_columns);
+    context.insert("ass_columns", &ASS_COLUMNS);
 
     //----------------------------
     // Writing
@@ -358,7 +542,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         if !stdout_mode {
             fs::create_dir_all(format!("{outdir}/ASSEMBLY"))?;
         }
-        nwr::libs::template::gen_ass_data(&context)?;
+        gen_ass_data(&context)?;
         nwr::libs::template::render_shell_script(
             &mut tera,
             &context,
@@ -407,7 +591,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         if !stdout_mode {
             fs::create_dir_all(format!("{outdir}/BioSample"))?;
         }
-        nwr::libs::template::gen_bs_data(&context)?;
+        gen_bs_data(&context)?;
         nwr::libs::template::render_shell_script(
             &mut tera,
             &context,
@@ -428,7 +612,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         if !stdout_mode {
             fs::create_dir_all(format!("{outdir}/MinHash"))?;
         }
-        nwr::libs::template::gen_mh_data(&context)?;
+        gen_mh_data(&context)?;
         nwr::libs::template::render_shell_script(
             &mut tera,
             &context,
@@ -463,7 +647,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         if !stdout_mode {
             fs::create_dir_all(format!("{outdir}/Count"))?;
         }
-        nwr::libs::template::gen_count_data(&context)?;
+        gen_count_data(&context)?;
         nwr::libs::template::render_shell_script(
             &mut tera,
             &context,
@@ -491,7 +675,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         if !stdout_mode {
             fs::create_dir_all(format!("{outdir}/Protein"))?;
         }
-        nwr::libs::template::gen_pro_data(&context)?;
+        gen_pro_data(&context)?;
         nwr::libs::template::render_shell_script(
             &mut tera,
             &context,

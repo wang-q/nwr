@@ -4,6 +4,8 @@ use flate2::read::GzDecoder;
 use std::fs;
 use tar::Archive;
 
+use nwr::libs::io::validate_tar_entry_path;
+
 /// Create clap subcommand arguments.
 #[must_use]
 pub fn make_subcommand() -> Command {
@@ -12,7 +14,7 @@ pub fn make_subcommand() -> Command {
         .after_help(include_str!("../../docs/help/kb.md"))
         .arg(
             Arg::new("infile")
-                .help("Document to print (bac120, ar53)")
+                .help("Document to extract (bac120, ar53)")
                 .num_args(1)
                 .required(true)
                 .index(1),
@@ -47,16 +49,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     for entry in archive.entries()? {
         let mut entry = entry?;
         let path = entry.path()?;
-        if path.is_absolute()
-            || path
-                .components()
-                .any(|c| c == std::path::Component::ParentDir)
-        {
-            return Err(anyhow::anyhow!(
-                "Invalid tar entry path: {}",
-                path.display()
-            ));
-        }
+        validate_tar_entry_path(&path)?;
         entry.unpack_in(outdir)?;
     }
 

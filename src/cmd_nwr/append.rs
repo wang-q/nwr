@@ -1,7 +1,7 @@
 use super::args;
 use clap::{Arg, ArgAction, ArgMatches, Command};
 use log::warn;
-use simplelog::{Config, LevelFilter, SimpleLogger};
+use simplelog::{ColorChoice, Config, LevelFilter, TermLogger, TerminalMode};
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
 use std::io::BufRead;
@@ -25,12 +25,25 @@ pub fn make_subcommand() -> Command {
                 .action(ArgAction::SetTrue)
                 .help("Also append taxon IDs for each rank"),
         )
+        .arg(
+            Arg::new("strict")
+                .long("strict")
+                .action(ArgAction::SetTrue)
+                .help("Treat invalid taxonomy terms as errors instead of skipping them"),
+        )
         .arg(args::outfile_arg())
 }
 
 /// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    SimpleLogger::init(LevelFilter::Info, Config::default())?;
+    // Ignore re-initialization errors so that tests or other callers that
+    // already set up a logger do not fail here.
+    let _ = TermLogger::init(
+        LevelFilter::Info,
+        Config::default(),
+        TerminalMode::Stderr,
+        ColorChoice::Auto,
+    );
 
     let nwrdir = nwr::get_nwr_dir(args, "dir")?;
 
@@ -53,6 +66,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         .get_one::<String>("outfile")
         .ok_or_else(|| anyhow::anyhow!("Missing 'outfile' argument"))?;
     let is_id = args.get_flag("id");
+    let is_strict = args.get_flag("strict");
 
     let mut writer = nwr::libs::io::writer(outfile)?;
 
@@ -114,6 +128,13 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 )
             })?;
             if term_failed.contains(term.as_str()) {
+                if is_strict {
+                    anyhow::bail!(
+                        "{}:{}: previously failed term '{term}' encountered in strict mode",
+                        infile,
+                        line_idx + 1
+                    );
+                }
                 continue 'line;
             }
             let id = match term_cache.get(term.as_str()) {
@@ -124,6 +145,13 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                         x
                     }
                     Err(err) => {
+                        if is_strict {
+                            anyhow::bail!(
+                                "{}:{}: Error converting term '{term}': {err}",
+                                infile,
+                                line_idx + 1
+                            );
+                        }
                         warn!("Error converting term '{term}': {err}");
                         term_failed.insert(term.clone());
                         continue 'line;
@@ -133,6 +161,13 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
             if ranks.is_empty() {
                 if taxon_failed.contains(&id) {
+                    if is_strict {
+                        anyhow::bail!(
+                            "{}:{}: previously failed taxon {id} encountered in strict mode",
+                            infile,
+                            line_idx + 1
+                        );
+                    }
                     continue 'line;
                 }
                 if let Entry::Vacant(e) = taxon_cache.entry(id) {
@@ -144,6 +179,13 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                             e.insert(n);
                         }
                         Err(err) => {
+                            if is_strict {
+                                anyhow::bail!(
+                                    "{}:{}: Error getting taxon {id}: {err}",
+                                    infile,
+                                    line_idx + 1
+                                );
+                            }
                             warn!("Error getting taxon {id}: {err}");
                             taxon_failed.insert(id);
                             continue 'line;
@@ -161,11 +203,25 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 }
             } else {
                 if lineage_failed.contains(&id) {
+                    if is_strict {
+                        anyhow::bail!(
+                            "{}:{}: previously failed lineage {id} encountered in strict mode",
+                            infile,
+                            line_idx + 1
+                        );
+                    }
                     continue 'line;
                 }
                 if let Entry::Vacant(e) = lineage_cache.entry(id) {
                     match nwr::get_lineage(&conn, id) {
                         Err(err) => {
+                            if is_strict {
+                                anyhow::bail!(
+                                    "{}:{}: Errors on get_lineage({id}): {err}",
+                                    infile,
+                                    line_idx + 1
+                                );
+                            }
                             warn!("Errors on get_lineage({id}): {err}");
                             lineage_failed.insert(id);
                             continue 'line;
@@ -193,6 +249,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
     }
     writer.flush()?;
+    writer.finish()?;
 
     Ok(())
 }

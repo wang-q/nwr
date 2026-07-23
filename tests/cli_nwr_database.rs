@@ -42,11 +42,11 @@ fn command_txdb() -> anyhow::Result<()> {
         .arg("tests/nwr/")
         .output()
         .unwrap();
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stderr = String::from_utf8(output.stderr).unwrap();
 
     assert!(std::path::Path::new("tests/nwr/taxonomy.sqlite").exists());
-    // Output lines may vary based on data size and progress indicators
-    assert!(stdout.lines().count() >= 5);
+    // Progress log lines go to stderr; their count varies based on data size.
+    assert!(stderr.lines().count() >= 5);
 
     Ok(())
 }
@@ -60,10 +60,10 @@ fn command_ardb() -> anyhow::Result<()> {
         .arg("tests/nwr/")
         .output()
         .unwrap();
-    let stdout = String::from_utf8(output.stdout).unwrap();
+    let stderr = String::from_utf8(output.stderr).unwrap();
 
     assert!(std::path::Path::new("tests/nwr/ar_refseq.sqlite").exists());
-    assert!(stdout.contains("Loading"));
+    assert!(stderr.contains("Loading"));
 
     Ok(())
 }

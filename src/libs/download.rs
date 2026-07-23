@@ -1,6 +1,6 @@
 use log::info;
 use std::fs::File;
-use std::io;
+use std::io::{self, BufReader};
 use std::path::{Path, PathBuf};
 
 /// File paths used by the download operation.
@@ -73,7 +73,7 @@ pub fn check_taxdump_md5(tarball: &Path, md5_file: &Path) -> anyhow::Result<()> 
 /// Extract a taxdump tarball into `dest_dir`, rejecting traversal-prone entries.
 pub fn extract_taxdump(tarball: &Path, dest_dir: &Path) -> anyhow::Result<()> {
     let tar_gz = File::open(tarball)?;
-    let tar = flate2::read::GzDecoder::new(tar_gz);
+    let tar = flate2::read::GzDecoder::new(BufReader::new(tar_gz));
     let mut archive = tar::Archive::new(tar);
 
     for entry in archive.entries()? {
@@ -82,16 +82,7 @@ pub fn extract_taxdump(tarball: &Path, dest_dir: &Path) -> anyhow::Result<()> {
 
         // Reject absolute paths and parent directory references to prevent
         // directory traversal attacks.
-        if path.is_absolute()
-            || path
-                .components()
-                .any(|c| c == std::path::Component::ParentDir)
-        {
-            return Err(anyhow::anyhow!(
-                "Invalid tar entry path: {}",
-                path.display()
-            ));
-        }
+        crate::libs::io::validate_tar_entry_path(&path)?;
 
         entry.unpack_in(dest_dir)?;
     }

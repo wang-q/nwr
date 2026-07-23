@@ -1,7 +1,7 @@
 use super::args;
 use clap::{ArgMatches, Command};
 use log::{debug, info};
-use simplelog::{Config, LevelFilter, SimpleLogger};
+use simplelog::{ColorChoice, Config, LevelFilter, TermLogger, TerminalMode};
 use std::fs::File;
 
 /// DDL for the NCBI taxonomy `SQLite` database.
@@ -49,7 +49,14 @@ pub fn make_subcommand() -> Command {
 
 /// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    SimpleLogger::init(LevelFilter::Info, Config::default())?;
+    // Ignore re-initialization errors so that tests or other callers that
+    // already set up a logger do not fail here.
+    let _ = TermLogger::init(
+        LevelFilter::Info,
+        Config::default(),
+        TerminalMode::Stderr,
+        ColorChoice::Auto,
+    );
 
     let nwrdir = nwr::get_nwr_dir(args, "dir")?;
 
@@ -60,15 +67,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     info!("==> Opening database");
     let conn = rusqlite::Connection::open(file)?;
-    conn.execute_batch(
-        "
-        PRAGMA journal_mode = OFF;
-        PRAGMA synchronous = 0;
-        PRAGMA cache_size = 1000000;
-        PRAGMA locking_mode = EXCLUSIVE;
-        PRAGMA temp_store = MEMORY;
-        ",
-    )?;
+    nwr::libs::db::apply_import_pragmas(&conn)?;
 
     info!("==> Create tables");
     conn.execute_batch(DDL_TX)?;

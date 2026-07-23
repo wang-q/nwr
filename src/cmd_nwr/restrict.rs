@@ -1,7 +1,7 @@
 use super::args;
 use clap::{Arg, ArgAction, ArgMatches, Command};
 use log::warn;
-use simplelog::{Config, LevelFilter, SimpleLogger};
+use simplelog::{ColorChoice, Config, LevelFilter, TermLogger, TerminalMode};
 use std::collections::{HashMap, HashSet};
 use std::io::BufRead;
 use std::io::Write;
@@ -31,12 +31,25 @@ pub fn make_subcommand() -> Command {
                 .action(ArgAction::SetTrue)
                 .help("exclude lines matching terms"),
         )
+        .arg(
+            Arg::new("strict")
+                .long("strict")
+                .action(ArgAction::SetTrue)
+                .help("Treat invalid taxonomy terms as errors instead of skipping them"),
+        )
         .arg(args::outfile_arg())
 }
 
 /// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    SimpleLogger::init(LevelFilter::Info, Config::default())?;
+    // Ignore re-initialization errors so that tests or other callers that
+    // already set up a logger do not fail here.
+    let _ = TermLogger::init(
+        LevelFilter::Info,
+        Config::default(),
+        TerminalMode::Stderr,
+        ColorChoice::Auto,
+    );
 
     let nwrdir = nwr::get_nwr_dir(args, "dir")?;
 
@@ -60,6 +73,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let outfile = args
         .get_one::<String>("outfile")
         .ok_or_else(|| anyhow::anyhow!("Missing 'outfile' argument"))?;
+    let is_strict = args.get_flag("strict");
 
     let mut writer = nwr::libs::io::writer(outfile)?;
 
@@ -101,6 +115,13 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 )
             })?;
             if term_failed.contains(*term) {
+                if is_strict {
+                    anyhow::bail!(
+                        "{}:{}: previously failed term '{term}' encountered in strict mode",
+                        infile,
+                        line_idx + 1
+                    );
+                }
                 continue;
             }
             let id = match term_cache.get(*term) {
@@ -111,6 +132,13 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                         x
                     }
                     Err(err) => {
+                        if is_strict {
+                            anyhow::bail!(
+                                "{}:{}: Error converting term '{term}': {err}",
+                                infile,
+                                line_idx + 1
+                            );
+                        }
                         warn!("Error converting term '{term}': {err}");
                         term_failed.insert((*term).to_string());
                         continue;
@@ -124,6 +152,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         }
     }
     writer.flush()?;
+    writer.finish()?;
 
     Ok(())
 }

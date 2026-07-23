@@ -1,7 +1,7 @@
 use super::args;
 use clap::{Arg, ArgMatches, Command};
 use log::info;
-use simplelog::{Config, LevelFilter, SimpleLogger};
+use simplelog::{ColorChoice, Config, LevelFilter, TermLogger, TerminalMode};
 
 use nwr::libs::download::{
     assembly_reports_exist, check_taxdump_md5, download_assembly_reports,
@@ -41,7 +41,14 @@ pub fn make_subcommand() -> Command {
 
 /// Command implementation
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    SimpleLogger::init(LevelFilter::Info, Config::default())?;
+    // Ignore re-initialization errors so that tests or other callers that
+    // already set up a logger do not fail here.
+    let _ = TermLogger::init(
+        LevelFilter::Info,
+        Config::default(),
+        TerminalMode::Stderr,
+        ColorChoice::Auto,
+    );
 
     let nwrdir = nwr::get_nwr_dir(args, "dir")?;
     let host = args

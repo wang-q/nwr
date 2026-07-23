@@ -2,7 +2,7 @@ use super::args;
 use clap::{Arg, ArgAction, ArgMatches, Command};
 use log::{debug, info, warn};
 use regex::Regex;
-use simplelog::{Config, LevelFilter, SimpleLogger};
+use simplelog::{ColorChoice, Config, LevelFilter, TermLogger, TerminalMode};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufRead;
@@ -79,7 +79,14 @@ pub fn make_subcommand() -> Command {
 
 /// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    SimpleLogger::init(LevelFilter::Info, Config::default())?;
+    // Ignore re-initialization errors so that tests or other callers that
+    // already set up a logger do not fail here.
+    let _ = TermLogger::init(
+        LevelFilter::Info,
+        Config::default(),
+        TerminalMode::Stderr,
+        ColorChoice::Auto,
+    );
 
     let nwrdir = nwr::get_nwr_dir(args, "dir")?;
     let is_genbank = args.get_flag("genbank");
@@ -96,15 +103,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     info!("==> Opening database");
     let conn = rusqlite::Connection::open(file)?;
-    conn.execute_batch(
-        "
-        PRAGMA journal_mode = OFF;
-        PRAGMA synchronous = 0;
-        PRAGMA cache_size = 1000000;
-        PRAGMA locking_mode = EXCLUSIVE;
-        PRAGMA temp_store = MEMORY;
-        ",
-    )?;
+    nwr::libs::db::apply_import_pragmas(&conn)?;
 
     info!("==> Create tables");
     conn.execute_batch(DDL_AR)?;

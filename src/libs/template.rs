@@ -14,7 +14,8 @@ pub const LEVEL_CONTIG: &str = "3"; // Same as SCAFFOLD - both are treated as le
 /// Assembly level code for other incomplete assemblies.
 pub const LEVEL_OTHER: &str = "5";
 
-static RE_URL: LazyLock<Regex> = LazyLock::new(|| {
+/// Regex matching NCBI FTP/HTTP URLs for rsync conversion.
+pub static RE_URL: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?xi)(ftp|https?)://ftp\.ncbi\.nlm\.nih\.gov/").unwrap()
 });
 
@@ -71,7 +72,7 @@ pub fn open_writer(
     outdir: &str,
     subdir: &str,
     outname: &str,
-) -> anyhow::Result<Box<dyn std::io::Write>> {
+) -> anyhow::Result<crate::libs::io::Writer> {
     if outdir == STDOUT_MARKER {
         crate::libs::io::writer("stdout")
     } else {
@@ -85,33 +86,6 @@ fn get_outdir(context: &Context) -> anyhow::Result<&str> {
         .get("outdir")
         .and_then(|v| v.as_str())
         .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' in template context"))
-}
-
-/// Write a two-column `species.tsv` (`key<TAB>species`) from a single map in
-/// the context. Used by the Count and Protein output stages.
-fn write_species_tsv(
-    context: &Context,
-    subdir: &str,
-    map_key: &str,
-) -> anyhow::Result<()> {
-    let outname = "species.tsv";
-    eprintln!("Create {subdir}/{outname}");
-
-    let outdir = get_outdir(context)?;
-    let map = context
-        .get(map_key)
-        .and_then(|v| v.as_object())
-        .ok_or_else(|| anyhow::anyhow!("Missing '{map_key}' in template context"))?;
-
-    let mut writer = open_writer(outdir, subdir, outname)?;
-    for (key, value) in map {
-        let species = value.as_str().ok_or_else(|| {
-            anyhow::anyhow!("'{map_key}' value for '{key}' is not a string")
-        })?;
-        writeln!(writer, "{key}\t{species}")?;
-    }
-    writer.flush()?;
-    Ok(())
 }
 
 /// Render a single shell script from a Tera template.
@@ -136,149 +110,7 @@ pub fn render_shell_script(
     let rendered = tera.render("t", context)?;
     writer.write_all(rendered.as_ref())?;
     writer.flush()?;
+    writer.finish()?;
 
     Ok(())
-}
-
-/// Generate ASSEMBLY/url.tsv and `url_rsync.tsv`.
-pub fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
-    let outname = "url.tsv";
-    let outname_rsync = "url_rsync.tsv";
-    eprintln!("Create ASSEMBLY/{outname}");
-    eprintln!("Create ASSEMBLY/{outname_rsync}");
-
-    let outdir = get_outdir(context)?;
-    let ass_url_of = context
-        .get("ass_url_of")
-        .and_then(|v| v.as_object())
-        .ok_or_else(|| anyhow::anyhow!("Missing 'ass_url_of' in template context"))?;
-    let ass_species_of = context
-        .get("ass_species_of")
-        .and_then(|v| v.as_object())
-        .ok_or_else(|| {
-            anyhow::anyhow!("Missing 'ass_species_of' in template context")
-        })?;
-
-    // Collect (key, url, species) once so both url.tsv and url_rsync.tsv share
-    // the same extraction/error-handling path.
-    let mut rows: Vec<(&String, String, String)> = Vec::new();
-    for (key, value) in ass_url_of {
-        let url = value.as_str().ok_or_else(|| {
-            anyhow::anyhow!("ass_url_of value for '{key}' is not a string")
-        })?;
-        let species = ass_species_of
-            .get(key)
-            .and_then(|v| v.as_str())
-            .ok_or_else(|| {
-                anyhow::anyhow!(
-                    "ass_species_of value for '{key}' is missing or not a string"
-                )
-            })?;
-
-        rows.push((key, url.to_string(), species.to_string()));
-    }
-
-    let mut writer = open_writer(outdir, "ASSEMBLY", outname)?;
-    for (key, url, species) in &rows {
-        writeln!(writer, "{key}\t{url}\t{species}")?;
-    }
-
-    // Flush url.tsv before creating the second writer so buffered data is not
-    // silently lost (BufWriter swallows flush errors on drop) if the next
-    // open_writer call fails.
-    writer.flush()?;
-
-    let mut writer_rsync = open_writer(outdir, "ASSEMBLY", outname_rsync)?;
-    for (key, url, species) in &rows {
-        let rsync = RE_URL.replace(url, "ftp.ncbi.nlm.nih.gov::");
-        writeln!(writer_rsync, "{key}\t{rsync}\t{species}")?;
-    }
-    writer_rsync.flush()?;
-
-    Ok(())
-}
-
-/// Generate BioSample/sample.tsv.
-pub fn gen_bs_data(context: &Context) -> anyhow::Result<()> {
-    let outname = "sample.tsv";
-    eprintln!("Create BioSample/{outname}");
-
-    let outdir = get_outdir(context)?;
-    let bs_name_of = context
-        .get("bs_name_of")
-        .and_then(|v| v.as_object())
-        .ok_or_else(|| anyhow::anyhow!("Missing 'bs_name_of' in template context"))?;
-    let bs_species_of = context
-        .get("bs_species_of")
-        .and_then(|v| v.as_object())
-        .ok_or_else(|| anyhow::anyhow!("Missing 'bs_species_of' in template context"))?;
-
-    let mut writer = open_writer(outdir, "BioSample", outname)?;
-
-    for (key, value) in bs_name_of {
-        let name = value.as_str().ok_or_else(|| {
-            anyhow::anyhow!("bs_name_of value for '{key}' is not a string")
-        })?;
-        let species =
-            bs_species_of
-                .get(key)
-                .and_then(|v| v.as_str())
-                .ok_or_else(|| {
-                    anyhow::anyhow!(
-                        "bs_species_of value for '{key}' is missing or not a string"
-                    )
-                })?;
-
-        writeln!(writer, "{key}\t{name}\t{species}")?;
-    }
-    writer.flush()?;
-
-    Ok(())
-}
-
-/// Generate MinHash/species.tsv.
-pub fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
-    let outname = "species.tsv";
-    eprintln!("Create MinHash/{outname}");
-
-    let outdir = get_outdir(context)?;
-    let mh_species_of = context
-        .get("mh_species_of")
-        .and_then(|v| v.as_object())
-        .ok_or_else(|| anyhow::anyhow!("Missing 'mh_species_of' in template context"))?;
-    let mh_level_of = context
-        .get("mh_level_of")
-        .and_then(|v| v.as_object())
-        .ok_or_else(|| anyhow::anyhow!("Missing 'mh_level_of' in template context"))?;
-
-    let mut writer = open_writer(outdir, "MinHash", outname)?;
-
-    for (key, value) in mh_species_of {
-        let species = value.as_str().ok_or_else(|| {
-            anyhow::anyhow!("mh_species_of value for '{key}' is not a string")
-        })?;
-        let level = mh_level_of
-            .get(key)
-            .and_then(|v| v.as_str())
-            .ok_or_else(|| {
-                anyhow::anyhow!(
-                    "mh_level_of value for '{key}' is missing or not a string"
-                )
-            })?;
-
-        writeln!(writer, "{key}\t{species}\t{level}")?;
-    }
-    writer.flush()?;
-
-    Ok(())
-}
-
-/// Generate Count/species.tsv.
-pub fn gen_count_data(context: &Context) -> anyhow::Result<()> {
-    write_species_tsv(context, "Count", "count_species_of")
-}
-
-/// Generate Protein/species.tsv.
-pub fn gen_pro_data(context: &Context) -> anyhow::Result<()> {
-    write_species_tsv(context, "Protein", "pro_species_of")
 }

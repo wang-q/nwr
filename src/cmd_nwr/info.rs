@@ -35,11 +35,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     )?;
     let conn = nwr::connect_txdb(&nwrdir)?;
 
-    let mut ids = vec![];
-    for term in &terms {
-        let id = nwr::term_to_tax_id(&conn, term)?;
-        ids.push(id);
-    }
+    let ids = nwr::terms_to_tax_ids(&conn, &terms)?;
 
     let nodes = nwr::get_taxon(&conn, &ids)?;
 
@@ -54,6 +50,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             wtr.serialize((node.tax_id, sci_name, &node.rank, &node.division))?;
         }
         wtr.flush()?;
+        let writer = wtr
+            .into_inner()
+            .map_err(|e| anyhow::anyhow!("failed to flush TSV writer: {e}"))?;
+        writer.finish()?;
     } else {
         for (i, node) in nodes.iter().enumerate() {
             if i > 0 {
@@ -62,6 +62,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             writer.write_fmt(format_args!("{node}"))?;
         }
         writer.flush()?;
+        writer.finish()?;
     }
 
     Ok(())

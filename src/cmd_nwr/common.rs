@@ -53,11 +53,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     )?;
     let conn = nwr::connect_txdb(&nwrdir)?;
 
-    let mut tax_ids = vec![];
-    for term in &terms {
-        let id = nwr::term_to_tax_id(&conn, term)?;
-        tax_ids.push(id);
-    }
+    let tax_ids = nwr::terms_to_tax_ids(&conn, &terms)?;
 
     let mut tree = phylotree::tree::Tree::new();
     // tax_id to NodeId
@@ -87,6 +83,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let out_string = tree.to_newick()?;
     writeln!(writer, "{out_string}")?;
     writer.flush()?;
+    writer.finish()?;
 
     Ok(())
 }

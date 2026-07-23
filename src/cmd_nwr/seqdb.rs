@@ -1,6 +1,6 @@
 use clap::{Arg, ArgAction, ArgMatches, Command};
 use log::info;
-use simplelog::{Config, LevelFilter, SimpleLogger};
+use simplelog::{ColorChoice, Config, LevelFilter, TermLogger, TerminalMode};
 use std::fs::File;
 use std::path::PathBuf;
 
@@ -88,9 +88,34 @@ pub fn make_subcommand() -> Command {
         )
 }
 
+/// Load a TSV file into the database when `opt` is present.
+fn load_file<F>(
+    opt: &Option<PathBuf>,
+    description: &str,
+    insert: F,
+    conn: &rusqlite::Connection,
+) -> anyhow::Result<()>
+where
+    F: FnOnce(&File, &std::path::Path, &rusqlite::Connection) -> anyhow::Result<()>,
+{
+    if let Some(path) = opt {
+        info!("==> Loading `{}` {description}", path.display());
+        let file = File::open(path)?;
+        insert(&file, path, conn)?;
+    }
+    Ok(())
+}
+
 /// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
-    SimpleLogger::init(LevelFilter::Info, Config::default())?;
+    // Ignore re-initialization errors so that tests or other callers that
+    // already set up a logger do not fail here.
+    let _ = TermLogger::init(
+        LevelFilter::Info,
+        Config::default(),
+        TerminalMode::Stderr,
+        ColorChoice::Auto,
+    );
 
     let dir = std::path::Path::new(
         args.get_one::<String>("workdir")
@@ -131,59 +156,31 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     info!("==> Opening database `{}`", db.display());
     let conn = rusqlite::Connection::open(db)?;
-    conn.execute_batch(
-        "
-        -- To improve performance
-        -- disables the rollback journal
-        PRAGMA journal_mode = OFF;
-        -- SQLite will not wait for data to be written to disk
-        PRAGMA synchronous = 0;
-        -- reducing disk I/O
-        PRAGMA cache_size = 1000000;
-        -- reducing lock contention, as no others would use the db
-        PRAGMA locking_mode = EXCLUSIVE;
-        -- stores temporary tables and indices in memory
-        PRAGMA temp_store = MEMORY;
-        ",
-    )?;
+    nwr::libs::db::apply_import_pragmas(&conn)?;
 
     if is_init {
         info!("==> Create tables");
         conn.execute_batch(DDL_SEQ)?;
     }
 
-    if let Some(opt_strain) = &opt_strain {
-        info!("==> Loading `{}` to `rank` and `asm`", opt_strain.display());
-        let dmp: File = File::open(opt_strain)?;
-        insert_strain(&dmp, opt_strain, &conn)?;
-    }
-
-    if let Some(opt_size) = &opt_size {
-        info!("==> Loading `{}` to `seq`", opt_size.display());
-        let dmp = File::open(opt_size)?;
-        insert_size(&dmp, opt_size, &conn)?;
-    }
-
-    if let Some(opt_clust) = &opt_clust {
-        info!(
-            "==> Loading `{}` to `rep` and `rep_seq`",
-            opt_clust.display()
+    // Guard against accidentally operating on an empty database without
+    // --init, which would otherwise produce confusing "no such table" errors.
+    let table_count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='seq'",
+        [],
+        |row| row.get(0),
+    )?;
+    if table_count == 0 && !is_init {
+        anyhow::bail!(
+            "seq.sqlite is empty or missing required tables; use --init to create them"
         );
-        let dmp = File::open(opt_clust)?;
-        insert_clust(&dmp, opt_clust, &conn)?;
     }
 
-    if let Some(opt_anno) = &opt_anno {
-        info!("==> Loading `{}` to `seq`", opt_anno.display());
-        let dmp = File::open(opt_anno)?;
-        insert_anno(&dmp, opt_anno, &conn)?;
-    }
-
-    if let Some(opt_asmseq) = &opt_asmseq {
-        info!("==> Loading `{}` to `asm_seq`", opt_asmseq.display());
-        let dmp = File::open(opt_asmseq)?;
-        insert_asmseq(&dmp, opt_asmseq, &conn)?;
-    }
+    load_file(&opt_strain, "to `rank` and `asm`", insert_strain, &conn)?;
+    load_file(&opt_size, "to `seq`", insert_size, &conn)?;
+    load_file(&opt_clust, "to `rep` and `rep_seq`", insert_clust, &conn)?;
+    load_file(&opt_anno, "to `seq`", insert_anno, &conn)?;
+    load_file(&opt_asmseq, "to `asm_seq`", insert_asmseq, &conn)?;
 
     if let Some((rep_field, rep_path)) = &opt_rep {
         info!(

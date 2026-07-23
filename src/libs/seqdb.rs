@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs::File;
 use std::path::Path;
 
@@ -58,29 +59,6 @@ fn require_min_fields(
             i + 1,
             path.display(),
             min
-        );
-    }
-    Ok(())
-}
-
-/// Run a `SELECT EXISTS(...)` check via `stmt` for `name` and bail with a
-/// uniform error if the name is absent from the target table.
-fn ensure_exists(
-    stmt: &mut rusqlite::Statement,
-    name: &str,
-    table: &str,
-    i: usize,
-    path: &Path,
-) -> anyhow::Result<()> {
-    let exists: bool = stmt.query_row(rusqlite::params![name], |row| row.get(0))?;
-    if !exists {
-        anyhow::bail!(
-            "Line {} in {}: {} name '{}' not found in {} table",
-            i + 1,
-            path.display(),
-            table,
-            name,
-            table
         );
     }
     Ok(())
@@ -161,11 +139,16 @@ pub fn insert_strain(
         .delimiter(b'\t')
         .from_reader(dmp);
 
-    let mut rank_stmt = conn.prepare("INSERT OR IGNORE INTO rank(name) VALUES (?1)")?;
+    // Cache rank IDs to avoid a per-row subquery on the rank table.
+    let mut rank_cache: HashMap<String, i64> = HashMap::new();
+    let mut load_ranks = conn.prepare("SELECT id, name FROM rank")?;
+    let mut rows = load_ranks.query([])?;
+    while let Some(row) = rows.next()? {
+        rank_cache.insert(row.get(1)?, row.get(0)?);
+    }
 
-    let mut asm_stmt = conn.prepare(
-        "INSERT INTO asm(name, rank_id) VALUES (?1, (SELECT id FROM rank WHERE name = ?2))"
-    )?;
+    let mut rank_insert = conn.prepare("INSERT INTO rank(name) VALUES (?1)")?;
+    let mut asm_stmt = conn.prepare("INSERT INTO asm(name, rank_id) VALUES (?1, ?2)")?;
 
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
@@ -174,8 +157,17 @@ pub fn insert_strain(
         let strain: String = record[0].trim().to_string();
         let rank: String = record[1].trim().to_string();
 
-        rank_stmt.execute([&rank])?;
-        asm_stmt.execute(rusqlite::params![&strain, &rank])?;
+        let rank_id = match rank_cache.get(&rank) {
+            Some(&id) => id,
+            None => {
+                rank_insert.execute([&rank])?;
+                let id = conn.last_insert_rowid();
+                rank_cache.insert(rank.clone(), id);
+                id
+            }
+        };
+
+        asm_stmt.execute(rusqlite::params![&strain, rank_id])?;
 
         crate::libs::io::progress_dot(i)?;
     }
@@ -233,17 +225,18 @@ pub fn insert_clust(
         .delimiter(b'\t')
         .from_reader(dmp);
 
-    let mut rep_stmt = conn.prepare("INSERT OR IGNORE INTO rep(name) VALUES (?1)")?;
+    // Cache seq IDs upfront; build rep IDs incrementally to avoid per-row subqueries.
+    let mut seq_cache: HashMap<String, i64> = HashMap::new();
+    let mut load_seq = conn.prepare("SELECT id, name FROM seq")?;
+    let mut rows = load_seq.query([])?;
+    while let Some(row) = rows.next()? {
+        seq_cache.insert(row.get(1)?, row.get(0)?);
+    }
 
-    let mut rep_seq_stmt = conn.prepare(
-        "INSERT INTO rep_seq(rep_id, seq_id) VALUES (
-            (SELECT id FROM rep WHERE name = ?1),
-            (SELECT id FROM seq WHERE name = ?2)
-        )",
-    )?;
-
-    let mut seq_exists =
-        conn.prepare("SELECT EXISTS(SELECT 1 FROM seq WHERE name = ?1)")?;
+    let mut rep_cache: HashMap<String, i64> = HashMap::new();
+    let mut rep_insert = conn.prepare("INSERT INTO rep(name) VALUES (?1)")?;
+    let mut rep_seq_stmt =
+        conn.prepare("INSERT INTO rep_seq(rep_id, seq_id) VALUES (?1, ?2)")?;
 
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
@@ -252,10 +245,26 @@ pub fn insert_clust(
         let rep: String = record[0].trim().to_string();
         let seq: String = record[1].trim().to_string();
 
-        ensure_exists(&mut seq_exists, &seq, "seq", i, path)?;
+        let seq_id = seq_cache.get(&seq).copied().ok_or_else(|| {
+            anyhow::anyhow!(
+                "Line {} in {}: seq name '{}' not found in seq table",
+                i + 1,
+                path.display(),
+                seq
+            )
+        })?;
 
-        rep_stmt.execute([&rep])?;
-        rep_seq_stmt.execute(rusqlite::params![&rep, &seq])?;
+        let rep_id = match rep_cache.get(&rep) {
+            Some(&id) => id,
+            None => {
+                rep_insert.execute([&rep])?;
+                let id = conn.last_insert_rowid();
+                rep_cache.insert(rep.clone(), id);
+                id
+            }
+        };
+
+        rep_seq_stmt.execute(rusqlite::params![rep_id, seq_id])?;
 
         crate::libs::io::progress_dot(i)?;
     }
@@ -276,9 +285,15 @@ pub fn insert_anno(
         .delimiter(b'\t')
         .from_reader(dmp);
 
+    // Cache seq IDs to avoid a per-row EXISTS lookup.
+    let mut seq_cache: HashMap<String, i64> = HashMap::new();
+    let mut load_seq = conn.prepare("SELECT id, name FROM seq")?;
+    let mut rows = load_seq.query([])?;
+    while let Some(row) = rows.next()? {
+        seq_cache.insert(row.get(1)?, row.get(0)?);
+    }
+
     let mut stmt = conn.prepare("UPDATE seq SET anno = ?1 WHERE seq.name = ?2")?;
-    let mut seq_exists =
-        conn.prepare("SELECT EXISTS(SELECT 1 FROM seq WHERE name = ?1)")?;
 
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
@@ -287,7 +302,14 @@ pub fn insert_anno(
         let name: String = record[0].trim().to_string();
         let anno: String = record[1].trim().to_string();
 
-        ensure_exists(&mut seq_exists, &name, "seq", i, path)?;
+        if !seq_cache.contains_key(&name) {
+            anyhow::bail!(
+                "Line {} in {}: seq name '{}' not found in seq table",
+                i + 1,
+                path.display(),
+                name
+            );
+        }
 
         stmt.execute(rusqlite::params![&anno, &name])?;
 
@@ -310,17 +332,23 @@ pub fn insert_asmseq(
         .delimiter(b'\t')
         .from_reader(dmp);
 
-    let mut stmt = conn.prepare(
-        "INSERT INTO asm_seq(asm_id, seq_id) VALUES (
-            (SELECT id FROM asm WHERE name = ?1),
-            (SELECT id FROM seq WHERE name = ?2)
-        )",
-    )?;
+    // Cache asm and seq IDs upfront to avoid per-row subqueries.
+    let mut asm_cache: HashMap<String, i64> = HashMap::new();
+    let mut load_asm = conn.prepare("SELECT id, name FROM asm")?;
+    let mut rows = load_asm.query([])?;
+    while let Some(row) = rows.next()? {
+        asm_cache.insert(row.get(1)?, row.get(0)?);
+    }
 
-    let mut seq_exists =
-        conn.prepare("SELECT EXISTS(SELECT 1 FROM seq WHERE name = ?1)")?;
-    let mut asm_exists =
-        conn.prepare("SELECT EXISTS(SELECT 1 FROM asm WHERE name = ?1)")?;
+    let mut seq_cache: HashMap<String, i64> = HashMap::new();
+    let mut load_seq = conn.prepare("SELECT id, name FROM seq")?;
+    let mut rows = load_seq.query([])?;
+    while let Some(row) = rows.next()? {
+        seq_cache.insert(row.get(1)?, row.get(0)?);
+    }
+
+    let mut stmt =
+        conn.prepare("INSERT INTO asm_seq(asm_id, seq_id) VALUES (?1, ?2)")?;
 
     conn.execute_batch("BEGIN;")?;
     for (i, result) in tsv_rdr.records().enumerate() {
@@ -331,10 +359,24 @@ pub fn insert_asmseq(
         let seq: String = record[0].trim().to_string();
         let asm: String = record[1].trim().to_string();
 
-        ensure_exists(&mut seq_exists, &seq, "seq", i, path)?;
-        ensure_exists(&mut asm_exists, &asm, "asm", i, path)?;
+        let seq_id = seq_cache.get(&seq).copied().ok_or_else(|| {
+            anyhow::anyhow!(
+                "Line {} in {}: seq name '{}' not found in seq table",
+                i + 1,
+                path.display(),
+                seq
+            )
+        })?;
+        let asm_id = asm_cache.get(&asm).copied().ok_or_else(|| {
+            anyhow::anyhow!(
+                "Line {} in {}: asm name '{}' not found in asm table",
+                i + 1,
+                path.display(),
+                asm
+            )
+        })?;
 
-        stmt.execute(rusqlite::params![&asm, &seq])?;
+        stmt.execute(rusqlite::params![asm_id, seq_id])?;
 
         crate::libs::io::progress_dot(i)?;
     }
@@ -356,9 +398,15 @@ pub fn insert_rep(
         .delimiter(b'\t')
         .from_reader(dmp);
 
+    // Cache rep IDs to avoid a per-row EXISTS lookup.
+    let mut rep_cache: HashMap<String, i64> = HashMap::new();
+    let mut load_rep = conn.prepare("SELECT id, name FROM rep")?;
+    let mut rows = load_rep.query([])?;
+    while let Some(row) = rows.next()? {
+        rep_cache.insert(row.get(1)?, row.get(0)?);
+    }
+
     let mut stmt = conn.prepare(rep_update_sql(field)?)?;
-    let mut rep_exists =
-        conn.prepare("SELECT EXISTS(SELECT 1 FROM rep WHERE name = ?1)")?;
 
     conn.execute_batch("BEGIN;")?;
     // Empty the field before updating so that the clear and the following
@@ -370,7 +418,14 @@ pub fn insert_rep(
         let value: String = record[0].trim().to_string();
         let rep: String = record[1].trim().to_string();
 
-        ensure_exists(&mut rep_exists, &rep, "rep", i, path)?;
+        if !rep_cache.contains_key(&rep) {
+            anyhow::bail!(
+                "Line {} in {}: rep name '{}' not found in rep table",
+                i + 1,
+                path.display(),
+                rep
+            );
+        }
 
         stmt.execute(rusqlite::params![&value, &rep])?;
 
