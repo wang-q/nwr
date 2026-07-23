@@ -1,25 +1,25 @@
 use super::args;
-use clap::*;
-use lazy_static::lazy_static;
+use clap::{Arg, ArgAction, ArgMatches, Command};
 use log::{debug, info, warn};
 use regex::Regex;
-use simplelog::*;
+use simplelog::{Config, LevelFilter, SimpleLogger};
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufRead;
 use std::io::BufReader;
+use std::sync::LazyLock;
 
-lazy_static! {
-    /// Organism names matching this regex are considered incompetent and skipped.
-    static ref RE_INCOMPETENT: Regex =
-        Regex::new(r"(?xi)\b(uncultured|unidentified|bacterium|archaeon|metagenome)\b")
-            .unwrap();
+/// Organism names matching this regex are considered incompetent and skipped.
+static RE_INCOMPETENT: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?xi)\b(uncultured|unidentified|bacterium|archaeon|metagenome)\b")
+        .unwrap()
+});
 
-    /// Organism names matching this regex are considered viral and skipped.
-    static ref RE_VIRUS: Regex = Regex::new(r"(?xi)(virus|phage)\b").unwrap();
-}
+/// Organism names matching this regex are considered viral and skipped.
+static RE_VIRUS: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?xi)(virus|phage)\b").unwrap());
 
-/// DDL for the assembly report SQLite database.
+/// DDL for the assembly report `SQLite` database.
 static DDL_AR: &str = r"
 DROP TABLE IF EXISTS ar;
 
@@ -63,6 +63,7 @@ const COL_GBRS_PAIRED_ASM: usize = 17;
 const COL_FTP_PATH: usize = 19;
 
 /// Create clap subcommand arguments.
+#[must_use]
 pub fn make_subcommand() -> Command {
     Command::new("ardb")
         .about("Initializes the assembly database")
@@ -148,9 +149,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
         // Field accesses rely on the `fields.len() <= COL_FTP_PATH` skip above,
         // which guarantees every COL_* index is in bounds.
-        let tax_id = fields[COL_TAX_ID].parse::<i64>().map_err(|e| {
-            anyhow::anyhow!("Invalid tax_id at line {}: {}", line_num, e)
-        })?;
+        let tax_id = fields[COL_TAX_ID]
+            .parse::<i64>()
+            .map_err(|e| anyhow::anyhow!("Invalid tax_id at line {line_num}: {e}"))?;
         let organism_name = fields[COL_ORGANISM_NAME];
         let infraspecific_name = fields[COL_INFRASPECIFIC_NAME];
         let bioproject = fields[COL_BIOPROJECT];
@@ -174,18 +175,14 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         // Skip incompetent strains
         if RE_INCOMPETENT.is_match(organism_name) {
             debug!(
-                "Skipping line {}: incompetent organism name '{}'",
-                line_num, organism_name
+                "Skipping line {line_num}: incompetent organism name '{organism_name}'"
             );
             continue;
         }
 
         // Skip viral strains
         if RE_VIRUS.is_match(organism_name) {
-            debug!(
-                "Skipping line {}: viral organism name '{}'",
-                line_num, organism_name
-            );
+            debug!("Skipping line {line_num}: viral organism name '{organism_name}'");
             continue;
         }
 
@@ -193,7 +190,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         let lineage = lineage_cache.entry(tax_id).or_insert_with(|| {
             match nwr::get_lineage(&tx_conn, tax_id) {
                 Err(err) => {
-                    warn!("Errors on get_lineage({}): {}", tax_id, err);
+                    warn!("Errors on get_lineage({tax_id}): {err}");
                     // Use a clearly-marked missing taxon so that find_rank
                     // returns (0, "NA") for species/genus/family.
                     let taxon = nwr::Taxon {

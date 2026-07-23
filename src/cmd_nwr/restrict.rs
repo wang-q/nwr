@@ -1,12 +1,13 @@
 use super::args;
-use clap::*;
+use clap::{Arg, ArgAction, ArgMatches, Command};
 use log::warn;
-use simplelog::*;
+use simplelog::{Config, LevelFilter, SimpleLogger};
 use std::collections::{HashMap, HashSet};
 use std::io::BufRead;
 use std::io::Write;
 
 /// Create clap subcommand arguments.
+#[must_use]
 pub fn make_subcommand() -> Command {
     Command::new("restrict")
         .about("Restricts taxonomy terms to ancestral descendants")
@@ -84,7 +85,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
             // Always output lines start with "#"
             if line.starts_with('#') {
-                writer.write_fmt(format_args!("{}\n", line))?;
+                writer.write_fmt(format_args!("{line}\n"))?;
                 continue;
             }
 
@@ -110,7 +111,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                         x
                     }
                     Err(err) => {
-                        warn!("Error converting term '{}': {}", term, err);
+                        warn!("Error converting term '{term}': {err}");
                         term_failed.insert((*term).to_string());
                         continue;
                     }
@@ -118,7 +119,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             };
 
             if is_exclude ^ id_set.contains(&id) {
-                writer.write_fmt(format_args!("{}\n", line))?;
+                writer.write_fmt(format_args!("{line}\n"))?;
             }
         }
     }

@@ -8,9 +8,9 @@ use std::path::{Path, PathBuf};
 pub struct DownloadPaths {
     /// Local path for the taxonomy dump tarball.
     pub tarball: PathBuf,
-    /// Local path for the RefSeq assembly summary.
+    /// Local path for the `RefSeq` assembly summary.
     pub ar_refseq: PathBuf,
-    /// Local path for the GenBank assembly summary.
+    /// Local path for the `GenBank` assembly summary.
     pub ar_genbank: PathBuf,
     /// Local path for the tarball MD5 checksum file.
     pub md5_file: PathBuf,
@@ -27,11 +27,13 @@ pub fn get_download_paths(nwrdir: &Path) -> anyhow::Result<DownloadPaths> {
 }
 
 /// Check if the taxdump tarball exists locally.
+#[must_use]
 pub fn taxdump_exists(tarball: &Path) -> bool {
     tarball.exists()
 }
 
 /// Check if both assembly report files exist locally.
+#[must_use]
 pub fn assembly_reports_exist(ar_refseq: &Path, ar_genbank: &Path) -> bool {
     ar_refseq.exists() && ar_genbank.exists()
 }
@@ -58,15 +60,13 @@ pub fn check_taxdump_md5(tarball: &Path, md5_file: &Path) -> anyhow::Result<()> 
         ));
     }
 
-    if digest != ncbi_digest {
-        Err(anyhow::anyhow!(
-            "MD5 check failed. Expected: {}, Computed: {}",
-            ncbi_digest,
-            digest
-        ))
-    } else {
+    if digest == ncbi_digest {
         info!("MD5 sum passed");
         Ok(())
+    } else {
+        Err(anyhow::anyhow!(
+            "MD5 check failed. Expected: {ncbi_digest}, Computed: {digest}"
+        ))
     }
 }
 
@@ -222,7 +222,7 @@ pub fn download_taxdump(
     Ok(())
 }
 
-/// Download RefSeq and GenBank assembly summary reports.
+/// Download `RefSeq` and `GenBank` assembly summary reports.
 pub fn download_assembly_reports(
     conn: &mut dyn FtpConnectionTrait,
     paths: &DownloadPaths,
@@ -241,6 +241,7 @@ pub fn download_assembly_reports(
 }
 
 /// Add thousands separators to a non-negative integer represented as a string.
+#[must_use]
 pub fn readable(n: &str) -> String {
     let mut parts: Vec<char> = Vec::with_capacity(n.len() + n.len() / 3);
 

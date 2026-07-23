@@ -1,10 +1,11 @@
 use super::args;
-use clap::*;
+use clap::{Arg, ArgMatches, Command};
 use flate2::read::GzDecoder;
 use std::fs;
 use tar::Archive;
 
 /// Create clap subcommand arguments.
+#[must_use]
 pub fn make_subcommand() -> Command {
     Command::new("kb")
         .about("Extracts bundled knowledge-base archives")
@@ -19,6 +20,9 @@ pub fn make_subcommand() -> Command {
         .arg(args::outdir_arg())
 }
 
+static FILE_BAC: &[u8] = include_bytes!("../../docs/bac120.tar.gz");
+static FILE_AR: &[u8] = include_bytes!("../../docs/ar53.tar.gz");
+
 /// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let infile = args
@@ -27,9 +31,6 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let outdir = args
         .get_one::<String>("outdir")
         .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' argument"))?;
-
-    static FILE_BAC: &[u8] = include_bytes!("../../docs/bac120.tar.gz");
-    static FILE_AR: &[u8] = include_bytes!("../../docs/ar53.tar.gz");
 
     let bytes = match infile.as_str() {
         "bac120" => FILE_BAC,

@@ -2,6 +2,9 @@ use std::collections::HashMap;
 use std::fmt::Write as FmtWrite;
 use std::path::Path;
 
+/// Chunk size for `SQLite` `IN (...)` placeholder limits in [`get_taxon`].
+const CHUNK_SIZE: usize = 900;
+
 /// A single NCBI taxonomy node with its names and lineage metadata.
 #[derive(Debug, Clone, Default)]
 pub struct Taxon {
@@ -21,11 +24,12 @@ pub struct Taxon {
 
 impl Taxon {
     /// Returns the first scientific name associated with this taxon, if any.
+    #[must_use]
     pub fn scientific_name(&self) -> Option<&str> {
         self.names
             .get("scientific name")
             .and_then(|v| v.first())
-            .map(|s| s.as_str())
+            .map(std::string::String::as_str)
     }
 }
 
@@ -43,37 +47,37 @@ impl std::fmt::Display for Taxon {
         if let Some(synonyms) = self.names.get("synonym") {
             lines.push_str("Same as:\n");
             for synonym in synonyms {
-                let _ = writeln!(lines, "* {}", synonym);
+                let _ = writeln!(lines, "* {synonym}");
             }
         }
 
         if let Some(genbank_names) = self.names.get("genbank common name") {
             if let Some(genbank) = genbank_names.first() {
-                let _ = writeln!(lines, "Commonly named {}.", genbank);
+                let _ = writeln!(lines, "Commonly named {genbank}.");
             }
         }
 
         if let Some(common_names) = self.names.get("common name") {
             lines.push_str("Also known as:\n");
             for name in common_names {
-                let _ = writeln!(lines, "* {}", name);
+                let _ = writeln!(lines, "* {name}");
             }
         }
 
         if let Some(authorities) = self.names.get("authority") {
             lines.push_str("First description:\n");
             for authority in authorities {
-                let _ = writeln!(lines, "* {}", authority);
+                let _ = writeln!(lines, "* {authority}");
             }
         }
 
         let _ = writeln!(lines, "Part of the {}.", self.division);
 
         if let Some(ref comments) = self.comments {
-            let _ = writeln!(lines, "\nComments: {}", comments);
+            let _ = writeln!(lines, "\nComments: {comments}");
         }
 
-        write!(f, "{}", lines)
+        write!(f, "{lines}")
     }
 }
 
@@ -112,11 +116,8 @@ pub fn get_nwr_dir(
     args: &clap::ArgMatches,
     arg_name: &str,
 ) -> anyhow::Result<std::path::PathBuf> {
-    if let Some(dir) = args.get_one::<String>(arg_name) {
-        Ok(Path::new(dir).to_path_buf())
-    } else {
-        nwr_path()
-    }
+    args.get_one::<String>(arg_name)
+        .map_or_else(nwr_path, |dir| Ok(Path::new(dir).to_path_buf()))
 }
 
 /// Connect taxonomy.sqlite in this dir
@@ -170,7 +171,7 @@ pub fn get_tax_id(
         if let Some(row) = rows.next()? {
             tax_ids.push(row.get(0)?);
         } else {
-            return Err(anyhow::anyhow!("No such name: {}", name));
+            return Err(anyhow::anyhow!("No such name: {name}"));
         }
     }
 
@@ -200,12 +201,6 @@ pub fn get_taxon(
         return Ok(vec![]);
     }
 
-    // Chunk ids to stay below SQLite's bound-variable limit (999 by default,
-    // 32766 on newer builds). Large clades such as Bacteria yield hundreds of
-    // thousands of ids via `get_all_descendent`, which would otherwise exceed
-    // the limit and fail at runtime.
-    const CHUNK_SIZE: usize = 900;
-
     let mut taxa_map: HashMap<i64, Taxon> = HashMap::new();
 
     // Deduplicate ids before querying so that the same tax_id is never fetched
@@ -231,10 +226,8 @@ pub fn get_taxon(
             FROM node
                 INNER JOIN name ON node.tax_id = name.tax_id
                 INNER JOIN division ON node.division_id = division.id
-            WHERE node.tax_id IN ({})
-            ORDER BY name.name
-            ",
-            placeholders
+            WHERE node.tax_id IN ({placeholders})
+            "
         );
 
         let mut stmt = conn.prepare(&sql)?;
@@ -277,12 +270,12 @@ pub fn get_taxon(
         let taxon = if has_duplicates {
             taxa_map
                 .get(id)
-                .ok_or_else(|| anyhow::anyhow!("No such ID: {}", id))?
+                .ok_or_else(|| anyhow::anyhow!("No such ID: {id}"))?
                 .clone()
         } else {
             taxa_map
                 .remove(id)
-                .ok_or_else(|| anyhow::anyhow!("No such ID: {}", id))?
+                .ok_or_else(|| anyhow::anyhow!("No such ID: {id}"))?
         };
         taxa.push(taxon);
     }
@@ -319,15 +312,13 @@ pub fn get_ancestor(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Taxo
     // node that is its own parent indicates corrupt data; bail out instead of
     // returning the node itself as its own ancestor.
     if parent_id == id {
-        anyhow::bail!("Taxon {} is its own parent (not root)", id);
+        anyhow::bail!("Taxon {id} is its own parent (not root)");
     }
 
     let ancestor = get_taxon(conn, &[parent_id])?
         .into_iter()
         .next()
-        .ok_or_else(|| {
-            anyhow::anyhow!("No ancestor found for parent ID {}", parent_id)
-        })?;
+        .ok_or_else(|| anyhow::anyhow!("No ancestor found for parent ID {parent_id}"))?;
 
     Ok(ancestor)
 }
@@ -370,15 +361,13 @@ pub fn get_lineage(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<T
         // Only the canonical root (tax_id 1) may be self-referential.
         if parent_id == id {
             return Err(anyhow::anyhow!(
-                "Taxonomy cycle detected: tax_id {} is its own parent",
-                id
+                "Taxonomy cycle detected: tax_id {id} is its own parent"
             ));
         }
 
         if !seen.insert(parent_id) {
             return Err(anyhow::anyhow!(
-                "Taxonomy cycle detected involving tax_id {}",
-                parent_id
+                "Taxonomy cycle detected involving tax_id {parent_id}"
             ));
         }
 
@@ -466,8 +455,7 @@ pub fn get_all_descendent(
     while let Some(id) = temp_ids.pop() {
         if !seen.insert(id) {
             return Err(anyhow::anyhow!(
-                "Taxonomy cycle detected involving tax_id {}",
-                id
+                "Taxonomy cycle detected involving tax_id {id}"
             ));
         }
         ids.push(id);
@@ -488,7 +476,7 @@ pub fn get_all_descendent(
 }
 
 /// Convert terms to Taxonomy IDs
-/// Accepted forms: ID; "scientific name"; scientific_name
+/// Accepted forms: ID; "scientific name"; `scientific_name`
 ///
 /// ```
 /// let path = std::path::PathBuf::from("tests/nwr/");
@@ -509,14 +497,13 @@ pub fn get_all_descendent(
 pub fn term_to_tax_id(conn: &rusqlite::Connection, term: &str) -> anyhow::Result<i64> {
     let term = term.trim().replace('_', " ");
 
-    let id: i64 = match term.parse::<i64>() {
-        Ok(n) => n,
-        Err(_) => {
-            let ids = get_tax_id(conn, &[term])?;
-            ids.into_iter()
-                .next()
-                .ok_or_else(|| anyhow::anyhow!("No tax ID found for term"))?
-        }
+    let id: i64 = if let Ok(n) = term.parse::<i64>() {
+        n
+    } else {
+        let ids = get_tax_id(conn, &[term])?;
+        ids.into_iter()
+            .next()
+            .ok_or_else(|| anyhow::anyhow!("No tax ID found for term"))?
     };
 
     Ok(id)
@@ -537,8 +524,9 @@ pub fn term_to_tax_id(conn: &rusqlite::Connection, term: &str) -> anyhow::Result
 /// assert_eq!(species_id, 12340);
 /// assert_eq!(species_name, "Enterobacteria phage 933J");
 /// ```
+#[must_use]
 pub fn find_rank<'a>(lineage: &'a [Taxon], rank: &str) -> (i64, &'a str) {
-    for node in lineage.iter() {
+    for node in lineage {
         if node.rank == rank {
             return (node.tax_id, node.scientific_name().unwrap_or("NA"));
         }

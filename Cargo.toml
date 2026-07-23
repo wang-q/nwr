@@ -20,7 +20,6 @@ path = "src/nwr.rs"
 clap = { version = "4.4.3", features = ["cargo"] }
 anyhow = "1.0.75"
 regex = "1.9.5"
-lazy_static = "1.4.0"
 tera = "1.19.1"
 
 flate2 = "1.0.27"

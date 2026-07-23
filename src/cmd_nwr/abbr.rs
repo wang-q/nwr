@@ -1,10 +1,11 @@
 use super::args;
-use clap::*;
+use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
 use std::collections::HashSet;
 use std::io::BufRead;
 use std::io::Write;
 
 /// Create clap subcommand arguments
+#[must_use]
 pub fn make_subcommand() -> Command {
     Command::new("abbr")
         .about("Abbreviates strain scientific names")
@@ -65,7 +66,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         .split(',')
         .map(|s| {
             s.parse()
-                .map_err(|_| anyhow::anyhow!("Invalid column number: '{}'", s))
+                .map_err(|_| anyhow::anyhow!("Invalid column number: '{s}'"))
         })
         .collect::<anyhow::Result<Vec<_>>>()?;
     if cols.len() != 3 {
@@ -115,7 +116,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 all_parts.push(parts);
             }
             None => {
-                eprintln!("Warning: skipping malformed line: {}", line);
+                eprintln!("Warning: skipping malformed line: {line}");
             }
         }
     }
@@ -150,9 +151,9 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             let sp = species_abbr.get(&parts.species).unwrap_or(&parts.species);
 
             let ge_sp = if parts.species.is_empty() {
-                ge.to_string()
+                ge.clone()
             } else {
-                format!("{}{}{}", ge, spacer, sp)
+                format!("{ge}{spacer}{sp}")
             };
 
             if parts.strain.is_empty() {
@@ -164,7 +165,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             parts.strain.clone()
         };
 
-        writer.write_fmt(format_args!("{}\t{}\n", original_line, abbr))?;
+        writer.write_fmt(format_args!("{original_line}\t{abbr}\n"))?;
     }
     writer.flush()?;
 

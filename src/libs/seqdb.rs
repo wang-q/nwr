@@ -17,9 +17,7 @@ pub fn rep_clear_sql(field: &str) -> anyhow::Result<&'static str> {
         "f8" => "UPDATE rep SET f8 = NULL;",
         _ => {
             anyhow::bail!(
-                "Invalid rep field '{}'. Valid fields are: {:?}",
-                field,
-                VALID_REP_FIELDS
+                "Invalid rep field '{field}'. Valid fields are: {VALID_REP_FIELDS:?}"
             )
         }
     };
@@ -39,9 +37,7 @@ pub fn rep_update_sql(field: &str) -> anyhow::Result<&'static str> {
         "f8" => "UPDATE rep SET f8 = ?1 WHERE rep.name = ?2",
         _ => {
             anyhow::bail!(
-                "Invalid rep field '{}'. Valid fields are: {:?}",
-                field,
-                VALID_REP_FIELDS
+                "Invalid rep field '{field}'. Valid fields are: {VALID_REP_FIELDS:?}"
             )
         }
     };
@@ -90,7 +86,7 @@ fn ensure_exists(
     Ok(())
 }
 
-/// DDL for the seq SQLite database.
+/// DDL for the seq `SQLite` database.
 // https://stackoverflow.com/questions/58684279/can-an-index-on-a-text-column-speed-up-prefix-based-like-queries
 pub static DDL_SEQ: &str = r"
 CREATE TABLE rank (

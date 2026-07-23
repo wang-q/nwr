@@ -1,7 +1,7 @@
 use super::args;
-use clap::*;
+use clap::{Arg, ArgMatches, Command};
 use log::info;
-use simplelog::*;
+use simplelog::{Config, LevelFilter, SimpleLogger};
 
 use nwr::libs::download::{
     assembly_reports_exist, check_taxdump_md5, download_assembly_reports,
@@ -10,6 +10,7 @@ use nwr::libs::download::{
 };
 
 /// Create clap subcommand arguments
+#[must_use]
 pub fn make_subcommand() -> Command {
     Command::new("download")
         .about("Downloads the latest releases of `taxdump` and assembly reports")
@@ -56,7 +57,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let paths = get_download_paths(&nwrdir)?;
 
     // Download taxdump
-    info!("==> Downloading from {} ...", host);
+    info!("==> Downloading from {host} ...");
     if taxdump_exists(&paths.tarball) && paths.md5_file.exists() {
         info!("Skipping, {} exists", paths.tarball.to_string_lossy());
     } else {
@@ -85,7 +86,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     extract_taxdump(&paths.tarball, &nwrdir)?;
 
     // Assembly reports
-    info!("==> Downloading from {} ...", host);
+    info!("==> Downloading from {host} ...");
     if assembly_reports_exist(&paths.ar_refseq, &paths.ar_genbank) {
         info!(
             "Skipping, {} & {} exist",
@@ -104,7 +105,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     info!("File sizes:");
     for size_line in format_file_sizes(&paths)? {
-        info!("{}", size_line);
+        info!("{size_line}");
     }
 
     Ok(())

@@ -1,13 +1,14 @@
 use super::args;
-use clap::*;
+use clap::{Arg, ArgAction, ArgMatches, Command};
 use log::warn;
-use simplelog::*;
+use simplelog::{Config, LevelFilter, SimpleLogger};
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
 use std::io::BufRead;
 use std::io::Write;
 
 /// Create clap subcommand arguments.
+#[must_use]
 pub fn make_subcommand() -> Command {
     Command::new("append")
         .about("Appends taxonomic rank fields to a TSV file")
@@ -75,28 +76,32 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
             // Lines start with "#"
             if line.starts_with('#') {
-                let mut fields: Vec<String> =
-                    line.split('\t').map(|s| s.to_string()).collect();
+                let mut fields: Vec<String> = line
+                    .split('\t')
+                    .map(std::string::ToString::to_string)
+                    .collect();
                 if ranks.is_empty() {
                     fields.push("sci_name".to_string());
                     if is_id {
                         fields.push("tax_id".to_string());
                     }
                 } else {
-                    for rank in ranks.iter() {
-                        fields.push(rank.to_string());
+                    for rank in &ranks {
+                        fields.push(rank.clone());
                         if is_id {
-                            fields.push(format!("{}_id", rank));
+                            fields.push(format!("{rank}_id"));
                         }
                     }
                 }
                 let new_line: String = fields.join("\t");
-                writer.write_fmt(format_args!("{}\n", new_line))?;
+                writer.write_fmt(format_args!("{new_line}\n"))?;
                 continue;
             }
 
-            let mut fields: Vec<String> =
-                line.split('\t').map(|s| s.to_string()).collect();
+            let mut fields: Vec<String> = line
+                .split('\t')
+                .map(std::string::ToString::to_string)
+                .collect();
             // Normal lines
             // Check the given field
             let term = fields.get(column - 1).ok_or_else(|| {
@@ -119,7 +124,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                         x
                     }
                     Err(err) => {
-                        warn!("Error converting term '{}': {}", term, err);
+                        warn!("Error converting term '{term}': {err}");
                         term_failed.insert(term.clone());
                         continue 'line;
                     }
@@ -134,22 +139,19 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                     match nwr::get_taxon(&conn, &[id]) {
                         Ok(x) => {
                             let n = x.into_iter().next().ok_or_else(|| {
-                                anyhow::anyhow!(
-                                    "get_taxon returned no taxa for id {}",
-                                    id
-                                )
+                                anyhow::anyhow!("get_taxon returned no taxa for id {id}")
                             })?;
                             e.insert(n);
                         }
                         Err(err) => {
-                            warn!("Error getting taxon {}: {}", id, err);
+                            warn!("Error getting taxon {id}: {err}");
                             taxon_failed.insert(id);
                             continue 'line;
                         }
                     }
                 }
                 let node = taxon_cache.get(&id).ok_or_else(|| {
-                    anyhow::anyhow!("taxon for id {} missing from cache", id)
+                    anyhow::anyhow!("taxon for id {id} missing from cache")
                 })?;
                 let s = node.scientific_name().unwrap_or("Unknown").to_string();
 
@@ -164,7 +166,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 if let Entry::Vacant(e) = lineage_cache.entry(id) {
                     match nwr::get_lineage(&conn, id) {
                         Err(err) => {
-                            warn!("Errors on get_lineage({}): {}", id, err);
+                            warn!("Errors on get_lineage({id}): {err}");
                             lineage_failed.insert(id);
                             continue 'line;
                         }
@@ -174,10 +176,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                     }
                 }
                 let lineage = lineage_cache.get(&id).ok_or_else(|| {
-                    anyhow::anyhow!("lineage for id {} missing from cache", id)
+                    anyhow::anyhow!("lineage for id {id} missing from cache")
                 })?;
 
-                for rank in ranks.iter() {
+                for rank in &ranks {
                     let (tax_id, sci_name) = nwr::find_rank(lineage, rank);
                     fields.push(sci_name.to_string());
                     if is_id {
@@ -187,7 +189,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             }
 
             let new_line: String = fields.join("\t");
-            writer.write_fmt(format_args!("{}\n", new_line))?;
+            writer.write_fmt(format_args!("{new_line}\n"))?;
         }
     }
     writer.flush()?;

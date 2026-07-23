@@ -1,8 +1,9 @@
 use super::args;
-use clap::*;
+use clap::{Arg, ArgMatches, Command};
 use std::io::Write;
 
 /// Create clap subcommand arguments.
+#[must_use]
 pub fn make_subcommand() -> Command {
     Command::new("lineage")
         .about("Outputs the lineage of the term")
@@ -34,7 +35,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let id = nwr::term_to_tax_id(&conn, term)?;
     let lineage = nwr::get_lineage(&conn, id)?;
 
-    for node in lineage.iter() {
+    for node in &lineage {
         let sci_name = node.scientific_name().unwrap_or("Unknown");
         writer.write_fmt(format_args!(
             "{}\t{}\t{}\n",

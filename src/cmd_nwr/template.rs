@@ -1,11 +1,12 @@
 use super::args;
-use clap::*;
+use clap::{value_parser, Arg, ArgAction, ArgMatches, Command};
 use std::collections::{BTreeMap, HashSet};
 use std::fs;
 use std::io::BufRead;
 use tera::{Context, Tera};
 
 /// Create clap subcommand arguments.
+#[must_use]
 pub fn make_subcommand() -> Command {
     Command::new("template")
         .about("Creates dirs, data and scripts for a phylogenomic research")
@@ -248,8 +249,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
                 && !seen_names.insert(name.to_string())
             {
                 eprintln!(
-                    "Warning: duplicate strain name '{}', overwriting previous entry",
-                    name
+                    "Warning: duplicate strain name '{name}', overwriting previous entry"
                 );
             }
 
@@ -263,8 +263,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             if do_bs && !sample.is_empty() {
                 if bs_name_of.contains_key(sample) {
                     eprintln!(
-                        "Warning: duplicate sample name '{}', overwriting previous entry",
-                        sample
+                        "Warning: duplicate sample name '{sample}', overwriting previous entry"
                     );
                 }
                 bs_name_of.insert(sample.to_string(), name.to_string());
@@ -357,7 +356,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     if do_ass {
         if !stdout_mode {
-            fs::create_dir_all(format!("{}/ASSEMBLY", outdir))?;
+            fs::create_dir_all(format!("{outdir}/ASSEMBLY"))?;
         }
         nwr::libs::template::gen_ass_data(&context)?;
         nwr::libs::template::render_shell_script(
@@ -406,7 +405,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     if do_bs {
         if !stdout_mode {
-            fs::create_dir_all(format!("{}/BioSample", outdir))?;
+            fs::create_dir_all(format!("{outdir}/BioSample"))?;
         }
         nwr::libs::template::gen_bs_data(&context)?;
         nwr::libs::template::render_shell_script(
@@ -427,7 +426,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     if do_mh {
         if !stdout_mode {
-            fs::create_dir_all(format!("{}/MinHash", outdir))?;
+            fs::create_dir_all(format!("{outdir}/MinHash"))?;
         }
         nwr::libs::template::gen_mh_data(&context)?;
         nwr::libs::template::render_shell_script(
@@ -462,7 +461,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     if do_count {
         if !stdout_mode {
-            fs::create_dir_all(format!("{}/Count", outdir))?;
+            fs::create_dir_all(format!("{outdir}/Count"))?;
         }
         nwr::libs::template::gen_count_data(&context)?;
         nwr::libs::template::render_shell_script(
@@ -490,7 +489,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     if do_pro {
         if !stdout_mode {
-            fs::create_dir_all(format!("{}/Protein", outdir))?;
+            fs::create_dir_all(format!("{outdir}/Protein"))?;
         }
         nwr::libs::template::gen_pro_data(&context)?;
         nwr::libs::template::render_shell_script(

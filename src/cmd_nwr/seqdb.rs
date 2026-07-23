@@ -1,6 +1,6 @@
-use clap::*;
+use clap::{Arg, ArgAction, ArgMatches, Command};
 use log::info;
-use simplelog::*;
+use simplelog::{Config, LevelFilter, SimpleLogger};
 use std::fs::File;
 use std::path::PathBuf;
 
@@ -21,16 +21,17 @@ fn opt_path(
     default: &str,
 ) -> Option<PathBuf> {
     if args.contains_id(name) {
-        Some(match args.get_one::<String>(name) {
-            Some(path) => PathBuf::from(path),
-            None => dir.join(default),
-        })
+        Some(
+            args.get_one::<String>(name)
+                .map_or_else(|| dir.join(default), PathBuf::from),
+        )
     } else {
         None
     }
 }
 
 /// Create clap subcommand arguments.
+#[must_use]
 pub fn make_subcommand() -> Command {
     Command::new("seqdb")
         .about("Initializes the seq database")
@@ -115,12 +116,10 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         let field = &rep[..pos];
         if !VALID_REP_FIELDS.contains(&field) {
             anyhow::bail!(
-                "Invalid rep field '{}'. Valid fields are: {:?}",
-                field,
-                VALID_REP_FIELDS
+                "Invalid rep field '{field}'. Valid fields are: {VALID_REP_FIELDS:?}"
             );
         }
-        Some((rep[..pos].to_string(), PathBuf::from(&rep[pos + 1..])))
+        Some((field.to_string(), PathBuf::from(&rep[pos + 1..])))
     } else {
         None
     };

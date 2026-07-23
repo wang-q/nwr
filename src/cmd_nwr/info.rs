@@ -1,8 +1,9 @@
 use super::args;
-use clap::*;
+use clap::{Arg, ArgAction, ArgMatches, Command};
 use std::io::Write;
 
 /// Create clap subcommand arguments.
+#[must_use]
 pub fn make_subcommand() -> Command {
     Command::new("info")
         .about("Shows information of Taxonomy ID(s) or scientific name(s)")
@@ -48,7 +49,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             .from_writer(writer);
 
         wtr.write_record(["#tax_id", "sci_name", "rank", "division"])?;
-        for node in nodes.iter() {
+        for node in &nodes {
             let sci_name = node.scientific_name().unwrap_or("Unknown");
             wtr.serialize((node.tax_id, sci_name, &node.rank, &node.division))?;
         }
@@ -58,7 +59,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
             if i > 0 {
                 writer.write_all(b"\n")?;
             }
-            writer.write_fmt(format_args!("{}", node))?;
+            writer.write_fmt(format_args!("{node}"))?;
         }
         writer.flush()?;
     }

@@ -1,6 +1,6 @@
-use lazy_static::lazy_static;
 use regex::Regex;
 use std::collections::HashMap;
+use std::sync::LazyLock;
 
 /// Common subspecies designation terms removed by [`clean_subspecies`].
 pub const SUBSPECIES_TERMS: &[&str] = &[
@@ -27,8 +27,8 @@ pub const SUBSPECIES_TERMS: &[&str] = &[
     "isolate",
 ];
 
-lazy_static! {
-    static ref SUBSPECIES_REGEXS: Regex = Regex::new(&format!(
+static SUBSPECIES_REGEXS: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(&format!(
         r"(?xi)\b({})\b",
         SUBSPECIES_TERMS
             .iter()
@@ -36,11 +36,12 @@ lazy_static! {
             .collect::<Vec<_>>()
             .join("|")
     ))
-    .unwrap();
+    .unwrap()
+});
 
-    /// Matches the "Candidatus" prefix case-insensitively for abbreviation.
-    static ref RE_CANDIDATUS: Regex = Regex::new(r"(?i)Candidatus ").unwrap();
-}
+/// Matches the "Candidatus" prefix case-insensitively for abbreviation.
+static RE_CANDIDATUS: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"(?i)Candidatus ").unwrap());
 
 /// Parsed name parts extracted from an input line.
 pub struct NameParts {
@@ -54,10 +55,11 @@ pub struct NameParts {
     pub is_normal: bool,
 }
 
-/// Generate unique abbreviations for a list of words (similar to Perl's Text::Abbrev).
+/// Generate unique abbreviations for a list of words (similar to Perl's `Text::Abbrev`).
 ///
 /// For each word, generates all possible abbreviations from `min_len` to the full word length.
 /// An abbreviation is valid only if it uniquely identifies a single word.
+#[must_use]
 pub fn abbr(words: &[String], min_len: usize) -> HashMap<String, String> {
     let mut result = HashMap::new();
     let mut table: HashMap<String, usize> = HashMap::new();
@@ -96,6 +98,7 @@ pub fn abbr(words: &[String], min_len: usize) -> HashMap<String, String> {
 /// Builds on [`abbr`] to find the shortest prefix that uniquely identifies
 /// each word. When `avoid_one_char_saving` is true, avoids abbreviating words
 /// that differ by only one character.
+#[must_use]
 pub fn abbr_most(
     words: &[String],
     min_len: usize,
@@ -160,6 +163,7 @@ pub fn abbr_most(
 ///
 /// Removes leading and trailing underscores, and collapses consecutive
 /// underscores into a single one.
+#[must_use]
 pub fn clean_name(name: &str) -> String {
     let cleaned: String = name
         .chars()
@@ -177,6 +181,7 @@ pub fn clean_name(name: &str) -> String {
 ///
 /// Removes common subspecies designation terms like "subsp", "strain", "serovar",
 /// etc. from strain names to produce cleaner abbreviations.
+#[must_use]
 pub fn clean_subspecies(strain: &str) -> String {
     SUBSPECIES_REGEXS.replace_all(strain, "").to_string()
 }
@@ -185,6 +190,7 @@ pub fn clean_subspecies(strain: &str) -> String {
 ///
 /// Parses a line using the specified separator and column indices to extract
 /// strain, species, and genus information.
+#[must_use]
 pub fn process_line(
     line: &str,
     columns: (usize, usize, usize),
@@ -199,7 +205,10 @@ pub fn process_line(
         return None;
     }
 
-    let fields: Vec<String> = line.split(separator).map(|s| s.to_string()).collect();
+    let fields: Vec<String> = line
+        .split(separator)
+        .map(std::string::ToString::to_string)
+        .collect();
     // Require enough fields for the largest requested column index; columns
     // may be in any order (e.g. `--columns 3,2,1`), so checking only
     // `columns.2` would under-validate.
@@ -217,11 +226,7 @@ pub fn process_line(
     let mut species_clean = species.clone();
     let mut genus_clean = genus.clone();
 
-    let genus_starts_alpha = genus
-        .chars()
-        .next()
-        .map(|c| c.is_alphabetic())
-        .unwrap_or(false);
+    let genus_starts_alpha = genus.chars().next().is_some_and(char::is_alphabetic);
 
     if genus != species
         && genus_starts_alpha

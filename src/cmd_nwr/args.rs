@@ -7,6 +7,7 @@
 use clap::{Arg, ArgAction};
 
 /// `--dir` (`-d`) option pointing at the NWR data directory.
+#[must_use]
 pub fn dir_arg() -> Arg {
     Arg::new("dir")
         .long("dir")
@@ -17,6 +18,7 @@ pub fn dir_arg() -> Arg {
 }
 
 /// `--outfile` (`-o`) option for output file path (defaults to stdout).
+#[must_use]
 pub fn outfile_arg() -> Arg {
     Arg::new("outfile")
         .short('o')
@@ -27,6 +29,7 @@ pub fn outfile_arg() -> Arg {
 }
 
 /// `--rank` (`-r`) option for taxonomic rank(s), repeatable.
+#[must_use]
 pub fn rank_arg() -> Arg {
     Arg::new("rank")
         .long("rank")
@@ -38,6 +41,7 @@ pub fn rank_arg() -> Arg {
 
 /// `--column` (`-c`) option for 1-based column index (defaults to 1).
 /// Rejects 0 at CLI parse time so users get an immediate, targeted error.
+#[must_use]
 pub fn column_arg() -> Arg {
     Arg::new("column")
         .long("column")
@@ -49,6 +53,7 @@ pub fn column_arg() -> Arg {
 }
 
 /// `--outdir` option for output directory (defaults to current directory).
+#[must_use]
 pub fn outdir_arg() -> Arg {
     Arg::new("outdir")
         .long("outdir")
@@ -58,6 +63,7 @@ pub fn outdir_arg() -> Arg {
 }
 
 /// Positional `terms` argument: required, multi-value, index 1.
+#[must_use]
 pub fn terms_arg(help: &'static str) -> Arg {
     Arg::new("terms")
         .help(help)
@@ -67,6 +73,7 @@ pub fn terms_arg(help: &'static str) -> Arg {
 }
 
 /// Positional `infiles` argument: required, multi-value, index 1.
+#[must_use]
 pub fn infiles_arg(help: &'static str) -> Arg {
     Arg::new("infiles")
         .help(help)

@@ -35,7 +35,7 @@ pub fn writer(output: &str) -> anyhow::Result<Box<dyn Write>> {
         Ok(Box::new(std::io::BufWriter::new(std::io::stdout())))
     } else {
         let file = std::fs::File::create(output)
-            .map_err(|e| anyhow::anyhow!("Could not create {}: {}", output, e))?;
+            .map_err(|e| anyhow::anyhow!("Could not create {output}: {e}"))?;
         Ok(Box::new(std::io::BufWriter::new(file)))
     }
 }

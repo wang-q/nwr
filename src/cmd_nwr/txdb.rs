@@ -1,10 +1,10 @@
 use super::args;
-use clap::*;
+use clap::{ArgMatches, Command};
 use log::{debug, info};
-use simplelog::*;
+use simplelog::{Config, LevelFilter, SimpleLogger};
 use std::fs::File;
 
-/// DDL for the NCBI taxonomy SQLite database.
+/// DDL for the NCBI taxonomy `SQLite` database.
 static DDL_TX: &str = r"
 DROP TABLE IF EXISTS division;
 DROP TABLE IF EXISTS node;
@@ -39,6 +39,7 @@ CREATE TABLE name (
 ";
 
 /// Create clap subcommand arguments.
+#[must_use]
 pub fn make_subcommand() -> Command {
     Command::new("txdb")
         .about("Initializes the taxonomy database")

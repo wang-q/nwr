@@ -1,8 +1,9 @@
 use super::args;
-use clap::*;
+use clap::{Arg, ArgAction, ArgMatches, Command};
 use std::collections::HashSet;
 
 /// Create clap subcommand arguments.
+#[must_use]
 pub fn make_subcommand() -> Command {
     Command::new("member")
         .about("Lists members (of certain ranks) under ancestral term(s)")
@@ -49,7 +50,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     let mut rank_set: HashSet<String> = HashSet::new();
     for rank in &ranks {
-        rank_set.insert(rank.to_string());
+        rank_set.insert(rank.clone());
     }
 
     // Track seen tax_ids so that overlapping ancestor terms (e.g. "Viruses"
@@ -61,7 +62,7 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         let descendents = nwr::get_all_descendent(&conn, id)?;
         let nodes = nwr::get_taxon(&conn, &descendents)?;
 
-        for node in nodes.iter() {
+        for node in &nodes {
             if !seen.insert(node.tax_id) {
                 continue;
             }
