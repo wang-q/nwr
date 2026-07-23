@@ -39,9 +39,6 @@ csv = "1.2.2"
 [dev-dependencies]
 assert_cmd = "2.0.12"
 predicates = "3.0.3"
-rand = "0.8.5"
-criterion = "0.5.1"
-approx = "0.5.1"
 tempfile = "3.8.0"
 mockall = "0.12.1"
 
