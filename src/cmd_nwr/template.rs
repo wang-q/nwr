@@ -286,6 +286,28 @@ pub fn make_subcommand() -> Command {
 
 /// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
+    const ASS_COLUMNS: &[&str] = &[
+        "Organism_name",
+        "Taxid",
+        "Assembly_name",
+        "Infraspecific_name",
+        "BioSample",
+        "BioProject",
+        "Submitter",
+        "Date",
+        "Assembly_type",
+        "Release_type",
+        "Assembly_level",
+        "Genome_representation",
+        "WGS_project",
+        "Assembly_method",
+        "Genome_coverage",
+        "Sequencing_technology",
+        "RefSeq_category",
+        "RefSeq_assembly_accession",
+        "GenBank_assembly_accession",
+    ];
+
     let outdir = args
         .get_one::<String>("outdir")
         .ok_or_else(|| anyhow::anyhow!("Missing 'outdir' argument"))?;
@@ -526,27 +548,6 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
 
     context.insert("pro_species_of", &pro_species_of);
 
-    const ASS_COLUMNS: &[&str] = &[
-        "Organism_name",
-        "Taxid",
-        "Assembly_name",
-        "Infraspecific_name",
-        "BioSample",
-        "BioProject",
-        "Submitter",
-        "Date",
-        "Assembly_type",
-        "Release_type",
-        "Assembly_level",
-        "Genome_representation",
-        "WGS_project",
-        "Assembly_method",
-        "Genome_coverage",
-        "Sequencing_technology",
-        "RefSeq_category",
-        "RefSeq_assembly_accession",
-        "GenBank_assembly_accession",
-    ];
     context.insert("ass_columns", &ASS_COLUMNS);
 
     //----------------------------

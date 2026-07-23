@@ -1,4 +1,4 @@
-/// Apply PRAGMA settings tuned for bulk import into a fresh SQLite database.
+/// Apply PRAGMA settings tuned for bulk import into a fresh `SQLite` database.
 ///
 /// Disables journaling and synchronous writes, increases the cache size, and
 /// keeps temporary data in memory. This should only be used when the database

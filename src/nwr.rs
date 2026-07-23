@@ -1,3 +1,5 @@
+//! `nwr` - NCBI taxonomy and assembly wrangler.
+
 use clap::{crate_authors, crate_version, ColorChoice, Command};
 
 pub mod cmd_nwr;

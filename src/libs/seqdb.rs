@@ -169,14 +169,13 @@ pub fn insert_strain(
         let strain: String = record[0].trim().to_string();
         let rank: String = record[1].trim().to_string();
 
-        let rank_id = match rank_cache.get(&rank) {
-            Some(&id) => id,
-            None => {
-                rank_insert.execute([&rank])?;
-                let id = conn.last_insert_rowid();
-                rank_cache.insert(rank.clone(), id);
-                id
-            }
+        let rank_id = if let Some(&id) = rank_cache.get(&rank) {
+            id
+        } else {
+            rank_insert.execute([&rank])?;
+            let id = conn.last_insert_rowid();
+            rank_cache.insert(rank.clone(), id);
+            id
         };
 
         asm_stmt.execute(rusqlite::params![&strain, rank_id])?;
@@ -272,14 +271,13 @@ pub fn insert_clust(
             )
         })?;
 
-        let rep_id = match rep_cache.get(&rep) {
-            Some(&id) => id,
-            None => {
-                rep_insert.execute([&rep])?;
-                let id = conn.last_insert_rowid();
-                rep_cache.insert(rep.clone(), id);
-                id
-            }
+        let rep_id = if let Some(&id) = rep_cache.get(&rep) {
+            id
+        } else {
+            rep_insert.execute([&rep])?;
+            let id = conn.last_insert_rowid();
+            rep_cache.insert(rep.clone(), id);
+            id
         };
 
         rep_seq_stmt.execute(rusqlite::params![rep_id, seq_id])?;

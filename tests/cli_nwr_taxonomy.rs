@@ -37,6 +37,37 @@ fn command_info() -> anyhow::Result<()> {
 }
 
 #[test]
+fn command_info_invalid_term() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("info")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("not_a_real_taxon_name")
+        .output()
+        .unwrap();
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("No such name"));
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("info")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("999999999")
+        .output()
+        .unwrap();
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("No such ID"));
+
+    Ok(())
+}
+
+#[test]
 fn command_info_duplicate_terms() -> anyhow::Result<()> {
     let mut cmd = Command::cargo_bin("nwr")?;
     let output = cmd
@@ -75,6 +106,24 @@ fn command_lineage() -> anyhow::Result<()> {
 
     assert_eq!(stdout.lines().count(), 4);
     assert!(stdout.contains("Viruses\t10239"), "super kingdom");
+
+    Ok(())
+}
+
+#[test]
+fn command_lineage_invalid_term() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("lineage")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("not_a_real_taxon_name")
+        .output()
+        .unwrap();
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("No such name"));
 
     Ok(())
 }
@@ -192,6 +241,26 @@ fn command_restrict_e() -> anyhow::Result<()> {
 
     assert_eq!(stdout.lines().count(), 3);
     assert!(!stdout.contains("Actinophage JHJ-1\t12347"), "virus");
+
+    Ok(())
+}
+
+#[test]
+fn command_member_invalid_term() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("member")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("not_a_real_taxon_name")
+        .arg("-r")
+        .arg("species")
+        .output()
+        .unwrap();
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("No such name"));
 
     Ok(())
 }
@@ -380,6 +449,25 @@ fn command_restrict_skips_whitespace_lines() -> anyhow::Result<()> {
     assert!(output.status.success());
     let stdout = String::from_utf8(output.stdout).unwrap();
     assert_eq!(stdout.lines().count(), 2, "header plus valid line");
+
+    Ok(())
+}
+
+#[test]
+fn command_common_invalid_term() -> anyhow::Result<()> {
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("common")
+        .arg("--dir")
+        .arg("tests/nwr/")
+        .arg("not_a_real_taxon_name")
+        .arg("Bacillus phage bg1")
+        .output()
+        .unwrap();
+
+    assert!(!output.status.success());
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(stderr.contains("No such name"));
 
     Ok(())
 }

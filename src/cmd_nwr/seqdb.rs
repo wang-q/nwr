@@ -90,7 +90,7 @@ pub fn make_subcommand() -> Command {
 
 /// Load a TSV file into the database when `opt` is present.
 fn load_file<F>(
-    opt: &Option<PathBuf>,
+    opt: Option<&PathBuf>,
     description: &str,
     insert: F,
     conn: &rusqlite::Connection,
@@ -176,11 +176,21 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         );
     }
 
-    load_file(&opt_strain, "to `rank` and `asm`", insert_strain, &conn)?;
-    load_file(&opt_size, "to `seq`", insert_size, &conn)?;
-    load_file(&opt_clust, "to `rep` and `rep_seq`", insert_clust, &conn)?;
-    load_file(&opt_anno, "to `seq`", insert_anno, &conn)?;
-    load_file(&opt_asmseq, "to `asm_seq`", insert_asmseq, &conn)?;
+    load_file(
+        opt_strain.as_ref(),
+        "to `rank` and `asm`",
+        insert_strain,
+        &conn,
+    )?;
+    load_file(opt_size.as_ref(), "to `seq`", insert_size, &conn)?;
+    load_file(
+        opt_clust.as_ref(),
+        "to `rep` and `rep_seq`",
+        insert_clust,
+        &conn,
+    )?;
+    load_file(opt_anno.as_ref(), "to `seq`", insert_anno, &conn)?;
+    load_file(opt_asmseq.as_ref(), "to `asm_seq`", insert_asmseq, &conn)?;
 
     if let Some((rep_field, rep_path)) = &opt_rep {
         info!(

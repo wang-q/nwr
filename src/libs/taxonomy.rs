@@ -339,7 +339,7 @@ pub fn get_ancestor(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Taxo
 ///
 /// NCBI taxonomy depths are well below this limit; the bound acts as a guard
 /// against corrupt cyclic data.
-const MAX_TAXONOMY_DEPTH: usize = 1000;
+const MAX_TAXONOMY_DEPTH: i64 = 1000;
 
 /// All Nodes to the root (with ID 1)
 ///
@@ -377,7 +377,7 @@ pub fn get_lineage(conn: &rusqlite::Connection, id: i64) -> anyhow::Result<Vec<T
         ",
     )?;
 
-    let mut rows = stmt.query(rusqlite::params![id, MAX_TAXONOMY_DEPTH as i64])?;
+    let mut rows = stmt.query(rusqlite::params![id, MAX_TAXONOMY_DEPTH])?;
     let mut ids = Vec::new();
     let mut seen = std::collections::HashSet::new();
 
@@ -491,7 +491,7 @@ pub fn get_all_descendent(
         ",
     )?;
 
-    let mut rows = stmt.query(rusqlite::params![id, MAX_TAXONOMY_DEPTH as i64])?;
+    let mut rows = stmt.query(rusqlite::params![id, MAX_TAXONOMY_DEPTH])?;
     let mut ids = Vec::new();
     let mut seen = std::collections::HashSet::new();
 

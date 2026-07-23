@@ -445,3 +445,34 @@ fn command_seqdb_full_workflow() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn command_seqdb_empty_file() -> anyhow::Result<()> {
+    let temp_dir = TempDir::new()?;
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    cmd.arg("seqdb")
+        .arg("--workdir")
+        .arg(temp_dir.path())
+        .arg("--init")
+        .output()
+        .unwrap();
+
+    // Empty TSV files should be handled gracefully.
+    let strain_file = temp_dir.path().join("empty.tsv");
+    std::fs::write(&strain_file, "")?;
+
+    let mut cmd = Command::cargo_bin("nwr")?;
+    let output = cmd
+        .arg("seqdb")
+        .arg("--workdir")
+        .arg(temp_dir.path())
+        .arg("--strain")
+        .arg(&strain_file)
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+
+    Ok(())
+}

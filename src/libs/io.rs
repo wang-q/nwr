@@ -18,8 +18,7 @@ pub fn reader(input: &str) -> anyhow::Result<Box<dyn BufRead>> {
         let is_gz = path
             .extension()
             .and_then(|ext| ext.to_str())
-            .map(|ext| ext.eq_ignore_ascii_case("gz"))
-            .unwrap_or(false);
+            .is_some_and(|ext| ext.eq_ignore_ascii_case("gz"));
         if is_gz {
             Ok(Box::new(std::io::BufReader::new(
                 flate2::read::MultiGzDecoder::new(file),
