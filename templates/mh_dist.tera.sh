@@ -30,7 +30,7 @@ log_info "Clustering via necom clust hier --method ward"
 necom clust hier --method ward mash.dist.phylip -o tree.nwk
 
 log_info "Grouping by necom clust cut --height {{ mh_height }}"
-necom clust cut --height {{ mh_height }} tree.nwk -o groups.tsv
+necom cut simple --height {{ mh_height }} tree.nwk -o groups.tsv
 
 log_info Done.
 
