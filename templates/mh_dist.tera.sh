@@ -24,13 +24,14 @@ mash triangle -E -p {{ parallel }} -l msh.lst \
     > mash.dist.tsv
 
 log_info Pairwise distances to phylip matrix
-necom mat to-phylip mash.dist.tsv -o mash.dist.phylip
+tva select -f 1-3 mash.dist.tsv |
+    necom mat to-phylip stdin -o mash.dist.phylip
 
 log_info "Clustering via necom clust hier --method ward"
 necom clust hier --method ward mash.dist.phylip -o tree.nwk
 
 log_info "Grouping by necom clust cut --height {{ mh_height }}"
-necom clust cut --height {{ mh_height }} tree.nwk -o groups.tsv
+necom cut simple --height {{ mh_height }} tree.nwk -o groups.tsv
 
 log_info Done.
 

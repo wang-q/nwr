@@ -22,8 +22,8 @@ pub fn make_subcommand() -> Command {
         .arg(args::outdir_arg())
 }
 
-static FILE_BAC: &[u8] = include_bytes!("../../docs/bac120.tar.gz");
-static FILE_AR: &[u8] = include_bytes!("../../docs/ar53.tar.gz");
+static FILE_BAC: &[u8] = include_bytes!("../../assets/bac120.tar.gz");
+static FILE_AR: &[u8] = include_bytes!("../../assets/ar53.tar.gz");
 
 /// Command implementation.
 pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {

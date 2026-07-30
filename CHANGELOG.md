@@ -2,6 +2,45 @@
 
 ## Unreleased - ReleaseDate
 
+* **Breaking Changes**
+    * Replace `pgr` CLI calls with `necom` in template scripts
+
+* **Improvements**
+    * Rename `--include`/`--exclude` to `--in`/`--not-in` in `nwr template` for backward compatibility
+    * Improve taxonomy name handling
+        * Fallback names for `sp`/`sp.` and nomenclatural qualifiers
+        * Handle self-loop taxon entries
+        * Detect duplicate IDs and cycles in taxonomy functions
+    * Add shared CLI args module and standardize argument parsing
+    * Improve progress reporting with `progress_dot` utility
+    * Redirect database and progress messages to stderr
+
+* **Bug Fixes**
+    * Fix whitespace-only line handling in `nwr abbr`
+    * Skip blank lines in TSV and NCBI dump files
+    * Fix double underscores in `clean_name` output
+    * Fix abbreviation overlap and duplicate warnings
+    * Fix compressed FASTA output file extension
+    * Fix `pro_info` template to use `-w` instead of `-d`
+    * Add file and line numbers to taxonomy error messages
+
+* **Performance**
+    * Add failure caching for taxonomy queries
+    * Optimize SQLite queries and taxon lookups
+    * Reduce database queries with in-memory caching
+
+* **Code Quality**
+    * Restructure library modules into `db` and `taxonomy`
+    * Flatten module hierarchy and remove separated subcommand modules
+    * Add safe I/O module to replace panicking operations
+    * Add comprehensive argument validation across commands
+    * Modernize `clap` imports and clean up codebase
+    * Set minimum Rust version to 1.87
+
+* **Documentation**
+    * Update help docs and external documentation
+    * Add crate-level doc comments and document all struct fields
+
 ## 0.9.0 - 2026-04-05
 
 * **Breaking Changes**
