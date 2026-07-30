@@ -79,6 +79,7 @@ cat url.tsv |
             grep -v "_protein.gpff.gz" |
             grep -v "_translated_cds.faa.gz" |
             grep -v "_wgsmaster.gbff.gz" |
+            grep -v "_gene_ontology.paf.gz" |
             grep -v "uncompressed_checksums.txt" |
             perl -nl -e '\''
                 my $fn = (split /\s+/)[-1];
