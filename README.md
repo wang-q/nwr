@@ -19,15 +19,15 @@ cargo install nwr
 cargo install --path . --force # --offline
 ```
 
-Or install the pre-compiled binary via the cross-platform package
-manager [cbp](https://github.com/wang-q/cbp) (supports older Linux systems with glibc 2.17+):
+Or install the pre-compiled binary via the cross-platform package manager
+[cbp](https://github.com/wang-q/cbp)(supports older Linux systems with glibc 2.17+):
 
 ```bash
 cbp install nwr
 ```
 
-You can also download the pre-compiled binaries from
-the [Releases](https://github.com/wang-q/nwr/releases) page.
+You can also download the pre-compiled binaries from the
+[Releases](https://github.com/wang-q/nwr/releases) page.
 
 ## `nwr help`
 
@@ -72,7 +72,9 @@ Subcommand groups:
 
 The date `date --utc` of executing `nwr download` is `Sun Apr  5 15:59:45 UTC 2026`
 
-The database doesn't need frequent updates. In our lab, we update it approximately once a year. For reproducibility, I provide database files for the above date in [the Releases](https://github.com/wang-q/nwr/releases/tag/v0.9.0) page.
+The database doesn't need frequent updates. In our lab, we update it approximately
+once a year. For reproducibility, I provide database files for the above date in
+[the Releases](https://github.com/wang-q/nwr/releases/tag/v0.9.0) page.
 
 ```shell
 cbp install nwr
@@ -92,6 +94,7 @@ tar cvfz ncbi.$(date +"%Y%m%d").tar.gz \
 
 rm \
     *.dmp \
+    gc.prt readme.txt \
     taxdump.tar.gz \
     taxdump.tar.gz.md5 \
     assembly_summary_genbank.txt \
@@ -101,6 +104,10 @@ rm \
 ### Usage of each command
 
 For practical uses of `nwr` and other awesome companions, follow this [page](docs/ncbi_ar.md).
+
+For a complete end-to-end workflow covering taxonomy queries, assembly download and filtering,
+quality control, protein family analysis, and multi-species genomic alignments, see
+[docs/Trichoderma.md](docs/Trichoderma.md)(using the genus *Trichoderma* as an example).
 
 ```shell
 # nwr download
