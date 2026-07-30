@@ -6,7 +6,7 @@
     * Replace `pgr` CLI calls with `necom` in template scripts
 
 * **Improvements**
-    * Restore `--in`/`--not-in` flags in `nwr template` for backward compatibility
+    * Rename `--include`/`--exclude` to `--in`/`--not-in` in `nwr template` for backward compatibility
     * Improve taxonomy name handling
         * Fallback names for `sp`/`sp.` and nomenclatural qualifiers
         * Handle self-loop taxon entries
