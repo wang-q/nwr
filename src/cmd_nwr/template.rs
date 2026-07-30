@@ -29,7 +29,7 @@ fn write_species_tsv(
         writeln!(writer, "{key}\t{species}")?;
     }
     writer.flush()?;
-    writer.finish()?;
+
     Ok(())
 }
 
@@ -67,7 +67,6 @@ fn gen_ass_data(context: &Context) -> anyhow::Result<()> {
         writeln!(writer, "{key}\t{url}\t{species}")?;
     }
     writer.flush()?;
-    writer.finish()?;
 
     Ok(())
 }
@@ -106,7 +105,6 @@ fn gen_bs_data(context: &Context) -> anyhow::Result<()> {
         writeln!(writer, "{key}\t{name}\t{species}")?;
     }
     writer.flush()?;
-    writer.finish()?;
 
     Ok(())
 }
@@ -144,7 +142,6 @@ fn gen_mh_data(context: &Context) -> anyhow::Result<()> {
         writeln!(writer, "{key}\t{species}\t{level}")?;
     }
     writer.flush()?;
-    writer.finish()?;
 
     Ok(())
 }

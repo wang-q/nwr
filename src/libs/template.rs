@@ -103,7 +103,7 @@ pub fn open_writer(
     outdir: &str,
     subdir: &str,
     outname: &str,
-) -> anyhow::Result<crate::libs::io::Writer> {
+) -> anyhow::Result<Box<dyn std::io::Write>> {
     if outdir == STDOUT_MARKER {
         crate::libs::io::writer("stdout")
     } else {
@@ -141,7 +141,6 @@ pub fn render_shell_script(
     let rendered = tera.render("t", context)?;
     writer.write_all(rendered.as_ref())?;
     writer.flush()?;
-    writer.finish()?;
 
     Ok(())
 }

@@ -94,10 +94,6 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         tsv_wtr.serialize((node.tax_id, sci_name, &node.rank, &node.division))?;
     }
     tsv_wtr.flush()?;
-    let writer = tsv_wtr
-        .into_inner()
-        .map_err(|e| anyhow::anyhow!("failed to flush TSV writer: {e}"))?;
-    writer.finish()?;
 
     Ok(())
 }

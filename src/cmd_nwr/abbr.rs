@@ -168,7 +168,6 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
         writer.write_fmt(format_args!("{original_line}\t{abbr}\n"))?;
     }
     writer.flush()?;
-    writer.finish()?;
 
     Ok(())
 }

@@ -83,7 +83,6 @@ pub fn execute(args: &ArgMatches) -> anyhow::Result<()> {
     let out_string = tree.to_newick()?;
     writeln!(writer, "{out_string}")?;
     writer.flush()?;
-    writer.finish()?;
 
     Ok(())
 }
