@@ -126,8 +126,15 @@ mod tests {
     }
 
     #[test]
+    #[cfg(unix)]
     fn test_validate_tar_entry_path_absolute() {
         assert!(validate_tar_entry_path(Path::new("/etc/passwd")).is_err());
+    }
+
+    #[test]
+    #[cfg(windows)]
+    fn test_validate_tar_entry_path_absolute() {
+        assert!(validate_tar_entry_path(Path::new("C:\\Windows\\System32")).is_err());
     }
 
     #[test]
