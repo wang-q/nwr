@@ -2,6 +2,9 @@
 
 ## Unreleased - ReleaseDate
 
+* **Bug Fixes**
+    * Fix test failures
+
 ## 0.9.1 - 2026-07-30
 
 * **Breaking Changes**
