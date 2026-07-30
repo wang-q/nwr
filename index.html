@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-5151e5c2.js";
+            window.path_to_searchindex_js = "searchindex-6d7fb8b3.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-17c0c826.js"></script>
@@ -195,12 +195,12 @@
 # or
 cargo install --path . --force # --offline
 </code></pre>
-<p>Or install the pre-compiled binary via the cross-platform package
-manager <a href="https://github.com/wang-q/cbp">cbp</a> (supports older Linux systems with glibc 2.17+):</p>
+<p>Or install the pre-compiled binary via the cross-platform package manager
+<a href="https://github.com/wang-q/cbp">cbp</a>(supports older Linux systems with glibc 2.17+):</p>
 <pre><code class="language-bash">cbp install nwr
 </code></pre>
-<p>You can also download the pre-compiled binaries from
-the <a href="https://github.com/wang-q/nwr/releases">Releases</a> page.</p>
+<p>You can also download the pre-compiled binaries from the
+<a href="https://github.com/wang-q/nwr/releases">Releases</a> page.</p>
 <h2 id="nwr-help"><a class="header" href="#nwr-help"><code>nwr help</code></a></h2>
 <pre><code class="language-console">$ nwr help
 `nwr` is a command line **N**CBI taxonomy and assembly **WR**angler.
@@ -238,7 +238,9 @@ Subcommand groups:
 <h2 id="examples"><a class="header" href="#examples">Examples</a></h2>
 <h3 id="initiate-local-databases"><a class="header" href="#initiate-local-databases">Initiate local databases</a></h3>
 <p>The date <code>date --utc</code> of executing <code>nwr download</code> is <code>Sun Apr  5 15:59:45 UTC 2026</code></p>
-<p>The database doesn’t need frequent updates. In our lab, we update it approximately once a year. For reproducibility, I provide database files for the above date in <a href="https://github.com/wang-q/nwr/releases/tag/v0.9.0">the Releases</a> page.</p>
+<p>The database doesn’t need frequent updates. In our lab, we update it approximately
+once a year. For reproducibility, I provide database files for the above date in
+<a href="https://github.com/wang-q/nwr/releases/tag/v0.9.0">the Releases</a> page.</p>
 <pre><code class="language-shell">cbp install nwr
 
 nwr download
@@ -256,6 +258,7 @@ tar cvfz ncbi.$(date +"%Y%m%d").tar.gz \
 
 rm \
     *.dmp \
+    gc.prt readme.txt \
     taxdump.tar.gz \
     taxdump.tar.gz.md5 \
     assembly_summary_genbank.txt \
@@ -263,6 +266,9 @@ rm \
 </code></pre>
 <h3 id="usage-of-each-command"><a class="header" href="#usage-of-each-command">Usage of each command</a></h3>
 <p>For practical uses of <code>nwr</code> and other awesome companions, follow this <a href="ncbi_ar.html">page</a>.</p>
+<p>For a complete end-to-end workflow covering taxonomy queries, assembly download and filtering,
+quality control, protein family analysis, and multi-species genomic alignments, see
+<a href="Trichoderma.html">docs/Trichoderma.md</a>(using the genus <em>Trichoderma</em> as an example).</p>
 <pre><code class="language-shell"># nwr download
 
 # nwr txdb
